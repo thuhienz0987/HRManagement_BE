@@ -1,11 +1,11 @@
-const { Router } = require('express');
-const refreshController = require('../controllers/refreshController');
+import { Router } from 'express';
+import handleRefreshToken from '../controllers/refreshController.js';
 
 // init refresh token router
 const router = Router();
 
 
 // refresh token router
-router.get('/refresh', refreshController.handleRefreshToken);
+router.get('/refresh', handleRefreshToken);
 
-module.exports = router;
+export default router;

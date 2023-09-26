@@ -1,8 +1,9 @@
-const mongoose = require('mongoose');
-const { isEmail } = require('validator');
-const bcrypt = require('bcrypt');
-const validator = require('validator');
-const ROLES_LIST = require('../config/roles_list')
+import mongoose from 'mongoose';
+import pkg from 'validator';
+const { isEmail } = pkg;
+import bcrypt from 'bcrypt';
+import validator from 'validator';
+import ROLES_LIST from '../config/roles_list.js';
 
 const userSchema = new mongoose.Schema({
     email: {
@@ -113,4 +114,4 @@ userSchema.pre('save', async function(next) {
 
 const User = mongoose.model('user', userSchema);
 
-module.exports = User;
+export default User;

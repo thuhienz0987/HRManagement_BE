@@ -1,6 +1,6 @@
-const BadRequestError = require('../errors/badRequestError.js');
-const NotFoundError = require('../errors/notFoundError.js');
-const Role = require('../models/Role.js');
+import BadRequestError from '../errors/badRequestError.js';
+import NotFoundError from '../errors/notFoundError.js';
+import Role from '../models/Role.js';
 
 const getRoles = async (req,res) => {
     try{
@@ -85,4 +85,4 @@ const deleteRole = async (req,res) => {
     }
 }
 
-module.exports = {getRoles,getRole,postRole,updateRole,deleteRole}
+export {getRoles,getRole,postRole,updateRole,deleteRole}

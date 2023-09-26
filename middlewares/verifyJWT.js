@@ -1,6 +1,6 @@
-const jwt = require('jsonwebtoken');
-const UnauthorizedError  = require('../errors/unauthorizedError');
-const ForbiddenError  = require('../errors/forbiddenError');
+import jwt from 'jsonwebtoken';
+import UnauthorizedError from '../errors/unauthorizedError.js';
+import ForbiddenError from '../errors/forbiddenError.js';
 
 const verifyJWT = (req, res, next) => {
     const authHeader = req.headers.authorization || req.headers.Authorization;
@@ -20,4 +20,4 @@ const verifyJWT = (req, res, next) => {
     );
 };
 
-module.exports = verifyJWT;
+export default verifyJWT;

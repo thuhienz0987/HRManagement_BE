@@ -6,4 +6,4 @@ const allowedOrigins = [
     'http://localhost:3000/favicon.ico'
 ];
 
-module.exports = allowedOrigins;
+export default allowedOrigins;

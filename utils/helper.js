@@ -1,6 +1,6 @@
-const crypto =require('crypto');
+import crypto from 'crypto';
 
-exports.createRandomBytes = () =>
+const createRandomBytes = () =>
     new Promise((resolve, reject) => {
         crypto.randomBytes(30, (err, buff) => {
             if (err) reject(err);
@@ -9,3 +9,5 @@ exports.createRandomBytes = () =>
             resolve(token);
         });
     });
+
+export default createRandomBytes;

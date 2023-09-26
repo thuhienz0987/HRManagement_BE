@@ -1,5 +1,5 @@
-const Router = require("express");
-const { deleteRole, getRole, getRoles, postRole, updateRole } = require("../controllers/roleController.js");
+import Router from "express";
+import {getRoles,getRole,postRole,updateRole,deleteRole} from "../controllers/roleController.js";
 const roleRouter = Router();
 
 roleRouter.get('/roles',getRoles);
@@ -8,4 +8,4 @@ roleRouter.post('/role',postRole);
 roleRouter.put('/role/:id',updateRole);
 roleRouter.delete('/role/:id',deleteRole);
 
-module.exports = roleRouter;
+export default roleRouter;

@@ -1,7 +1,7 @@
-const User = require('../models/User');
-const jwt = require('jsonwebtoken');
-const UnauthorizedError  = require('../errors/unauthorizedError');
-const ForbiddenError  = require('../errors/forbiddenError');
+import User from '../models/User.js';
+import jwt from 'jsonwebtoken';
+import UnauthorizedError from '../errors/unauthorizedError.js';
+import ForbiddenError  from '../errors/forbiddenError.js';
 
 const maxAgeAccessToken = 60 * 15;
 
@@ -41,4 +41,4 @@ const handleRefreshToken = async (req, res) => {
     );
 };
 
-module.exports = { handleRefreshToken };
+export default handleRefreshToken;

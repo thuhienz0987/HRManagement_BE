@@ -1,13 +1,13 @@
-const User = require('../models/User');
-const jwt = require('jsonwebtoken');
-const BadRequestError = require('../errors/badRequestError');
-const ForbiddenError = require('../errors/forbiddenError');
-const NotFoundError = require('../errors/notFoundError');
-const ResetToken = require('../models/ResetToken');
+import User from '../models/User.js';
+import jwt from 'jsonwebtoken';
+import BadRequestError from '../errors/badRequestError.js';
+import ForbiddenError from '../errors/forbiddenError.js';
+import NotFoundError from '../errors/notFoundError.js';
+import ResetToken from '../models/ResetToken.js';
 
-const { createRandomBytes } = require('../utils/helper');
-const { mailTransport, forgetPasswordTemplate, passwordResetTemplate } = require('../utils/mail');
-const passwordValidator = require('password-validator');
+import createRandomBytes from '../utils/helper.js';
+import { mailTransport, forgetPasswordTemplate, passwordResetTemplate } from '../utils/mail.js';
+import passwordValidator from 'password-validator';
 
 let passwordSchema = new passwordValidator();
 
@@ -40,7 +40,7 @@ const handleErrors = (err) => {
 const maxAgeAccessToken = 60 * 60;
 const maxAgeRefreshToken = 60 * 60 * 24 * 30 * 6;
 
-module.exports.login_post = async (req, res) => {
+const login_post = async (req, res) => {
     const { email, password } = req.body;
 
     try {
@@ -82,7 +82,7 @@ module.exports.login_post = async (req, res) => {
     }
 };
 
-module.exports.logout_post = async (req, res) => {
+const logout_post = async (req, res) => {
     // check if cookies exist
     const cookies = req.cookies;
     if (!cookies?.jwt) return res.sendStatus(204); //no token == no need handle
@@ -103,7 +103,7 @@ module.exports.logout_post = async (req, res) => {
     res.sendStatus(204);
 };
 
-module.exports.forget_password = async (req, res) => {
+const forget_password = async (req, res) => {
     const { email } = req.body;
     if(!email) throw new BadRequestError("Please provide a valid email!");
 
@@ -138,7 +138,7 @@ passwordSchema
 .has().lowercase()                              // Must have lowercase letters
 .has().not().spaces(); 
 
-module.exports.reset_password = async (req, res) => {
+const reset_password = async (req, res) => {
     try {
         const { password } = req.body;
         console.log(password);
@@ -167,9 +167,12 @@ module.exports.reset_password = async (req, res) => {
         html: passwordResetTemplate(),
     });
     
-    res.json({Status: "Success", message: "Password Reset Successfully"}); 
+    res.status(200).json({Status: "Success", message: "Password Reset Successfully"}); 
     }
     catch (err) { 
         throw err 
     }
 };
+
+
+export {handleErrors, login_post, logout_post, forget_password, reset_password};

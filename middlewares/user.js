@@ -1,10 +1,10 @@
-const { isValidObjectId } = require("mongoose");
-const BadRequestError = require("../errors/badRequestError");
-const NotFoundError = require("../errors/notFoundError");
-const ResetToken = require("../models/ResetToken");
-const User = require("../models/User");
+import { isValidObjectId } from "mongoose";
+import BadRequestError from "../errors/badRequestError.js";
+import NotFoundError from "../errors/notFoundError.js";
+import ResetToken from "../models/ResetToken.js";
+import User from "../models/User.js";
 
-exports.isValidResetToken = async (req, res, next) => {
+const isValidResetToken = async (req, res, next) => {
     const { token, id} = req.query;
     if (!token || !id) throw new BadRequestError("Invalid request!");
     
@@ -23,3 +23,5 @@ exports.isValidResetToken = async (req, res, next) => {
     console.log(req.user)
     next();
 };
+
+export default isValidResetToken;

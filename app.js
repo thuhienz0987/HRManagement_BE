@@ -1,15 +1,15 @@
-const express = require('express');
-require('dotenv').config();
-const mongoose = require('mongoose');
-const connectDB = require('./config/connectDB');
-const cors = require('cors');
-const bodyParser = require('body-parser');
-const cookieParser = require('cookie-parser');
-const credentials = require('./middlewares/credentials');
-const corsOptions = require('./config/corsOptions');
-require('express-async-errors');
+import express from 'express';
+import 'dotenv/config'
+import mongoose from 'mongoose';
+import connectDB from './config/connectDB.js';
+import cors from 'cors';
+import bodyParser from 'body-parser';
+import cookieParser from 'cookie-parser';
+import credentials from './middlewares/credentials.js';
+import corsOptions from './config/corsOptions.js';
+import 'express-async-errors';
 
-const router = require('./routes/index.js');
+import router from './routes/index.js';
 
 connectDB();
 const Port = process.env.PORT || 3000;

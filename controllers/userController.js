@@ -1,9 +1,9 @@
-const User = require('../models/User');
-const cloudinary = require('../helper/imageUpload');
-const NotFoundError = require('../errors/notFoundError');
-const InternalServerError = require('../errors/internalServerError');
+import User from '../models/User.js';
+import cloudinary from '../helper/imageUpload.js';
+import NotFoundError from '../errors/notFoundError.js';
+import InternalServerError from '../errors/internalServerError.js';
 
-module.exports.edit_user_profile = async (req, res) => {
+const edit_user_profile = async (req, res) => {
     const { name, phoneNumber, address, birthday, gender, email, level} = req.body;
 
     const id = req.params._id;
@@ -55,7 +55,7 @@ module.exports.edit_user_profile = async (req, res) => {
     catch (err) {throw err;}
 };
 
-module.exports.get_all_user = async (req, res) => {
+const get_all_user = async (req, res) => {
     User.find()
     .then((result)=>{
         let handledResult = result.map(item => {
@@ -69,7 +69,7 @@ module.exports.get_all_user = async (req, res) => {
     })
 }
 
-module.exports.get_user_by_id = async (req, res) => {
+const get_user_by_id = async (req, res) => {
     try {
         const id = req.params._id;
         const user = await User.findById(id);
@@ -81,3 +81,6 @@ module.exports.get_user_by_id = async (req, res) => {
         throw err
     }
 }
+
+export {edit_user_profile, get_all_user, get_user_by_id};
+//  = 

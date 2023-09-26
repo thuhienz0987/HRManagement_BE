@@ -1,11 +1,11 @@
-const { isValidObjectId } = require('mongoose');
-const nodemailer = require('nodemailer');
-const BadRequestError = require('../errors/badRequestError');
-const NotFoundError = require('../errors/notFoundError');
-const User = require('../models/User');
-const VerificationToken = require('../models/VerificationToken');
+import { isValidObjectId } from 'mongoose';
+import nodemailer from 'nodemailer';
+import BadRequestError from '../errors/badRequestError.js';
+import NotFoundError from '../errors/notFoundError.js';
+import User from '../models/User.js';
+import VerificationToken from '../models/VerificationToken.js';
 
-exports.generateOTP = () => {
+const generateOTP = () => {
     let otp = '';
     for(let i = 0; i <=3; i++) {
         const randVal = Math.round(Math.random() * 9);
@@ -14,7 +14,7 @@ exports.generateOTP = () => {
     return otp;
 };
 
-exports.mailTransport = () => nodemailer.createTransport({
+const mailTransport = () => nodemailer.createTransport({
         service: "gmail",
         auth: {
             user: process.env.MAILTRAP_USERNAME,
@@ -22,7 +22,7 @@ exports.mailTransport = () => nodemailer.createTransport({
         }
     });
 
-exports.OtpTemplate = (OTP) => {
+const OtpTemplate = (OTP) => {
     return `
         <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
         <html xmlns="http://www.w3.org/1999/xhtml">
@@ -77,7 +77,7 @@ exports.OtpTemplate = (OTP) => {
     `
 };
 
-exports.verifiedTemplate= () => {
+const verifiedTemplate= () => {
     return `
         <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
     <html xmlns="http://www.w3.org/1999/xhtml">
@@ -128,7 +128,7 @@ exports.verifiedTemplate= () => {
     `
 };
 
-exports.forgetPasswordTemplate = (url) => {
+const forgetPasswordTemplate = (url) => {
     return `
         <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
     <html xmlns="http://www.w3.org/1999/xhtml">
@@ -183,7 +183,7 @@ exports.forgetPasswordTemplate = (url) => {
     `
 };
 
-exports.passwordResetTemplate= () => {
+const passwordResetTemplate= () => {
     return `
         <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
     <html xmlns="http://www.w3.org/1999/xhtml">
@@ -233,3 +233,5 @@ exports.passwordResetTemplate= () => {
     </html>
     `
 };
+
+export {generateOTP, mailTransport, OtpTemplate, verifiedTemplate, forgetPasswordTemplate, passwordResetTemplate}

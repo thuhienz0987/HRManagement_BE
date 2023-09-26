@@ -1,5 +1,5 @@
-const mongoose = require('mongoose');
-const bcrypt = require('bcrypt');
+import mongoose from 'mongoose';
+import bcrypt from 'bcrypt';
 
 const resetTokenSchema = new mongoose.Schema({
     owner: {
@@ -32,4 +32,4 @@ resetTokenSchema.methods.compareToken = async function (token) {
     return result;
 };
 
-module.exports = mongoose.model("ResetToken", resetTokenSchema);
+export default mongoose.model("ResetToken", resetTokenSchema);

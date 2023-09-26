@@ -1,10 +1,10 @@
-const Router = require("express");
-const verifyJWT = require('../middlewares/verifyJWT.js');
-const errorHandler = require("../middlewares/errorHandler");
-const authRouters = require('./authRouters');
-const refreshRouters = require('./refreshRouters');
-const userRouters = require('./userRouters');
-const roleRouter = require('./roleRouters.js');
+import Router from "express";
+import verifyJWT from '../middlewares/verifyJWT.js';
+import errorHandler from "../middlewares/errorHandler.js";
+import authRouters from './authRouters.js';
+import refreshRouters from './refreshRouters.js';
+import userRouters from './userRouters.js';
+import roleRouter from './roleRouters.js';
 
 const router = Router();
 
@@ -19,4 +19,4 @@ router.use(userRouters);
 // error handler all routes
 router.use(errorHandler);
 
-module.exports = router
+export default router
