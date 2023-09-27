@@ -4,7 +4,7 @@ import errorHandler from "../middlewares/errorHandler.js";
 import authRouters from './authRouters.js';
 import refreshRouters from './refreshRouters.js';
 import userRouters from './userRouters.js';
-import roleRouter from './roleRouters.js';
+import positionRouters from './positionRouters.js';
 import allowanceRouter from "./allowanceRouters.js";
 
 const router = Router();
@@ -12,7 +12,7 @@ const router = Router();
 router.use(authRouters);
 router.use(refreshRouters);
 
-router.use(roleRouter);
+router.use(positionRouters);
 router.use(allowanceRouter);
 
 router.use(verifyJWT);
