@@ -6,7 +6,7 @@ const getRoles = async (req,res) => {
     try{
         const role = await Role.find({isDeleted: false})
         if(!role) {
-            throw new NotFoundError('NOT FOUND ROLE')
+            throw new NotFoundError('Not found any role')
         }
         res.status(200).json(role);
     }catch(err){
@@ -17,7 +17,7 @@ const getRoles = async (req,res) => {
 const getRole = async (req,res) =>{
     const {id} = req.params;
     try{
-        const role = Role.findById(id)
+        const role = await Role.findById(id)
         if (role && role.isDeleted === false) {
             res.status(200).json(role);
           } else if (role && role.isDeleted === true) {
@@ -31,19 +31,31 @@ const getRole = async (req,res) =>{
 };
 
 const postRole = async (req,res) =>{
-    const {code, name} = req.body;
-  
-    
-    const roleExist = await Role.findOne({code});
-
-    const role = new Role({code,name});
-
-    if(roleExist){
-        throw new BadRequestError('role exist');
-    }
+    const {code, name, basicSalary} = req.body;
     try{
-        const newRole = await role.save();
-        res.status(201).json(newRole);
+        const roleExist = await Role.findOne({code});   
+        if(roleExist && roleExist.isDeleted===true){
+            roleExist.code= code;
+            roleExist.name=name;
+            roleExist.basicSalary= basicSalary;
+            const newRole = await roleExist.save()
+            res.status(201).json({
+                message: 'restore Role successfully',
+                role: newRole,
+            })
+        }
+        else if (!roleExist){
+            const role = new Role({code,name, basicSalary});
+            const newRole = await role.save()
+            res.status(200).json({
+                message: 'Create Role successfully',
+                role: newRole,
+            })
+        }
+        else{
+            throw new BadRequestError(`Role with code ${roleExist.code} exist`)
+        }
+
     }catch(err){
         throw err;
     }
@@ -51,13 +63,14 @@ const postRole = async (req,res) =>{
 
 const updateRole = async (req,res) => {
     const {id}= req.params;
-    const {code,name} = req.body;
+    const {code,name,basicSalary} = req.body;
     const role = await Role.findById(id);
     if(!role) {
-        throw new NotFoundError('NOT FOUND');
+        throw new NotFoundError('Not found role');
     }
     role.code= code;
     role.name=name;
+    role.basicSalary= basicSalary;
     try{
         const updateRole = await role.save();
         res.status(200).json(updateRole)
@@ -69,12 +82,8 @@ const updateRole = async (req,res) => {
 
 const deleteRole = async (req,res) => {
     const {id} = req.params;
-    
     try{
-        const role = Role.findByIdAndUpdate({id},{isDeleted: true},{new: true});
-        if(!role){
-            throw new BadRequestError('Role has been deleted');
-        }
+        const role = await Role.findByIdAndUpdate(id,{ isDeleted: true},{new: true});
         res.status(200).json({
             message: 'Deleted Role successfully',
             role: role,

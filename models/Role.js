@@ -15,6 +15,10 @@ const roleSchema = mongoose.Schema({
         minLength: [ 1,'A name of role have minimum of 1 character'],
         maxLength: [100, 'A name of role must have maximum of 100 character']
     },
+    basicSalary:{
+        type: Number,
+        required: [true,'A role must have basic salary'],
+    },
     isDeleted:{
         type: Boolean,
         required: true,
