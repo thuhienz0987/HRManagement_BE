@@ -1,6 +1,6 @@
 import BadRequestError from '../errors/badRequestError.js';
-import NotFoundError from '../errors/notFoundError.js'
-import Role from '../models/Role.js'
+import NotFoundError from '../errors/notFoundError.js';
+import Role from '../models/Role.js';
 
 const getRoles = async (req,res) => {
     try{

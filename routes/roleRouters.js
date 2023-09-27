@@ -1,5 +1,5 @@
-import { Router } from "express";
-import { deleteRole, getRole, getRoles, postRole, updateRole } from "../controllers/roleController.js";
+import Router from "express";
+import {getRoles,getRole,postRole,updateRole,deleteRole} from "../controllers/roleController.js";
 const roleRouter = Router();
 
 roleRouter.get('/roles',getRoles);
