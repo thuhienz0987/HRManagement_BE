@@ -6,6 +6,8 @@ import refreshRouters from './refreshRouters.js';
 import userRouters from './userRouters.js';
 import positionRouters from './positionRouters.js';
 import allowanceRouter from "./allowanceRouters.js";
+import bonusRouter from "./bonusRouters.js";
+import salaryGradeRouter from "./salaryGradeRouters.js"
 
 const router = Router();
 
@@ -14,6 +16,8 @@ router.use(refreshRouters);
 
 router.use(positionRouters);
 router.use(allowanceRouter);
+router.use(bonusRouter);
+router.use(salaryGradeRouter);
 
 router.use(verifyJWT);
 router.get('/test', (req, res) => {res.status(200).json('OK')});
