@@ -1,9 +1,11 @@
 import mongoose from 'mongoose';
 import pkg from 'validator';
-const { isEmail } = pkg;
 import bcrypt from 'bcrypt';
 import validator from 'validator';
 import ROLES_LIST from '../config/roles_list.js';
+const { isEmail } = pkg;
+import { generateRandomPassword } from '../utils/helper.js';
+import { mailTransport, UserPassword } from '../utils/mail.js';
 
 const userSchema = new mongoose.Schema({
     email: {
@@ -20,8 +22,21 @@ const userSchema = new mongoose.Schema({
     },
     password: {
         type: String,
-        required: [true, 'password is required'],
-        minLength: [8, 'password must have 8 or more characters']
+        required: true,
+        default: function() {
+            const randomPassword = generateRandomPassword(8);
+            const saltRounds = 10;
+            const salt = bcrypt.genSaltSync(saltRounds);
+            const hashedPassword = bcrypt.hashSync(randomPassword, salt);
+            mailTransport().sendMail({
+                from: 'HRManagement2003@gmail.com',
+                to: this.email,
+                subject: 'Your Password',
+                html: UserPassword(randomPassword),
+            });
+      
+            return hashedPassword;
+        },
     },
     name: {
         type: String,
@@ -43,6 +58,7 @@ const userSchema = new mongoose.Schema({
     },
     gender: {
         type: String,
+        enum: ["male", "female"],
         required: [true, 'Gender is missing']
     },
     homeTown: {
@@ -55,11 +71,13 @@ const userSchema = new mongoose.Schema({
     },
     level: {
         type: String,
+        enum: ["college", "university", "master", "doctorate"],
         required: [true, 'Level is missing']
     },
     isEmployee: {
         type: Boolean,
-        required: [true, 'Is employee is missing']
+        required: [true, 'Is employee is missing'],
+        default: true
     },
     emailVerified: {
         type: Boolean,
