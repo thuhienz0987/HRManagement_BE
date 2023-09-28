@@ -5,7 +5,7 @@ import ForbiddenError from '../errors/forbiddenError.js';
 import NotFoundError from '../errors/notFoundError.js';
 import ResetToken from '../models/ResetToken.js';
 
-import createRandomBytes from '../utils/helper.js';
+import { createRandomBytes } from '../utils/helper.js';
 import { mailTransport, forgetPasswordTemplate, passwordResetTemplate } from '../utils/mail.js';
 import passwordValidator from 'password-validator';
 
@@ -14,7 +14,7 @@ let passwordSchema = new passwordValidator();
 // handle errors
 const handleErrors = (err) => {
     console.log(err.message, err.code);
-    let errors = { email: '', password: '', firstName: '', lastName: '', phoneNumber: '' };
+    let errors = { email: '', password: '', name: '', phoneNumber: '' };
 
     // incorrect email
     if (err.message === 'incorrect email') {
@@ -122,10 +122,11 @@ const forget_password = async (req, res) => {
     const result = await resetToken.save();
 
     mailTransport().sendMail({
-        from: 'fashionapp5@gmail.com',
+        from: 'OpenJavaScript <HRManagement2003@gmail.com>',
         to: user.email,
         subject: 'Password Reset',
-        html: forgetPasswordTemplate(`https://fashion-app-0m3s.onrender.com/reset-password?token=${newToken}&id=${user._id}`),
+        html: forgetPasswordTemplate(`http://localhost:3000/reset-password?token=${newToken}&id=${user._id}`),
+        // html: forgetPasswordTemplate(`https://fashion-app-0m3s.onrender.com/reset-password?token=${newToken}&id=${user._id}`),
     });
 
     res.status(200).json({"Status": "Success", "message": "Password reset link is sent to your email"});
@@ -161,7 +162,7 @@ const reset_password = async (req, res) => {
     await ResetToken.findOneAndDelete({owner: user._id});
     
     mailTransport().sendMail({
-        from: 'fashionapp5@gmail.com',
+        from: 'HRManagement2003@gmail.com',
         to: user.email,
         subject: 'Password Reset Successfully',
         html: passwordResetTemplate(),
