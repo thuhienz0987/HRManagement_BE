@@ -2,7 +2,6 @@ import { Router } from 'express';
 import {login_post, logout_post, forget_password, reset_password} from '../controllers/authController.js';
 import  isValidResetToken from '../middlewares/user.js';
 
-
 // initial auth routes
 const router = Router();
 
