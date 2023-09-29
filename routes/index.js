@@ -7,6 +7,8 @@ import userRouters from './userRouters.js';
 import commentRouter from "./commentRouters.js";
 import positionRouters from './positionRouters.js';
 import allowanceRouter from "./allowanceRouters.js";
+import bonusRouter from "./bonusRouters.js";
+import salaryGradeRouter from "./salaryGradeRouters.js"
 
 const router = Router();
 
@@ -21,6 +23,8 @@ router.use(userRouters);
 router.use(commentRouter);
 router.use(positionRouters);
 router.use(allowanceRouter);
+router.use(bonusRouter);
+router.use(salaryGradeRouter);
 
 
 
