@@ -42,17 +42,17 @@ const getSalaryGrade = async (req,res) =>{
 
 
 const postSalaryGrade = async (req,res) =>{
-    const {code, factor, positionCode } = req.body;
+    const {code, factor, idPosition } = req.body;
     try{
         const salaryGradeExist = await SalaryGrade.findOne({code}); 
-        const position = Position.findById(positionCode);
+        const position = Position.findById(idPosition);
         if(!position || (position&&position.isDeleted===true)){
             throw new BadRequestError("position not exist")
         }
         if(salaryGradeExist && salaryGradeExist.isDeleted===true){
             salaryGradeExist.code= code;
             salaryGradeExist.factor=factor;
-            salaryGradeExist.positionCode= positionCode;
+            salaryGradeExist.idPosition= idPosition;
             const newSalaryGrade = await salaryGradeExist.save()
             res.status(201).json({
                 message: 'restore salary grade successfully',
@@ -60,7 +60,7 @@ const postSalaryGrade = async (req,res) =>{
             })
         }
         else if (!salaryGradeExist){
-            const salaryGrade = new SalaryGrade({code,factor,positionCode});
+            const salaryGrade = new SalaryGrade({code,factor,idPosition});
             const newSalaryGrade = await salaryGrade.save()
             res.status(200).json({
                 message: 'Create salary grade successfully',
@@ -78,9 +78,9 @@ const postSalaryGrade = async (req,res) =>{
 
 const updateSalaryGrade = async (req,res) =>{
     const {id}= req.params;
-    const {code,factor, positionCode} = req.body;
+    const {code,factor, idPosition} = req.body;
     const salaryGrade = await SalaryGrade.findById(id);
-    const position = Position.findById(positionCode);
+    const position = Position.findById(idPosition);
 
     if(!salaryGrade) {
         throw new NotFoundError('Not found salary grade');
@@ -91,7 +91,7 @@ const updateSalaryGrade = async (req,res) =>{
 
     salaryGrade.code= code;
     salaryGrade.factor= factor;
-    salaryGrade.positionCode= positionCode;
+    salaryGrade.idPosition= idPosition;
     try{
         const updateSalaryGrade = await salaryGrade.save();
         res.status(200).json(updateSalaryGrade)

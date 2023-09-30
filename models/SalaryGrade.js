@@ -11,7 +11,7 @@ const salaryGradeSchema = mongoose.Schema({
         type: Number,
         required: [true,'A salary grade must have a factor'],
     },
-    positionCode:{
+    idPosition:{
         type: mongoose.Types.ObjectId,
         ref:'Position',
         required: [true,'A salary grade must link position'],
