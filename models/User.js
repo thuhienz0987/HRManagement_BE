@@ -95,7 +95,7 @@ const userSchema = new mongoose.Schema({
     roles: {
         type: [String],
         required: true,
-        default: [ROLES_LIST.User]
+        default: [ROLES_LIST.Employee]
     },
 },
     { timestamps: true }

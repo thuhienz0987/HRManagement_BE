@@ -15,16 +15,18 @@ const router = Router();
 router.use(authRouters);
 router.use(refreshRouters);
 
+
+
+router.use(verifyJWT);
+router.get('/test', (req, res) => {res.status(200).json('OK')});
+router.use(userRouters);
 router.use(commentRouter);
 router.use(positionRouters);
 router.use(allowanceRouter);
 router.use(bonusRouter);
 router.use(salaryGradeRouter);
 
-router.use(verifyJWT);
-router.use(userRouters);
 
-router.get('/test', (req, res) => {res.status(200).json('OK')});
 
 // error handler all routes
 router.use(errorHandler);

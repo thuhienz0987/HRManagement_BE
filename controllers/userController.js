@@ -58,7 +58,7 @@ const create_user = async (req, res) => {
             level,
             isEmployee,
             avatarImage,
-            roles: [ROLES_LIST.User]
+            roles: [ROLES_LIST.Employee]
         })
 
         // generate verification otp
