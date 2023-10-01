@@ -8,7 +8,7 @@ const getSalaryGrades = async(req,res) =>{
     try{
         const salaryGrades = await SalaryGrade.find({isDeleted: false}).populate({
             
-            path: 'positionCode',
+            path: 'idPosition',
         })
         if(!salaryGrades){
             throw new NotFoundError('Not found any salary grade')
@@ -26,7 +26,7 @@ const getSalaryGrade = async (req,res) =>{
     try{
         const salaryGrade = await SalaryGrade.findById(id).populate({
             
-            path: 'positionCode',
+            path: 'idPosition',
         })
         if (salaryGrade && salaryGrade.isDeleted === false) {
             res.status(200).json(salaryGrade);
