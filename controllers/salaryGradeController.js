@@ -7,7 +7,8 @@ import SalaryGrade from '../models/SalaryGrade.js';
 const getSalaryGrades = async(req,res) =>{
     try{
         const salaryGrades = await SalaryGrade.find({isDeleted: false}).populate({
-            path: 'positionCode',
+            
+            path: 'idPosition',
         })
         if(!salaryGrades){
             throw new NotFoundError('Not found any salary grade')
@@ -25,7 +26,7 @@ const getSalaryGrade = async (req,res) =>{
     try{
         const salaryGrade = await SalaryGrade.findById(_id).populate({
             
-            path: 'positionCode',
+            path: 'idPosition',
         })
         if (salaryGrade && salaryGrade.isDeleted === false) {
             res.status(200).json(salaryGrade);
@@ -41,18 +42,17 @@ const getSalaryGrade = async (req,res) =>{
 
 
 const postSalaryGrade = async (req,res) =>{
-    const {code, factor, positionCode } = req.body;
+    const {code, factor, idPosition } = req.body;
     try{
         const salaryGradeExist = await SalaryGrade.findOne({code}); 
-        const position = Position.findById(positionCode);
+        const position = Position.findById(idPosition);
         if(!position || (position&&position.isDeleted===true)){
             throw new BadRequestError("Position not exist")
         }
         if(salaryGradeExist && salaryGradeExist.isDeleted===true){
             salaryGradeExist.code= code;
             salaryGradeExist.factor=factor;
-            salaryGradeExist.positionCode= positionCode;
-            salaryGradeExist.isDeleted = false;
+            salaryGradeExist.idPosition= idPosition;
             const newSalaryGrade = await salaryGradeExist.save()
             res.status(201).json({
                 message: 'restore salary grade successfully',
@@ -60,7 +60,7 @@ const postSalaryGrade = async (req,res) =>{
             })
         }
         else if (!salaryGradeExist){
-            const salaryGrade = new SalaryGrade({code,factor,positionCode});
+            const salaryGrade = new SalaryGrade({code,factor,idPosition});
             const newSalaryGrade = await salaryGrade.save()
             res.status(200).json({
                 message: 'Create salary grade successfully',
@@ -77,10 +77,10 @@ const postSalaryGrade = async (req,res) =>{
 }
 
 const updateSalaryGrade = async (req,res) =>{
-    const {_id}= req.params;
-    const {code,factor, positionCode} = req.body;
-    const salaryGrade = await SalaryGrade.findById(_id);
-    const position = Position.findById(positionCode);
+    const {id}= req.params;
+    const {code,factor, idPosition} = req.body;
+    const salaryGrade = await SalaryGrade.findById(id);
+    const position = Position.findById(idPosition);
 
     if(!salaryGrade) {
         throw new NotFoundError('Not found salary grade');
@@ -89,9 +89,9 @@ const updateSalaryGrade = async (req,res) =>{
         throw new BadRequestError("position not exist")
     }
 
-    salaryGrade.code= code||salaryGrade.code;
-    salaryGrade.factor= factor||salaryGrade.factor;
-    salaryGrade.positionCode= positionCode||salaryGrade.positionCode;
+    salaryGrade.code= code;
+    salaryGrade.factor= factor;
+    salaryGrade.idPosition= idPosition;
     try{
         const updateSalaryGrade = await salaryGrade.save();
         res.status(200).json(updateSalaryGrade)

@@ -1,25 +1,31 @@
-import mongoose from "mongoose";
+import mongoose from 'mongoose';
+
+// Định rõ các giá trị cho kiểu enum
+const BONUS_TYPES = ['fixed', 'percent'];
 
 const bonusSchema = mongoose.Schema({
-    code:{
+    code: {
         type: String,
         required: [true, 'A Bonus must have a code'],
-        minLength: [1,'A code of Bonus must have minimum of 1 character'],
-        maxLength:[4,'A code of Bonus must have maximum of 4 character'],
-        unique: [true,'A code of Bonus with the same name has already exists'],
+        minLength: [1, 'A code of Bonus must have a minimum of 1 character'],
+        maxLength: [4, 'A code of Bonus must have a maximum of 4 characters'],
+        unique: [true, 'A code of Bonus with the same name has already exists'],
     },
-    level:{
-        type: Number,
-        required: [true,'A Bonus must have a level'],
-
+    bonusAmount: {
+        type: Number, // Mức thưởng, có thể là phần trăm hoặc số tiền cố định
     },
-    isDeleted:{
+    bonusType: {
+        type: String,
+        enum: BONUS_TYPES, // Sử dụng enum để định rõ giá trị cho kiểu enum
+        required: true,
+    },
+    isDeleted: {
         type: Boolean,
         required: true,
         default: false,
     },
-})
+});
 
-const Bonus = mongoose.model('Bonus',bonusSchema);
+const Bonus = mongoose.model('Bonus', bonusSchema);
 
-export default Bonus
+export default Bonus;
