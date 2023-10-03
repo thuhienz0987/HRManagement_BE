@@ -7,7 +7,6 @@ import SalaryGrade from '../models/SalaryGrade.js';
 const getSalaryGrades = async(req,res) =>{
     try{
         const salaryGrades = await SalaryGrade.find({isDeleted: false}).populate({
-            
             path: 'positionCode',
         })
         if(!salaryGrades){
@@ -22,18 +21,18 @@ const getSalaryGrades = async(req,res) =>{
 }
 
 const getSalaryGrade = async (req,res) =>{
-    const {id} = req.params;
+    const {_id} = req.params;
     try{
-        const salaryGrade = await SalaryGrade.findById(id).populate({
+        const salaryGrade = await SalaryGrade.findById(_id).populate({
             
             path: 'positionCode',
         })
         if (salaryGrade && salaryGrade.isDeleted === false) {
             res.status(200).json(salaryGrade);
           } else if (salaryGrade && salaryGrade.isDeleted === true) {
-            res.status(410).send("salary grade is deleted");
+            res.status(410).send("Salary grade is deleted");
           } else {
-            throw new NotFoundError("salary grade not found");
+            throw new NotFoundError("Salary grade not found");
           }
     }catch(err){
         throw err
@@ -47,12 +46,13 @@ const postSalaryGrade = async (req,res) =>{
         const salaryGradeExist = await SalaryGrade.findOne({code}); 
         const position = Position.findById(positionCode);
         if(!position || (position&&position.isDeleted===true)){
-            throw new BadRequestError("position not exist")
+            throw new BadRequestError("Position not exist")
         }
         if(salaryGradeExist && salaryGradeExist.isDeleted===true){
             salaryGradeExist.code= code;
             salaryGradeExist.factor=factor;
             salaryGradeExist.positionCode= positionCode;
+            salaryGradeExist.isDeleted = false;
             const newSalaryGrade = await salaryGradeExist.save()
             res.status(201).json({
                 message: 'restore salary grade successfully',
@@ -77,9 +77,9 @@ const postSalaryGrade = async (req,res) =>{
 }
 
 const updateSalaryGrade = async (req,res) =>{
-    const {id}= req.params;
+    const {_id}= req.params;
     const {code,factor, positionCode} = req.body;
-    const salaryGrade = await SalaryGrade.findById(id);
+    const salaryGrade = await SalaryGrade.findById(_id);
     const position = Position.findById(positionCode);
 
     if(!salaryGrade) {
@@ -89,9 +89,9 @@ const updateSalaryGrade = async (req,res) =>{
         throw new BadRequestError("position not exist")
     }
 
-    salaryGrade.code= code;
-    salaryGrade.factor= factor;
-    salaryGrade.positionCode= positionCode;
+    salaryGrade.code= code||salaryGrade.code;
+    salaryGrade.factor= factor||salaryGrade.factor;
+    salaryGrade.positionCode= positionCode||salaryGrade.positionCode;
     try{
         const updateSalaryGrade = await salaryGrade.save();
         res.status(200).json(updateSalaryGrade)
@@ -102,9 +102,9 @@ const updateSalaryGrade = async (req,res) =>{
 }
 
 const deleteSalaryGrade = async(req,res) =>{
-    const {id} = req.params;
+    const {_id} = req.params;
     try{
-        const salaryGrade = await SalaryGrade.findByIdAndUpdate(id,{ isDeleted: true},{new: true});
+        const salaryGrade = await SalaryGrade.findByIdAndUpdate(_id,{ isDeleted: true},{new: true});
         res.status(200).json({
             message: 'Deleted salary grade successfully',
             salaryGrade: salaryGrade,

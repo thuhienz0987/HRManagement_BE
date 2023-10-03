@@ -7,7 +7,6 @@ const bonusSchema = mongoose.Schema({
         minLength: [1,'A code of Bonus must have minimum of 1 character'],
         maxLength:[4,'A code of Bonus must have maximum of 4 character'],
         unique: [true,'A code of Bonus with the same name has already exists'],
-
     },
     level:{
         type: Number,

@@ -15,9 +15,9 @@ const getBonuses = async (req,res) => {
 };
 
 const getBonus = async (req,res) =>{
-    const {id} = req.params;
+    const {_id} = req.params;
     try{
-        const bonus = await Bonus.findById(id)
+        const bonus = await Bonus.findById(_id)
         if (bonus && bonus.isDeleted === false) {
             res.status(200).json(bonus);
           } else if (bonus && bonus.isDeleted === true) {
@@ -37,6 +37,7 @@ const postBonus = async (req,res) =>{
         if(bonusExist && bonusExist.isDeleted===true){
             bonusExist.code= code;
             bonusExist.level=level;
+            bonusExist.isDeleted = false;
             const newBonus = await bonusExist.save()
             res.status(201).json({
                 message: 'restore Position successfully',
@@ -61,14 +62,14 @@ const postBonus = async (req,res) =>{
 };
 
 const updateBonus = async (req,res) => {
-    const {id}= req.params;
+    const {_id}= req.params;
     const {code,level} = req.body;
-    const bonus = await Bonus.findById(id);
+    const bonus = await Bonus.findById(_id);
     if(!bonus) {
         throw new NotFoundError('Not found Bonus');
     }
-    bonus.code= code;
-    bonus.level= level;
+    bonus.code= code||bonus.code;
+    bonus.level= level||bonus.level;
     try{
         const updateBonus = await bonus.save();
         res.status(200).json(updateBonus)
@@ -79,9 +80,9 @@ const updateBonus = async (req,res) => {
 };
 
 const deleteBonus = async (req,res) => {
-    const {id} = req.params;
+    const {_id} = req.params;
     try{
-        const bonus = await Bonus.findByIdAndUpdate(id,{ isDeleted: true},{new: true});
+        const bonus = await Bonus.findByIdAndUpdate(_id,{ isDeleted: true},{new: true});
         res.status(200).json({
             message: 'Deleted Bonus successfully',
             bonus: bonus,

@@ -15,9 +15,9 @@ const getAllowances = async (req,res) =>{
 }
 
 const getAllowance = async (req,res) =>{
-    const {id} = req.params;
+    const {_id} = req.params;
     try{
-        const allowance = await Allowance.findById(id)
+        const allowance = await Allowance.findById(_id)
         if (allowance && allowance.isDeleted === false) {
             res.status(200).json(allowance);
         } else if (allowance && allowance.isDeleted === true) {
@@ -38,6 +38,7 @@ const postAllowance = async (req,res) =>{
         if(allowanceExist.isDeleted===true){
             allowanceExist.code= code;
             allowanceExist.allowanceLevel= allowanceLevel;
+            allowanceExist.isDeleted = false;
             const newAllowance= await allowanceExist.save()
             res.status(201).json({
                 message: 'Restore Allowance successfully',
@@ -62,14 +63,14 @@ const postAllowance = async (req,res) =>{
 };
 
 const updateAllowance = async (req,res) =>{
-    const {id} = req.params
+    const {_id} = req.params
     const {allowanceLevel, code} = req.body 
-    const allowance = await Allowance.findById(id);
+    const allowance = await Allowance.findById(_id);
     if(!role) {
         throw new NotFoundError('Not found allowance');
     }
-    allowance.allowanceLevel = allowanceLevel;
-    allowance.code= code;
+    allowance.allowanceLevel = allowanceLevel||allowance.allowanceLevel;
+    allowance.code= code||allowance.allowanceLevel;
     try{
         const updateAllowance = await allowance.save()
         res.status(200).json(updateAllowance)
@@ -80,9 +81,9 @@ const updateAllowance = async (req,res) =>{
 };
 
 const deleteAllowance = async  (req,res) =>{
-    const {id} = req.params
+    const {_id} = req.params
     try{
-        const allowance =await Allowance.findByIdAndUpdate(id,{isDeleted:true})
+        const allowance =await Allowance.findByIdAndUpdate(_id,{isDeleted:true})
         res.status(200).json({
             message:'Deleted allowance successfully',
             allowance: allowance
