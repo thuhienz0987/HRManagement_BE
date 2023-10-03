@@ -16,20 +16,20 @@ const salarySchema = mongoose.Schema({
         ref:'SalaryGrade',
         required:[true,'A salary must link a id of salary grade']
     },
-    idBonus:{
+    idBonus:[{
         type:  mongoose.Types.ObjectId,
         ref:'Bonus',
         required:[true,'A salary must link a id of bonus']
-    },
-    idAllowance:{
+    },],
+    idAllowance:[{
         type:  mongoose.Types.ObjectId,
         ref:'Allowance',
         required:[true,'A salary must link a id of allowance']
-    },
+    },],
     incomeTax:{
         type: Number,
         required: true,
-        default: 8,
+        default: 5,
         min: 0,
         max: 100,
     },
@@ -44,6 +44,16 @@ const salarySchema = mongoose.Schema({
         required: true,
     },
     totalSalary:{
+        type: Number,
+        default: 0,
+        required: true
+    },
+    totalIncome:{
+        type: Number,
+        default: 0,
+        required: true
+    },
+    incomeTaxAmount:{
         type: Number,
         default: 0,
         required: true

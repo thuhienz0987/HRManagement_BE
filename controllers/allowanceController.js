@@ -15,9 +15,9 @@ const getAllowances = async (req,res) =>{
 }
 
 const getAllowance = async (req,res) =>{
-    const {id} = req.params;
+    const {_id} = req.params;
     try{
-        const allowance = await Allowance.findById(id)
+        const allowance = await Allowance.findById(_id)
         if (allowance && allowance.isDeleted === false) {
             res.status(200).json(allowance);
         } else if (allowance && allowance.isDeleted === true) {
@@ -32,12 +32,13 @@ const getAllowance = async (req,res) =>{
 }
 
 const postAllowance = async (req,res) =>{
-    const {allowanceLevel, code} = req.body;
+    const {name,amount, code} = req.body;
     const allowanceExist = await Allowance.findOne({code});   
     try{
         if(allowanceExist.isDeleted===true){
             allowanceExist.code= code;
-            allowanceExist.allowanceLevel= allowanceLevel;
+            allowanceExist.name= name;
+            allowanceExist.amount= amount;
             const newAllowance= await allowanceExist.save()
             res.status(201).json({
                 message: 'Restore Allowance successfully',
@@ -45,7 +46,7 @@ const postAllowance = async (req,res) =>{
             })
         }
         else if (!allowanceExist){
-            const allowance = new Allowance({allowanceLevel,code});
+            const allowance = new Allowance({name,code,amount});
             const newAllowance = await allowance.save()
             res.status(200).json({
                 message: 'Create Allowance successfully',
@@ -63,12 +64,13 @@ const postAllowance = async (req,res) =>{
 
 const updateAllowance = async (req,res) =>{
     const {id} = req.params
-    const {allowanceLevel, code} = req.body 
+    const {name, code, amount} = req.body 
     const allowance = await Allowance.findById(id);
     if(!role) {
         throw new NotFoundError('Not found allowance');
     }
-    allowance.allowanceLevel = allowanceLevel;
+    allowance.name = name;
+    allowance.amount = amount;
     allowance.code= code;
     try{
         const updateAllowance = await allowance.save()
@@ -80,9 +82,9 @@ const updateAllowance = async (req,res) =>{
 };
 
 const deleteAllowance = async  (req,res) =>{
-    const {id} = req.params
+    const {_id} = req.params
     try{
-        const allowance =await Allowance.findByIdAndUpdate(id,{isDeleted:true})
+        const allowance =await Allowance.findByIdAndUpdate(_id,{isDeleted:true})
         res.status(200).json({
             message:'Deleted allowance successfully',
             allowance: allowance

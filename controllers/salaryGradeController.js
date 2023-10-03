@@ -8,7 +8,7 @@ const getSalaryGrades = async(req,res) =>{
     try{
         const salaryGrades = await SalaryGrade.find({isDeleted: false}).populate({
             
-            path: 'positionCode',
+            path: 'idPosition',
         })
         if(!salaryGrades){
             throw new NotFoundError('Not found any salary grade')
@@ -22,18 +22,18 @@ const getSalaryGrades = async(req,res) =>{
 }
 
 const getSalaryGrade = async (req,res) =>{
-    const {id} = req.params;
+    const {_id} = req.params;
     try{
-        const salaryGrade = await SalaryGrade.findById(id).populate({
+        const salaryGrade = await SalaryGrade.findById(_id).populate({
             
-            path: 'positionCode',
+            path: 'idPosition',
         })
         if (salaryGrade && salaryGrade.isDeleted === false) {
             res.status(200).json(salaryGrade);
           } else if (salaryGrade && salaryGrade.isDeleted === true) {
-            res.status(410).send("salary grade is deleted");
+            res.status(410).send("Salary grade is deleted");
           } else {
-            throw new NotFoundError("salary grade not found");
+            throw new NotFoundError("Salary grade not found");
           }
     }catch(err){
         throw err
@@ -47,7 +47,7 @@ const postSalaryGrade = async (req,res) =>{
         const salaryGradeExist = await SalaryGrade.findOne({code}); 
         const position = Position.findById(idPosition);
         if(!position || (position&&position.isDeleted===true)){
-            throw new BadRequestError("position not exist")
+            throw new BadRequestError("Position not exist")
         }
         if(salaryGradeExist && salaryGradeExist.isDeleted===true){
             salaryGradeExist.code= code;
@@ -102,9 +102,9 @@ const updateSalaryGrade = async (req,res) =>{
 }
 
 const deleteSalaryGrade = async(req,res) =>{
-    const {id} = req.params;
+    const {_id} = req.params;
     try{
-        const salaryGrade = await SalaryGrade.findByIdAndUpdate(id,{ isDeleted: true},{new: true});
+        const salaryGrade = await SalaryGrade.findByIdAndUpdate(_id,{ isDeleted: true},{new: true});
         res.status(200).json({
             message: 'Deleted salary grade successfully',
             salaryGrade: salaryGrade,
