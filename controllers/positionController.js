@@ -74,10 +74,10 @@ const updatePosition = async (req,res) => {
     if(!position) {
         throw new NotFoundError('Not found Position');
     }
-    position.code= generatePositionCode(name)||position.code;
-    position.name=name||position.name;
-    position.basicSalary= basicSalary||position.basicSalary;
-    try{
+    position.code= name ? generatePositionCode(name) : position.code;
+    position.name=name ? name : position.name;
+    position.basicSalary= basicSalary ? basicSalary : position.basicSalary;
+    try{ 
         const updatePosition = await position.save();
         res.status(200).json(updatePosition)
     }
