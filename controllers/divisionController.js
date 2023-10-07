@@ -47,6 +47,15 @@ const postDivision = async (req,res) =>{
             divisionExist.departmentCount = await Department.countDocuments({ divisionId: divisionExist._id, isDeleted: false });
             divisionExist.isDeleted = false;
             const newDivision = await divisionExist.save()
+            const departments = await Department.find({ divisionId: divisionExist._id , isDeleted: false});
+            if (departments.length === 0)
+                throw new NotFoundError(`Not found department in division id ${divisionExist._id}`);
+            else {
+                departments.map(async (department) => {
+                    department.divisionId = newDivision._id;
+                    await department.save();
+                });
+            }
             res.status(201).json({
                 message: 'restore Division successfully',
                 division: newDivision,
