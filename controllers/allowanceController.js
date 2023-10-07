@@ -39,6 +39,7 @@ const postAllowance = async (req,res) =>{
             allowanceExist.code= code;
             allowanceExist.name= name;
             allowanceExist.amount= amount;
+            allowanceExist.isDeleted= false;
             const newAllowance= await allowanceExist.save()
             res.status(201).json({
                 message: 'Restore Allowance successfully',
@@ -69,9 +70,9 @@ const updateAllowance = async (req,res) =>{
     if(!role) {
         throw new NotFoundError('Not found allowance');
     }
-    allowance.name = name;
-    allowance.amount = amount;
-    allowance.code= code;
+    allowance.name = name? name:allowance.name;
+    allowance.amount = amount?amount:allowance.amount;
+    allowance.code= code ? code :allowance.code;
     try{
         const updateAllowance = await allowance.save()
         res.status(200).json(updateAllowance)

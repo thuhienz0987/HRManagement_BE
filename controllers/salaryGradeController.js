@@ -53,6 +53,7 @@ const postSalaryGrade = async (req,res) =>{
             salaryGradeExist.code= code;
             salaryGradeExist.factor=factor;
             salaryGradeExist.idPosition= idPosition;
+            salaryGradeExist.isDeleted= false;
             const newSalaryGrade = await salaryGradeExist.save()
             res.status(201).json({
                 message: 'restore salary grade successfully',
@@ -89,9 +90,9 @@ const updateSalaryGrade = async (req,res) =>{
         throw new BadRequestError("position not exist")
     }
 
-    salaryGrade.code= code;
-    salaryGrade.factor= factor;
-    salaryGrade.idPosition= idPosition;
+    salaryGrade.code= code ? code : salaryGrade.code;
+    salaryGrade.factor= factor ? factor : salaryGrade.factor;
+    salaryGrade.idPosition= idPosition ? idPosition : salaryGrade.idPosition;
     try{
         const updateSalaryGrade = await salaryGrade.save();
         res.status(200).json(updateSalaryGrade)
