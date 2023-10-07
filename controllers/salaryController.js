@@ -74,6 +74,24 @@ const postSalary = async (req,res) =>{
     }
 }
 
+const updateSalary = async (req,res) =>{
+    const {id} = req.params;
+    try{
+        const {payDay} = req.body
+        const salary = await Salary.findById(id);
+        if(!salary){
+            throw new NotFoundError('Not found salary');
+        }
+        salary.payDay = payDay ? payDay:salary.payDay
+        const updateSalary = await salary.save();
+        res.status(200).json(updateSalary)
+
+    }
+    catch(err){
+        throw err
+    }
+}
+
 const calculateTotalSalary = async (idPosition, idSalaryGrade, idBonus, idAllowances, daysOff) => {
     const salaryGrade = await SalaryGrade.findById(idSalaryGrade);
     const position = await Position.findById(idPosition);
@@ -140,6 +158,8 @@ function calculateIncomeTax(income) {
         incomeTaxAmount,taxRate
     };
 }
+
+
 
 
 export {getSalaries,getSalary,postSalary}

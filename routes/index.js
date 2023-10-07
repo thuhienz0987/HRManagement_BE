@@ -12,6 +12,7 @@ import positionRouters from './positionRouters.js';
 import allowanceRouter from "./allowanceRouters.js";
 import bonusRouter from "./bonusRouters.js";
 import salaryGradeRouter from "./salaryGradeRouters.js"
+import holidayRouter from "./holidayRouters.js";
 
 const router = Router();
 
@@ -30,6 +31,7 @@ router.use(positionRouters);
 router.use(allowanceRouter);
 router.use(bonusRouter);
 router.use(salaryGradeRouter);
+router.use(holidayRouter);
 
 
 

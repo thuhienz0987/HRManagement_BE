@@ -38,6 +38,7 @@ const postBonus = async (req,res) =>{
             bonusExist.code= code;
             bonusExist.bonusAmount=bonusAmount;
             bonusExist.bonusType = bonusType;
+            bonusExist.isDeleted= false;
             const newBonus = await bonusExist.save()
             res.status(201).json({
                 message: 'restore Position successfully',
@@ -68,9 +69,9 @@ const updateBonus = async (req,res) => {
     if(!bonus) {
         throw new NotFoundError('Not found Bonus');
     }
-    bonus.code= code;
-    bonus.bonusAmount= bonusAmount;
-    bonus.bonusType = bonusType;
+    bonus.code= code ?code:bonus.code;
+    bonus.bonusAmount= bonusAmount?bonusAmount:bonus.bonusAmount;
+    bonus.bonusType = bonusType?bonusType:bonus.bonusType;
     try{
         const updateBonus = await bonus.save();
         res.status(200).json(updateBonus)
