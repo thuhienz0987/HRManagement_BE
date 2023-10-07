@@ -59,10 +59,10 @@ const postComment = async (req,res) =>{
         const currentDate = new Date();  
         if(commentExist && (currentDate.getFullYear() > commentExist.createdAt.getFullYear()
         || (currentDate.getFullYear() === commentExist.createdAt.getFullYear() 
-            && currentDate.getMonth() >= commentExist.createdAt.getMonth())))
+            && currentDate.getMonth() >= (commentExist.createdAt.getMonth()+1))))
         {
             throw new BadRequestError
-            (`The employee with the given ${commentExist.userId} was commented in ${commentExist.createdAt.getMonth()} ${commentExist.createdAt.getFullYear()}.`)
+            (`The employee with the given ${commentExist.userId} was commented in ${commentExist.createdAt.getMonth()+1}/${commentExist.createdAt.getFullYear()}.`)
         }
         else if (!commentExist){
             const newComment = new Comment({rate, comment, userId});

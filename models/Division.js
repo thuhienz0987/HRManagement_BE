@@ -15,6 +15,7 @@ const divisionSchema = mongoose.Schema({
     managerId:{
         type: mongoose.Types.ObjectId,
         required: [true,'A Division must have a manager'],
+        unique: [true,'A Division cannot have more than one manager'],
         ref: 'User'
     },
     departmentCount:{

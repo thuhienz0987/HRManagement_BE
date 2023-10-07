@@ -5,7 +5,7 @@ import ROLES_LIST from "../config/roles_list.js"
 
 const divisionRouter = Router();
 
-divisionRouter.get('/divisions',verifyRoles(ROLES_LIST.Admin),getDivisions);
+divisionRouter.get('/divisions',getDivisions);
 divisionRouter.get('/division/:_id',getDivision);
 divisionRouter.post('/division',verifyRoles(ROLES_LIST.Admin),postDivision);
 divisionRouter.put('/division/:_id',verifyRoles(ROLES_LIST.Admin),updateDivision);

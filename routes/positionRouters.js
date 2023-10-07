@@ -5,7 +5,7 @@ import ROLES_LIST from "../config/roles_list.js"
 
 const positionRouter = Router();
 
-positionRouter.get('/positions',verifyRoles(ROLES_LIST.Admin),getPositions);
+positionRouter.get('/positions',getPositions);
 positionRouter.get('/position/:id',getPosition);
 positionRouter.post('/position',verifyRoles(ROLES_LIST.Admin),postPosition);
 positionRouter.put('/position/:id',verifyRoles(ROLES_LIST.Admin),updatePosition);

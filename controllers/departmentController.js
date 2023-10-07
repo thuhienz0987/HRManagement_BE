@@ -62,6 +62,15 @@ const generateDepartmentCode = (departmentName, divisionName) => {
 const postDepartment = async (req,res) =>{
     const {managerId, name, divisionId} = req.body;
     try{
+        const manager = await User.findOne({_id: managerId, isEmployee: true});
+        if (!manager)
+            throw new NotFoundError(
+            `The manager with user _id ${managerId} does not exists`
+        );
+        else if (manager.isDeleted === true) {
+            res.status(410).send(`Manager with user _id ${managerId} is deleted`);
+        }
+        
         const division = await Division.findOne({_id: divisionId});
         if (!division)
             throw new NotFoundError(
@@ -71,15 +80,30 @@ const postDepartment = async (req,res) =>{
             res.status(410).send("Division is deleted");
         } 
         else {
-            const departmentExist = await Department.findOne({code: generateDepartmentCode(name,division.name)});   
+            const departmentExist = await Department.findOne({code: generateDepartmentCode(name,division.name)});  
+            console.log('departmentExist',departmentExist) 
             if(departmentExist && departmentExist.isDeleted===true){
+                const users = await User.find({ departmentId: departmentExist._id , isEmployee: false});
+                
                 departmentExist.managerId= managerId;
                 departmentExist.name=name;
                 departmentExist.divisionId= divisionId;
-                departmentExist.employeeCount = await User.countDocuments({ departmentId: departmentExist._id, isDeleted: false});
                 departmentExist.code = generateDepartmentCode(name,division.name);
                 departmentExist.isDeleted = false;
                 const newDepartment = await departmentExist.save();
+                
+                if (users.length === 0)
+                    throw new NotFoundError(`Not found user in department id ${departmentExist._id}`);
+                else {
+                    users.map(async (user) => {
+                        user.isEmployee = true;
+                        await user.save();
+                    });
+                }
+                newDepartment.employeeCount = await User.countDocuments({ departmentId: newDepartment._id, isEmployee: true});
+                await newDepartment.save();
+                manager.departmentId = newDepartment._id;
+                await manager.save();
                 division.departmentCount = await Department.countDocuments({ divisionId: divisionId, isDeleted: false  });
                 await division.save();
                 res.status(201).json({
@@ -89,8 +113,9 @@ const postDepartment = async (req,res) =>{
             }
             else if (!departmentExist){
                 const department = new Department({divisionId,name, managerId, code: generateDepartmentCode(name,division.name)});
-                department.employeeCount = await User.countDocuments({ departmentId: department._id, isDeleted: false});
                 const newDepartment = await department.save();
+                manager.departmentId = newDepartment._id;
+                await manager.save();
                 division.departmentCount = await Department.countDocuments({ divisionId: divisionId, isDeleted: false  });
                 await division.save();
                 res.status(200).json({
@@ -99,7 +124,7 @@ const postDepartment = async (req,res) =>{
                 })
             }
             else{
-                throw new BadRequestError(`Department with code ${departmentExist.name} exist`)
+                throw new BadRequestError(`Department with name ${departmentExist.name} exist`)
             }
         }
     }catch(err){
@@ -118,12 +143,21 @@ const updateDepartment = async (req,res) => {
         );
         else if (division.isDeleted === true) {
             res.status(410).send(`Division with _id ${divisionId} is deleted`);
-        } 
+        }
         else {
             const department = await Department.findById(_id);
             const departmentOld = await Department.findById(_id);
             if(!department) {
                 throw new NotFoundError('Not found department');
+            }
+             
+            const manager = await User.findOne({_id: managerId});
+            if (!manager)
+                throw new NotFoundError(
+                `The manager with user _id ${managerId} does not exists`
+            );
+            else if (manager.isDeleted === true) {
+                res.status(410).send(`Manager with user _id ${managerId} is deleted`);
             }
             department.managerId= managerId||department.managerId;
             department.name=name||department.name;
@@ -131,6 +165,8 @@ const updateDepartment = async (req,res) => {
             department.code = generateDepartmentCode(name,division.name)||department.code;
             
             const updateDepartment = await department.save();
+            manager.departmentId = updateDepartment._id;
+            await manager.save();
             const divisionOld = await Division.findOne({_id: departmentOld.divisionId});
             if (!divisionOld)
                 throw new NotFoundError(
@@ -157,15 +193,19 @@ const deleteDepartment = async (req,res) => {
     const {_id} = req.params;
     try{
         const department = await Department.findByIdAndUpdate(_id,{ isDeleted: true},{new: true});
-        const users = await User.find({ departmentId: _id , isDeleted: false});
-        if (users.length === 0)
-            throw new NotFoundError(`Not found user in department id ${_id}`);
-        else {
-            users.map(async (user) => {
-                user.isDeleted = true;
-                await user.save();
-            });
-        }
+        const users = await User.find({ departmentId: _id , isEmployee: true});
+        users.map(async (user) => {
+            user.isEmployee = false;
+            await user.save();
+        });
+        // if (users.length === 0)
+        //     throw new NotFoundError(`Not found user in department id ${_id}`);
+        // else {
+        //     users.map(async (user) => {
+        //         user.isEmployee = false;
+        //         await user.save();
+        //     });
+        // }
         const divisionOld = await Division.findOne({_id: department.divisionId});
         if (!divisionOld)
             throw new NotFoundError(
