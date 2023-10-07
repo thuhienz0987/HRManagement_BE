@@ -1,6 +1,7 @@
 import BadRequestError from '../errors/badRequestError.js';
 import NotFoundError from '../errors/notFoundError.js';
 import Comment from '../models/Comment.js';
+import User from '../models/User.js';
 
 const getComments = async (req,res) => {
     try{
@@ -15,9 +16,9 @@ const getComments = async (req,res) => {
 };
 
 const getComment = async (req,res) =>{
-    const {id} = req.params;
+    const {_id} = req.params;
     try{
-        const comment = await Comment.findById(id)
+        const comment = await Comment.findById(_id)
         if (comment && comment.isDeleted === false) {
             res.status(200).json(comment);
           } else if (comment && comment.isDeleted === true) {
@@ -30,18 +31,24 @@ const getComment = async (req,res) =>{
     }
 };
 const getCommentsByUserId = async (req,res) =>{
-    const {userId} = req.params;
-    try{
-        const comment = await Comment.findOne({userId: userId})
-        if (comment && comment.isDeleted === false) {
-            res.status(200).json(comment);
-        } else if (comment && comment.isDeleted === true) {
-        res.status(410).send("Comment is deleted");
+    try {
+        const _id = req.params._id;
+        const user = User.findById(_id);
+        if (!user)
+            throw new NotFoundError(
+            `The comments with user _id ${_id} does not exists`
+            );
+        else if (user.isDeleted === true) {
+            res.status(410).send("User is deleted");
         } else {
-        throw new NotFoundError("Comment not found");
+            const comments = await Comment.find({ userId: _id , isDeleted: false});
+            if (comments.length === 0)
+            throw new NotFoundError(`Not found comments in user id ${_id}`);
+
+            res.status(200).json(comments);
         }
-    }catch(err){
-        throw err
+    } catch (err) {
+        throw err;
     }
 };
 
@@ -72,9 +79,9 @@ const postComment = async (req,res) =>{
 };
 
 const updateComment = async (req,res) => {
-    const {id}= req.params;
+    const {_id}= req.params;
     const {rate, comment, userId} = req.body;
-    const commentExist = await Comment.findById(id);
+    const commentExist = await Comment.findById(_id);
     if(!commentExist) {
         throw new NotFoundError('Not found Comment');
     }
@@ -93,9 +100,9 @@ const updateComment = async (req,res) => {
 };
 
 const deleteComment = async (req,res) => {
-    const {id} = req.params;
+    const {_id} = req.params;
     try{
-        const commentExist = await Comment.findByIdAndUpdate(id,{ isDeleted: true},{new: true});
+        const commentExist = await Comment.findByIdAndUpdate(_id,{ isDeleted: true},{new: true});
         res.status(200).json({
             message: 'Deleted Comment successfully',
             comment: commentExist,

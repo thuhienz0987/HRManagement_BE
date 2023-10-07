@@ -8,6 +8,11 @@ import { generateRandomPassword } from '../utils/helper.js';
 import { mailTransport, UserPassword } from '../utils/mail.js';
 
 const userSchema = new mongoose.Schema({
+    // code:{
+    //     type: String,
+    //     required: [true, 'A user must have a code'],
+    //     unique: [true,'A code of user with the same name has already exists'],
+    // },
     email: {
         type: String,
         required: [true, 'Email is required'],
@@ -78,6 +83,11 @@ const userSchema = new mongoose.Schema({
         type: Boolean,
         required: [true, 'Is employee is missing'],
         default: true
+    },
+    departmentId:{
+        type: mongoose.Types.ObjectId,
+        required: true,
+        ref: 'Department'
     },
     emailVerified: {
         type: Boolean,

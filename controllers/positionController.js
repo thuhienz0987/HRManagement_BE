@@ -15,9 +15,9 @@ const getPositions = async (req,res) => {
 };
 
 const getPosition = async (req,res) =>{
-    const {id} = req.params;
+    const {_id} = req.params;
     try{
-        const position = await Position.findById(id)
+        const position = await Position.findById(_id)
         if (position && position.isDeleted === false) {
             res.status(200).json(position);
           } else if (position && position.isDeleted === true) {
@@ -38,7 +38,7 @@ const postPosition = async (req,res) =>{
             positionExist.code= code ;
             positionExist.name=name;
             positionExist.basicSalary= basicSalary;
-            positionExist.isDeleted= false;
+            positionExist.isDeleted = false;
             const newPosition = await positionExist.save()
             res.status(201).json({
                 message: 'restore Position successfully',
@@ -63,9 +63,9 @@ const postPosition = async (req,res) =>{
 };
 
 const updatePosition = async (req,res) => {
-    const {id}= req.params;
+    const {_id}= req.params;
     const {code,name,basicSalary} = req.body;
-    const position = await Position.findById(id);
+    const position = await Position.findById(_id);
     if(!position) {
         throw new NotFoundError('Not found Position');
     }
@@ -82,9 +82,9 @@ const updatePosition = async (req,res) => {
 };
 
 const deletePosition = async (req,res) => {
-    const {id} = req.params;
+    const {_id} = req.params;
     try{
-        const position = await Position.findByIdAndUpdate(id,{ isDeleted: true},{new: true});
+        const position = await Position.findByIdAndUpdate(_id,{ isDeleted: true},{new: true});
         res.status(200).json({
             message: 'Deleted Position successfully',
             position: position,
