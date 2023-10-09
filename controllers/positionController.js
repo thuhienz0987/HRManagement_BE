@@ -43,6 +43,7 @@ const postPosition = async (req,res) =>{
             positionExist.code= generatePositionCode(name);
             positionExist.name=name;
             positionExist.basicSalary= basicSalary;
+
             positionExist.isDeleted = false;
             const newPosition = await positionExist.save()
             res.status(201).json({
@@ -74,7 +75,8 @@ const updatePosition = async (req,res) => {
     if(!position) {
         throw new NotFoundError('Not found Position');
     }
-    position.code= name ? generatePositionCode(name) : position.code;
+
+    position.code= code ? code : position.code;
     position.name=name ? name : position.name;
     position.basicSalary= basicSalary ? basicSalary : position.basicSalary;
     try{ 

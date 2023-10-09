@@ -15,6 +15,7 @@ import bonusRouter from "./bonusRouters.js";
 import salaryGradeRouter from "./salaryGradeRouters.js";
 import leaveRequestRouter from "./leaveRequestRouters.js";
 import holidayRouter from "./holidayRouters.js";
+import attendanceRouter from "./attendanceRouters.js";
 
 const router = Router();
 
@@ -36,6 +37,7 @@ router.use(bonusRouter);
 router.use(salaryGradeRouter);
 router.use(leaveRequestRouter);
 router.use(holidayRouter);
+router.use(attendanceRouter);
 
 
 
