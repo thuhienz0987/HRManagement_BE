@@ -15,9 +15,9 @@ const getAllowances = async (req,res) =>{
 }
 
 const getAllowance = async (req,res) =>{
-    const {id} = req.params;
+    const {_id} = req.params;
     try{
-        const allowance = await Allowance.findById(id)
+        const allowance = await Allowance.findById(_id)
         if (allowance && allowance.isDeleted === false) {
             res.status(200).json(allowance);
         } else if (allowance && allowance.isDeleted === true) {
@@ -83,9 +83,9 @@ const updateAllowance = async (req,res) =>{
 };
 
 const deleteAllowance = async  (req,res) =>{
-    const {id} = req.params
+    const {_id} = req.params
     try{
-        const allowance =await Allowance.findByIdAndUpdate(id,{isDeleted:true})
+        const allowance =await Allowance.findByIdAndUpdate(_id,{isDeleted:true})
         res.status(200).json({
             message:'Deleted allowance successfully',
             allowance: allowance

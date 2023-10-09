@@ -15,9 +15,9 @@ const getBonuses = async (req,res) => {
 };
 
 const getBonus = async (req,res) =>{
-    const {id} = req.params;
+    const {_id} = req.params;
     try{
-        const bonus = await Bonus.findById(id)
+        const bonus = await Bonus.findById(_id)
         if (bonus && bonus.isDeleted === false) {
             res.status(200).json(bonus);
           } else if (bonus && bonus.isDeleted === true) {
@@ -82,9 +82,9 @@ const updateBonus = async (req,res) => {
 };
 
 const deleteBonus = async (req,res) => {
-    const {id} = req.params;
+    const {_id} = req.params;
     try{
-        const bonus = await Bonus.findByIdAndUpdate(id,{ isDeleted: true},{new: true});
+        const bonus = await Bonus.findByIdAndUpdate(_id,{ isDeleted: true},{new: true});
         res.status(200).json({
             message: 'Deleted Bonus successfully',
             bonus: bonus,

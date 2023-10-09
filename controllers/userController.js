@@ -9,6 +9,7 @@ import PasswordValidator from 'password-validator';
 import ROLES_LIST from '../config/roles_list.js';
 import { mailTransport, OtpTemplate,verifiedTemplate, generateOTP } from '../utils/mail.js';
 import VerificationToken from '../models/VerificationToken.js';
+import Department from '../models/Department.js';
 
 // init password validator
 let passwordSchema = new PasswordValidator();
@@ -23,63 +24,73 @@ passwordSchema
 
 
 const create_user = async (req, res) => {
-    const { email, name, phoneNumber, address, birthday, gender, homeTown, ethnicGroup, level, isEmployee} = req.body;
+    const { email, name, phoneNumber, address, birthday, gender, homeTown, ethnicGroup, level, departmentId} = req.body;
 
     try {
-        // upload result init
-        let result;
-        if (req.file) {
-            try {
-                result = await cloudinary.uploader.upload(req.file.path, {
-                    public_id: `${user._id}_profile`,
-                    width: 500,
-                    height: 500,
-                    crop: 'fill',
-                });
+        const department = await Department.findOne({_id: departmentId});
+        if (!department)
+            throw new NotFoundError(
+            `The users with department _id ${departmentId} does not exists`
+        );
+        else if (department.isDeleted === true) {
+            res.status(410).send("Department is deleted");
+        } 
+        else {
+            // upload result init
+            let result;
+            if (req.file) {
+                try {
+                    result = await cloudinary.uploader.upload(req.file.path, {
+                        public_id: `${user._id}_profile`,
+                        width: 500,
+                        height: 500,
+                        crop: 'fill',
+                    });
+                }
+                catch (err) {throw new InternalServerError('Unable to upload avatar, please try again');}
             }
-            catch (err) {throw new InternalServerError('Unable to upload avatar, please try again');}
+            let avatarImage;
+            // check if image upload or not
+            if (result) {
+                avatarImage = result.url;
+            }
+            
+            // new user create
+            const newUser = new User({
+                email, 
+                name, 
+                phoneNumber,
+                birthday,
+                address,  
+                gender, 
+                homeTown,
+                ethnicGroup, 
+                level,
+                departmentId,
+                avatarImage,
+                roles: [ROLES_LIST.Employee]
+            })
+
+            // generate verification otp
+            const OTP = generateOTP();
+            const newVerificationToken = new VerificationToken({
+                owner: newUser._id,
+                token: OTP
+            });
+            // save the otp and user to db
+            const verificationToken = await newVerificationToken.save();
+            const user = await newUser.save();
+            department.employeeCount = await User.countDocuments({ departmentId: departmentId, isEmployee: true});
+            await department.save();
+            // send a mail that contain otp to the user's email
+            mailTransport().sendMail({
+                from: 'HRManagement2003@gmail.com',
+                to: newUser.email,
+                subject: 'Verify your email account',
+                html: OtpTemplate(OTP),
+            });
+            res.status(201).json({ 'success': true,'message': `New user ${user} created!` });
         }
-        let avatarImage;
-        // check if image upload or not
-        if (result) {
-            avatarImage = result.url;
-        }
-
-        // new user create
-        const newUser = new User({
-            email, 
-            name, 
-            phoneNumber,
-            birthday,
-            address,  
-            gender, 
-            homeTown,
-            ethnicGroup, 
-            level,
-            isEmployee,
-            avatarImage,
-            roles: [ROLES_LIST.Employee]
-        })
-
-        // generate verification otp
-        const OTP = generateOTP();
-        const newVerificationToken = new VerificationToken({
-            owner: newUser._id,
-            token: OTP
-        });
-        // save the otp and user to db
-        const verificationToken = await newVerificationToken.save();
-        const user = await newUser.save();
-        
-        // send a mail that contain otp to the user's email
-        mailTransport().sendMail({
-            from: 'HRManagement2003@gmail.com',
-            to: newUser.email,
-            subject: 'Verify your email account',
-            html: OtpTemplate(OTP),
-        });
-
-        res.status(201).json({ 'success': true,'message': `New user ${user} created!` });
     }
     catch (err) {
         if (err.code === 11000) throw new BadRequestError({"message": "This email has already been registered"})
@@ -120,53 +131,65 @@ const verifyEmailUser = async (req, res) => {
     res.status(200).json({"Status": "Success"});
 };
 const edit_user_profile = async (req, res) => {
-    const { name, phoneNumber, address, birthday, gender, level, isEmployee} = req.body;
-
-    const id = req.params._id;
-    // find user by id
-    const user = await User.findById(id);
-
-    // check if user found
-    if (!user) throw new NotFoundError('User not found!');
-
-    // edit user information
-    user.name = name||user.name;
-    user.address = address||user.address;
-    user.phoneNumber = phoneNumber||user.phoneNumber;
-    user.birthday = birthday||user.birthday;
-    user.gender = gender||user.gender;
-    user.level = level||user.level;
-    user.isEmployee = isEmployee||user.isEmployee;
-
-    // upload result init
-    let result;
-    if (req.file) {
-        try {
-            result = await cloudinary.uploader.upload(req.file.path, {
-                public_id: `${user._id}_profile`,
-                width: 500,
-                height: 500,
-                crop: 'fill',
-            });
-        }
-        catch (err) {throw new InternalServerError('Unable to upload avatar, please try again');}
-    }
-
-    // check if image upload or not
-    if (result) {
-        user.avatarImage = result.url;
-    }
-
     try {
-        // save the user
-        await user.save();
+        const { name, phoneNumber, address, birthday, gender, level, isEmployee, departmentId} = req.body;
+        const department = await Department.findOne({_id: departmentId});
+        if (!department)
+            throw new NotFoundError(
+            `The users with department _id ${departmentId} does not exists`
+        );
+        else if (department.isDeleted === true) {
+            res.status(410).send("Department is deleted");
+        } 
+        else {
+            const id = req.params._id;
+            // find user by id
+            const user = await User.findById(id);
 
-        // delete refresh token and password from user info
-        user.refreshToken = undefined;
-        user.password = undefined;
+            // check if user found
+            if (!user) throw new NotFoundError('User not found!');
 
-        // send success message to front end
-        res.status(200).json({Status: 'Success', message: `Update ${user.firstName}'s information successfully`, user: user})
+            // edit user information
+            user.name = name||user.name;
+            user.address = address||user.address;
+            user.phoneNumber = phoneNumber||user.phoneNumber;
+            user.birthday = birthday||user.birthday;
+            user.gender = gender||user.gender;
+            user.level = level||user.level;
+            user.isEmployee = isEmployee||user.isEmployee;
+            user.departmentId = departmentId||user.departmentId;
+
+            // upload result init
+            let result;
+            if (req.file) {
+                try {
+                    result = await cloudinary.uploader.upload(req.file.path, {
+                        public_id: `${user._id}_profile`,
+                        width: 500,
+                        height: 500,
+                        crop: 'fill',
+                    });
+                }
+                catch (err) {throw new InternalServerError('Unable to upload avatar, please try again');}
+            }
+
+            // check if image upload or not
+            if (result) {
+                user.avatarImage = result.url;
+            }
+
+        
+            // save the user
+            await user.save();
+            department.employeeCount = await User.countDocuments({ departmentId: departmentId, isEmployee: true});
+            await department.save();
+            // delete refresh token and password from user info
+            user.refreshToken = undefined;
+            user.password = undefined;
+
+            // send success message to front end
+            res.status(200).json({Status: 'Success', message: `Update ${user.firstName}'s information successfully`, user: user})
+        }
     }
     catch (err) {throw err;}
 };
