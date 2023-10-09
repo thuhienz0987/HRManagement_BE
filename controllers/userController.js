@@ -10,6 +10,7 @@ import ROLES_LIST from '../config/roles_list.js';
 import { mailTransport, OtpTemplate,verifiedTemplate, generateOTP } from '../utils/mail.js';
 import VerificationToken from '../models/VerificationToken.js';
 import Department from '../models/Department.js';
+import {parse, format } from 'date-fns';
 
 // init password validator
 let passwordSchema = new PasswordValidator();
@@ -27,6 +28,8 @@ const create_user = async (req, res) => {
     const { email, name, phoneNumber, address, birthday, gender, homeTown, ethnicGroup, level, departmentId} = req.body;
 
     try {
+        const birthDay = parse(birthday, 'dd/MM/yyyy', new Date());
+        const isoBirthDayStr = format(birthDay, "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
         const department = await Department.findOne({_id: departmentId});
         if (!department)
             throw new NotFoundError(
@@ -60,7 +63,7 @@ const create_user = async (req, res) => {
                 email, 
                 name, 
                 phoneNumber,
-                birthday,
+                birthday: isoBirthDayStr,
                 address,  
                 gender, 
                 homeTown,
@@ -133,6 +136,8 @@ const verifyEmailUser = async (req, res) => {
 const edit_user_profile = async (req, res) => {
     try {
         const { name, phoneNumber, address, birthday, gender, level, isEmployee, departmentId} = req.body;
+        const birthDay = parse(birthday, 'dd/MM/yyyy', new Date());
+        const isoBirthDayStr = format(birthDay, "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
         const department = await Department.findOne({_id: departmentId});
         if (!department)
             throw new NotFoundError(
@@ -153,7 +158,7 @@ const edit_user_profile = async (req, res) => {
             user.name = name||user.name;
             user.address = address||user.address;
             user.phoneNumber = phoneNumber||user.phoneNumber;
-            user.birthday = birthday||user.birthday;
+            user.birthday = isoBirthDayStr||user.birthday;
             user.gender = gender||user.gender;
             user.level = level||user.level;
             user.isEmployee = isEmployee||user.isEmployee;

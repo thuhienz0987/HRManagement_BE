@@ -6,7 +6,7 @@ import ROLES_LIST from "../config/roles_list.js"
 
 const departmentRouter = Router();
 
-departmentRouter.get('/departments',verifyRoles(ROLES_LIST.Admin),getDepartments);
+departmentRouter.get('/departments',getDepartments);
 departmentRouter.get('/department/:_id',getDepartment);
 departmentRouter.get('/departments/:_id',getDepartmentsByDivisionId);
 departmentRouter.post('/department',verifyRoles(ROLES_LIST.Admin),postDepartment);

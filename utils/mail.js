@@ -54,7 +54,7 @@ const UserPassword = (password) => {
                     </div>
                     <div style="padding: 20px; background-color: rgb(255, 255, 255);">
                         <div style="color: rgb(0, 0, 0); text-align: center;">
-                        <h1 style="margin: 1rem 0">Email verification</h1>
+                        <h1 style="margin: 1rem 0">Your password</h1>
                         <p style="padding-bottom: 16px">Thank you for choosing HRManagement. This is your password which be used for your sign in.</p>
                         <h2>Your password: ${password}</h2>
     
