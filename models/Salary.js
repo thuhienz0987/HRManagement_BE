@@ -1,7 +1,7 @@
 import mongoose from 'mongoose'
 
 const salarySchema = mongoose.Schema({
-    idUser:{
+    userId:{
         type:  mongoose.Types.ObjectId,
         ref:'User',
         required:[true,'A salary must link a id of user']
@@ -35,10 +35,10 @@ const salarySchema = mongoose.Schema({
     },
     payDay:{
         type: Date,
-        default: Date.now(),
-        required: true,
+        // default: Date.now(),
+        // required: true,
     },
-    daysOff:{
+    presentDate:{
         type: Number,
         default: 0,
         required: true,
@@ -57,9 +57,15 @@ const salarySchema = mongoose.Schema({
         type: Number,
         default: 0,
         required: true
+    },
+    overTimeDay:{
+        type: Number,
+        default: 0,
+        required: true
     }
-    
-})
+},
+{ timestamps: true },
+)
 
 const Salary = mongoose.model('Salary', salarySchema)
 export default Salary
