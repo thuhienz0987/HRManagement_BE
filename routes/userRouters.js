@@ -8,8 +8,8 @@ const router = Router();
 
 router.post('/create-user', verifyRoles(ROLES_LIST.HRManager),uploads.single('avatarImage'), create_user);
 router.post('/verify-email', verifyEmailUser);
-router.post('/user/:_id', verifyRoles(ROLES_LIST.HRManager),uploads.single('avatarImage'), edit_user_profile);
-router.get('/all-user', verifyRoles(ROLES_LIST.Admin,ROLES_LIST.HRManager),get_all_user);
+router.post('/user/:_id',uploads.single('avatarImage'), edit_user_profile);
+router.get('/all-user', verifyRoles(ROLES_LIST.CEO,ROLES_LIST.HRManager),get_all_user);
 router.get('/user/:_id', get_user_by_id);
 
 export default router;

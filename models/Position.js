@@ -19,6 +19,11 @@ const positionSchema = mongoose.Schema({
         type: Number,
         required: [true,'A Position must have basic salary'],
     },
+    amount:{
+        type: Number,
+        default: 0,
+        required: true,
+    },
     isDeleted:{
         type: Boolean,
         required: true,
