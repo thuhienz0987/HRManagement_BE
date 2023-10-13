@@ -29,18 +29,12 @@ const getPosition = async (req,res) =>{
         throw err
     }
 };
-const generatePositionCode = (positionName) => {
-    const cleanedPositionName = positionName.toUpperCase().replace(/\s/g, '');
-    const positionCode = cleanedPositionName.substring(0, 3);
-  
-    return positionCode;
-}
 const postPosition = async (req,res) =>{
-    const { name, basicSalary} = req.body;
+    const { name, basicSalary, code} = req.body;
     try{
-        const positionExist = await Position.findOne({code: generatePositionCode(name)});   
+        const positionExist = await Position.findOne({code});   
         if(positionExist && positionExist.isDeleted===true){
-            positionExist.code= generatePositionCode(name);
+            positionExist.code= code;
             positionExist.name=name;
             positionExist.basicSalary= basicSalary;
 
@@ -52,7 +46,7 @@ const postPosition = async (req,res) =>{
             })
         }
         else if (!positionExist){
-            const position = new Position({code: generatePositionCode(name),name, basicSalary});
+            const position = new Position({code, name, basicSalary});
             const newPosition = await position.save()
             res.status(200).json({
                 message: 'Create Position successfully',
@@ -69,9 +63,9 @@ const postPosition = async (req,res) =>{
 };
 
 const updatePosition = async (req,res) => {
-    const {_id}= req.params;
-    const {name,basicSalary} = req.body;
-    const position = await Position.findById(_id);
+    const {id}= req.params;
+    const {name,basicSalary,code} = req.body;
+    const position = await Position.findById(id);
     if(!position) {
         throw new NotFoundError('Not found Position');
     }

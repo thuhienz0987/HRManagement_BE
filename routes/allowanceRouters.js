@@ -5,10 +5,10 @@ import ROLES_LIST from "../config/roles_list.js"
 
 const allowanceRouter = Router();
 
-allowanceRouter.get('/allowances',verifyRoles(ROLES_LIST.HRManager,ROLES_LIST.Admin),getAllowances);
+allowanceRouter.get('/allowances',verifyRoles(ROLES_LIST.HRManager,ROLES_LIST.CEO),getAllowances);
 allowanceRouter.get('/allowance/:id',getAllowance);
-allowanceRouter.post('/allowance',verifyRoles(ROLES_LIST.Admin),postAllowance);
-allowanceRouter.put('/allowance/:id',verifyRoles(ROLES_LIST.Admin),updateAllowance);
-allowanceRouter.delete('/allowance/:id',verifyRoles(ROLES_LIST.Admin),deleteAllowance);
+allowanceRouter.post('/allowance',verifyRoles(ROLES_LIST.HRManager),postAllowance);
+allowanceRouter.put('/allowance/:id',verifyRoles(ROLES_LIST.HRManager),updateAllowance);
+allowanceRouter.delete('/allowance/:id',verifyRoles(ROLES_LIST.HRManager),deleteAllowance);
 
 export default allowanceRouter;
