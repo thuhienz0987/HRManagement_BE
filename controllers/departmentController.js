@@ -3,6 +3,7 @@ import NotFoundError from '../errors/notFoundError.js';
 import Department from '../models/Department.js';
 import User from '../models/User.js';
 import Team from '../models/Team.js';
+import Position from '../models/Position.js';
 
 const getDepartments = async (req,res) => {
     try{
@@ -48,6 +49,7 @@ const postDepartment = async (req,res) =>{
         else if (manager.isEmployee === false) {
             res.status(410).send(`Manager with user _id ${managerId} is deleted`);
         }
+        const managerPosition = await Position.findOne({code: 'DEM', isDeleted: false});
         const departmentExist = await Department.findOne({code: generateDepartmentCode(name)});   
         if(departmentExist && departmentExist.isDeleted===true){
             departmentExist.managerId= managerId;
@@ -57,6 +59,7 @@ const postDepartment = async (req,res) =>{
             departmentExist.isDeleted = false;
             const newDepartment = await departmentExist.save();
             manager.departmentId = newDepartment._id;
+            manager.positionId = managerPosition._id;
             if(manager.teamId != null)
             {
                 manager.teamId = null;
@@ -85,6 +88,7 @@ const postDepartment = async (req,res) =>{
             department.teamCount = await Team.countDocuments({ departmentId: department._id, isDeleted: false  });
             const newDepartment = await department.save();
             manager.departmentId = newDepartment._id;
+            manager.positionId = managerPosition._id;
             if(manager.teamId != null)
             {
                 manager.teamId = null;
@@ -116,6 +120,7 @@ const updateDepartment = async (req,res) => {
         else if (manager.isEmployee === false) {
             res.status(410).send(`Manager with user _id ${managerId} is deleted`);
         }
+        const managerPosition = await Position.findOne({code: 'DEM', isDeleted: false});
         const department = await Department.findById(_id);
         if(!department) {
             throw new NotFoundError('Not found Department');
@@ -126,6 +131,7 @@ const updateDepartment = async (req,res) => {
     
         const updateDepartment = await Department.save();
         manager.departmentId = updateDepartment._id;
+        manager.positionId = managerPosition._id;
             if(manager.teamId != null)
             {
                 manager.teamId = null;
