@@ -68,6 +68,7 @@ const create_user = async (req, res) => {
         else if (position.isDeleted === true) {
             res.status(410).send(`Position with position _id ${positionId} is deleted`);
         }
+        const positionAmount = await User.countDocuments({positionId: position._id, isEmployee: true});
                 
         // upload result init
         let result;
@@ -90,7 +91,7 @@ const create_user = async (req, res) => {
         // new user create
         const newUser = new User({
             email, 
-            code: generateUserCode(position.code, position.amount),
+            code: generateUserCode(position.code, positionAmount),
             name, 
             phoneNumber,
             birthday: isoBirthDayStr,
@@ -113,9 +114,6 @@ const create_user = async (req, res) => {
         // save the otp and user to db
         const verificationToken = await newVerificationToken.save();
         const user = await newUser.save();
-        
-        position.amount++;
-        await position.save();
 
         // send a mail that contain otp to the user's email
         mailTransport().sendMail({
@@ -185,6 +183,7 @@ const edit_user_profile = async (req, res) => {
         else if (newPosition.isDeleted === true) {
             res.status(410).send(`Position with position _id ${positionId} is deleted`);
         }
+        const positionAmount = await User.countDocuments({positionId: newPosition._id, isEmployee: true});
         const id = req.params._id;
         // find user by id
         const user = await User.findById(id);
@@ -192,18 +191,8 @@ const edit_user_profile = async (req, res) => {
         // check if user found
         if (!user) throw new NotFoundError('User not found!');
 
-        const oldPosition = await Position.findOne({_id: user.positionId, isDeleted: false});
-        if (!oldPosition)
-            throw new NotFoundError(
-            `The position with position _id ${positionId} does not exists`
-        );
-        else if (oldPosition.isDeleted === true) {
-            res.status(410).send(`Position with position _id ${positionId} is deleted`);
-        }
-        oldPosition.amount--;
-        await oldPosition.save();
-
         // edit user information
+        user.code = generateUserCode(newPosition.code, positionAmount)||user.code,
         user.name = name||user.name;
         user.address = address||user.address;
         user.phoneNumber = phoneNumber||user.phoneNumber;
@@ -237,8 +226,6 @@ const edit_user_profile = async (req, res) => {
     
         // save the user
         await user.save();
-        newPosition.amount++;
-        await newPosition.save();
         team.employeeCount = await User.countDocuments({ teamId: teamId, isEmployee: true});
         await team.save();
         // delete refresh token and password from user info

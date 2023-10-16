@@ -70,7 +70,7 @@ const postTeam = async (req,res) =>{
         else if (manager.isEmployee === false) {
             res.status(410).send(`Manager with user _id ${managerId} is deleted`);
         }
-        
+        const managerPosition = await Position.findOne({code: 'DEM', isDeleted: false});
         const department = await Department.findOne({_id: departmentId});
         if (!department)
             throw new NotFoundError(
@@ -103,6 +103,7 @@ const postTeam = async (req,res) =>{
                 newTeam.employeeCount = await User.countDocuments({ teamId: newTeam._id, isEmployee: true});
                 await newTeam.save();
                 manager.teamId = newTeam._id;
+                manager.positionId = managerPosition._id;
                 await manager.save();
                 department.teamCount = await Team.countDocuments({ departmentId: departmentId, isDeleted: false  });
                 await department.save();
@@ -115,6 +116,7 @@ const postTeam = async (req,res) =>{
                 const team = new Team({departmentId,name, managerId, code: generateTeamCode(name,department.name)});
                 const newTeam = await team.save();
                 manager.teamId = newTeam._id;
+                manager.positionId = managerPosition._id;
                 await manager.save();
                 department.teamCount = await Team.countDocuments({ departmentId: departmentId, isDeleted: false  });
                 await department.save();
@@ -159,6 +161,7 @@ const updateTeam = async (req,res) => {
             else if (manager.isDeleted === true) {
                 res.status(410).send(`Manager with user _id ${managerId} is deleted`);
             }
+            const managerPosition = await Position.findOne({code: 'TEM', isDeleted: false});
             team.managerId= managerId||team.managerId;
             team.name=name||team.name;
             team.departmentId= departmentId||team.departmentId;
@@ -166,6 +169,7 @@ const updateTeam = async (req,res) => {
             
             const updateTeam = await Team.save();
             manager.teamId = updateTeam._id;
+            manager.positionId = managerPosition._id;
             await manager.save();
             const departmentOld = await Department.findOne({_id: teamOld.departmentId});
             if (!departmentOld)
