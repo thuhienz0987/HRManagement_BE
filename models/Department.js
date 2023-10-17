@@ -18,11 +18,6 @@ const departmentSchema = mongoose.Schema({
         unique: [true,'A manager cannot manage more than one department'],
         ref: 'User'
     },
-    teamCount:{
-        type: Number,
-        default: 0,
-        required: true,
-    },
     isDeleted:{
         type: Boolean,
         required: true,

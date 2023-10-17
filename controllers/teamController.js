@@ -62,7 +62,16 @@ const generateTeamCode = (TeamName, DepartmentName) => {
 const postTeam = async (req,res) =>{
     const {managerId, name, departmentId} = req.body;
     try{
+        const department = await Department.findOne({_id: departmentId, isDeleted: false});
+        if (!department)
+            throw new NotFoundError(
+            `The Teams with Department _id ${departmentId} does not exists`
+        );
+        else if (department.isDeleted === true) {
+            res.status(410).send(`Department with _id ${departmentId} is deleted`);
+        }
         const manager = await User.findOne({_id: managerId, isEmployee: true});
+        const managerPosition = await Position.findOne({code: 'DEM', isDeleted: false});
         if (!manager)
             throw new NotFoundError(
             `The manager with user _id ${managerId} does not exists`
@@ -70,15 +79,6 @@ const postTeam = async (req,res) =>{
         else if (manager.isEmployee === false) {
             res.status(410).send(`Manager with user _id ${managerId} is deleted`);
         }
-        const managerPosition = await Position.findOne({code: 'DEM', isDeleted: false});
-        const department = await Department.findOne({_id: departmentId});
-        if (!department)
-            throw new NotFoundError(
-            `The Teams with Department _id ${departmentId} does not exists`
-        );
-        else if (department.isDeleted === true) {
-            res.status(410).send("Department is deleted");
-        } 
         else {
             const teamExist = await Team.findOne({code: generateTeamCode(name,department.name)});
             if(teamExist && teamExist.isDeleted===true){
@@ -100,13 +100,9 @@ const postTeam = async (req,res) =>{
                         await user.save();
                     });
                 }
-                newTeam.employeeCount = await User.countDocuments({ teamId: newTeam._id, isEmployee: true});
-                await newTeam.save();
                 manager.teamId = newTeam._id;
                 manager.positionId = managerPosition._id;
                 await manager.save();
-                department.teamCount = await Team.countDocuments({ departmentId: departmentId, isDeleted: false  });
-                await department.save();
                 res.status(201).json({
                     message: 'restore Team successfully',
                     team: newTeam,
@@ -118,8 +114,6 @@ const postTeam = async (req,res) =>{
                 manager.teamId = newTeam._id;
                 manager.positionId = managerPosition._id;
                 await manager.save();
-                department.teamCount = await Team.countDocuments({ departmentId: departmentId, isDeleted: false  });
-                await department.save();
                 res.status(200).json({
                     message: 'Create Team successfully',
                     team: newTeam,
@@ -138,55 +132,38 @@ const updateTeam = async (req,res) => {
     try{
         const {_id}= req.params;
         const {managerId,name,departmentId} = req.body;
-        const department = await Department.findOne({_id: departmentId});
+        const department = await Department.findOne({_id: departmentId, isDeleted: false});
         if (!department)
             throw new NotFoundError(
-            `The Teams with department _id ${departmentId} does not exists`
+            `The Teams with Department _id ${departmentId} does not exists`
         );
         else if (department.isDeleted === true) {
             res.status(410).send(`Department with _id ${departmentId} is deleted`);
+        } 
+        const team = await Team.findById({_id: _id, isDeleted: false});
+        if(!team) {
+            throw new NotFoundError('Not found Team');
         }
-        else {
-            const team = await Team.findById(_id);
-            const teamOld = await Team.findById(_id);
-            if(!team) {
-                throw new NotFoundError('Not found Team');
-            }
-             
-            const manager = await User.findOne({_id: managerId});
-            if (!manager)
-                throw new NotFoundError(
-                `The manager with user _id ${managerId} does not exists`
-            );
-            else if (manager.isDeleted === true) {
-                res.status(410).send(`Manager with user _id ${managerId} is deleted`);
-            }
-            const managerPosition = await Position.findOne({code: 'TEM', isDeleted: false});
-            team.managerId= managerId||team.managerId;
-            team.name=name||team.name;
-            team.departmentId= departmentId||team.departmentId;
-            team.code = generateTeamCode(name,department.name)||team.code;
             
-            const updateTeam = await Team.save();
-            manager.teamId = updateTeam._id;
-            manager.positionId = managerPosition._id;
-            await manager.save();
-            const departmentOld = await Department.findOne({_id: teamOld.departmentId});
-            if (!departmentOld)
-                throw new NotFoundError(
-                `The Teams with Department _id ${teamOld.departmentId} does not exists`
-            );
-            else if (departmentOld.isDeleted === true) {
-                res.status(410).send(`Department with _id ${teamOld.departmentId} is deleted`);
-            } 
-            else {
-                departmentOld.teamCount = await Team.countDocuments({ departmentId: teamOld.departmentId, isDeleted: false  });
-                await departmentOld.save();
-            }
-            department.teamCount = await Team.countDocuments({ departmentId: departmentId, isDeleted: false  });
-            await department.save();
-            res.status(200).json(updateTeam);
+        const manager = await User.findOne({_id: managerId, isEmployee: true});
+        if (!manager)
+            throw new NotFoundError(
+            `The manager with user _id ${managerId} does not exists`
+        );
+        else if (manager.isEmployee === false) {
+            res.status(410).send(`Manager with user _id ${managerId} is deleted`);
         }
+        const managerPosition = await Position.findOne({code: 'TEM', isDeleted: false});
+        team.managerId= managerId||team.managerId;
+        team.name=name||team.name;
+        team.departmentId= departmentId||team.departmentId;
+        team.code = generateTeamCode(name,department.name)||team.code;
+        
+        const updateTeam = await Team.save();
+        manager.teamId = updateTeam._id;
+        manager.positionId = managerPosition._id;
+        await manager.save();
+        res.status(200).json(updateTeam);
     }
     catch(err){
         throw err
@@ -202,29 +179,9 @@ const deleteTeam = async (req,res) => {
             user.isEmployee = false;
             await user.save();
         });
-        // if (users.length === 0)
-        //     throw new NotFoundError(`Not found user in Team id ${_id}`);
-        // else {
-        //     users.map(async (user) => {
-        //         user.isEmployee = false;
-        //         await user.save();
-        //     });
-        // }
-        const departmentOld = await Department.findOne({_id: team.departmentId});
-        if (!departmentOld)
-            throw new NotFoundError(
-            `The Teams with Department _id ${team.departmentId} does not exists`
-        );
-        else if (departmentOld.isDeleted === true) {
-            res.status(410).send(`Department with _id ${team.departmentId} is deleted`);
-        } 
-        else {
-            departmentOld.teamCount = await Team.countDocuments({ departmentId: Team.departmentId, isDeleted: false });
-            await departmentOld.save();
-        }
         res.status(200).json({
             message: 'Deleted Team successfully',
-            team: Team,
+            team: team,
         })
     }
     catch(err){

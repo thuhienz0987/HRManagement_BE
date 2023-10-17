@@ -23,11 +23,6 @@ const teamSchema = mongoose.Schema({
         required: [true,'A Team must belong to a department'],
         ref: 'Department'
     },
-    employeeCount:{
-        type: Number,
-        default: 1,
-        required: true,
-    },
     isDeleted:{
         type: Boolean,
         required: true,
