@@ -55,7 +55,7 @@ const handleRoles = (positionCode) => {
     return rolesArray;
 }
 const create_user = async (req, res) => {
-    const { email, name, phoneNumber, address, birthday, gender, homeTown, ethnicGroup, level, positionId} = req.body;
+    const { email, name, phoneNumber, address, birthday, gender, homeTown, ethnicGroup, level, teamId, departmentId, positionId} = req.body;
 
     try {
         const birthDay = parse(birthday, 'dd/MM/yyyy', new Date());
@@ -101,6 +101,8 @@ const create_user = async (req, res) => {
             ethnicGroup, 
             level,
             positionId,
+            teamId,
+            departmentId,
             avatarImage,
             roles: handleRoles(position.code)
         })
@@ -164,10 +166,10 @@ const verifyEmailUser = async (req, res) => {
 };
 const edit_user_profile = async (req, res) => {
     try {
-        const { name, phoneNumber, address, birthday, gender, level, isEmployee, teamId, positionId} = req.body;
+        const { name, phoneNumber, address, birthday, gender, level, isEmployee, teamId, departmentId, positionId} = req.body;
         const birthDay = parse(birthday, 'dd/MM/yyyy', new Date());
         const isoBirthDayStr = format(birthDay, "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
-        const team = await Team.findOne({_id: teamId});
+        const team = await Team.findOne({_id: teamId, isDeleted: false});
         if (!team)
             throw new NotFoundError(
             `The users with team _id ${teamId} does not exists`
@@ -201,6 +203,7 @@ const edit_user_profile = async (req, res) => {
         user.level = level||user.level;
         user.isEmployee = isEmployee||user.isEmployee;
         user.teamId = teamId||user.teamId;
+        user.departmentId = departmentId||user.departmentId;
         user.positionId = positionId||user.positionId;
         user.roles = handleRoles(newPosition.code);
 
@@ -226,8 +229,6 @@ const edit_user_profile = async (req, res) => {
     
         // save the user
         await user.save();
-        team.employeeCount = await User.countDocuments({ teamId: teamId, isEmployee: true});
-        await team.save();
         // delete refresh token and password from user info
         user.refreshToken = undefined;
         user.password = undefined;

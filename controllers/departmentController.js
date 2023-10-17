@@ -55,7 +55,6 @@ const postDepartment = async (req,res) =>{
             departmentExist.managerId= managerId;
             departmentExist.name=name;
             departmentExist.code = generateDepartmentCode(name);
-            departmentExist.teamCount = await Team.countDocuments({ departmentId: departmentExist._id, isDeleted: false });
             departmentExist.isDeleted = false;
             const newDepartment = await departmentExist.save();
             manager.departmentId = newDepartment._id;
@@ -85,7 +84,6 @@ const postDepartment = async (req,res) =>{
                 managerId, 
                 code: generateDepartmentCode(name)
             });
-            department.teamCount = await Team.countDocuments({ departmentId: department._id, isDeleted: false  });
             const newDepartment = await department.save();
             manager.departmentId = newDepartment._id;
             manager.positionId = managerPosition._id;
@@ -127,7 +125,6 @@ const updateDepartment = async (req,res) => {
         }
         department.managerId= managerId||department.managerId;
         department.name=name||department.name;
-        department.teamCount= await Team.countDocuments({ departmentId: _id, isDeleted: false  })||department.teamCount;
     
         const updateDepartment = await Department.save();
         manager.departmentId = updateDepartment._id;
