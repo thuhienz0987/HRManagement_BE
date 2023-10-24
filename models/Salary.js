@@ -62,6 +62,11 @@ const salarySchema = mongoose.Schema({
         type: Number,
         default: 0,
         required: true
+    },
+    overTime:{
+        type: Number,
+        default: 0,
+        required: true
     }
 },
 { timestamps: true },
