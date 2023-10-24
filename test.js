@@ -9,10 +9,10 @@ async function dropUniqueIndex() {
     const database = client.db('HRManagement');
     const collection = database.collection('users');
 
-    // Xóa chỉ mục duy nhất trên trường departmentId
-    await collection.dropIndex('departmentId_1');
+    // Xóa chỉ mục duy nhất trên trường TeamId
+    await collection.dropIndex('TeamId_1');
 
-    console.log('Chỉ mục duy nhất trên departmentId đã được xóa thành công');
+    console.log('Chỉ mục duy nhất trên TeamId đã được xóa thành công');
   } catch (error) {
     console.error('Lỗi:', error);
   } finally {

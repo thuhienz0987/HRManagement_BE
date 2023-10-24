@@ -7,8 +7,8 @@ const positionRouter = Router();
 
 positionRouter.get('/positions',getPositions);
 positionRouter.get('/position/:id',getPosition);
-positionRouter.post('/position',verifyRoles(ROLES_LIST.Admin),postPosition);
-positionRouter.put('/position/:id',verifyRoles(ROLES_LIST.Admin),updatePosition);
-positionRouter.delete('/position/:id',verifyRoles(ROLES_LIST.Admin),deletePosition);
+positionRouter.post('/position',verifyRoles(ROLES_LIST.HRManager),postPosition);
+positionRouter.put('/position/:id',verifyRoles(ROLES_LIST.HRManager),updatePosition);
+positionRouter.delete('/position/:id',verifyRoles(ROLES_LIST.HRManager),deletePosition);
 
 export default positionRouter;

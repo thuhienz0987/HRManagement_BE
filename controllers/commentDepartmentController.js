@@ -1,6 +1,6 @@
 import BadRequestError from '../errors/badRequestError.js';
 import NotFoundError from '../errors/notFoundError.js';
-import Department from '../models/Department.js'
+import Department from '../models/Department.js';
 import CommentDepartment from '../models/CommentDepartment.js';
 
 const getCommentDepartments = async (req,res) => {
@@ -16,22 +16,7 @@ const getCommentDepartments = async (req,res) => {
 };
 
 const getCommentDepartment = async (req,res) =>{
-    const {_id} = req.params;
-    try{
-        const commentDepartment = await CommentDepartment.findById(_id)
-        if (commentDepartment && commentDepartment.isDeleted === false) {
-            res.status(200).json(commentDepartment);
-          } else if (commentDepartment && commentDepartment.isDeleted === true) {
-            res.status(410).send("Comment is deleted");
-          } else {
-            throw new NotFoundError("Comment not found");
-          }
-    }catch(err){
-        throw err
-    }
-};
-const getCommentDepartmentsByUserId = async (req,res) =>{
-    try {
+   try {
         const _id = req.params._id;
         const department = Department.findById(_id);
         if (!department)
@@ -62,7 +47,7 @@ const postCommentDepartment = async (req,res) =>{
             && currentDate.getMonth() >= (commentExist.createdAt.getMonth()+1))))
         {
             throw new BadRequestError
-            (`The department with the given ${commentExist.departmentId} was commented in ${commentExist.createdAt.getMonth()+1}/${commentExist.createdAt.getFullYear()}.`)
+            (`The Department with the given ${commentExist.departmentId} was commented in ${commentExist.createdAt.getMonth()+1}/${commentExist.createdAt.getFullYear()}.`)
         }
         else if (!commentExist){
             const newComment = new CommentDepartment({rate, comment, departmentId});
@@ -113,4 +98,4 @@ const deleteCommentDepartment = async (req,res) => {
     }
 }
 
-export {getCommentDepartments,getCommentDepartment,getCommentDepartmentsByUserId,postCommentDepartment,updateCommentDepartment,deleteCommentDepartment}
+export {getCommentDepartments,getCommentDepartment,postCommentDepartment,updateCommentDepartment,deleteCommentDepartment}

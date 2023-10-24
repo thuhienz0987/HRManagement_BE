@@ -5,11 +5,11 @@ import ROLES_LIST from "../config/roles_list.js"
 
 const leaveRequestRouter = Router();
 
-leaveRequestRouter.get('/leaveRequests',verifyRoles(ROLES_LIST.HRManager, ROLES_LIST.Admin),getLeaveRequests);
-leaveRequestRouter.get('/leaveRequest/:id',getLeaveRequest);
+leaveRequestRouter.get('/leaveRequests',verifyRoles(ROLES_LIST.HRManager, ROLES_LIST.CEO),getLeaveRequests);
+leaveRequestRouter.get('/leaveRequest/:id',verifyRoles(ROLES_LIST.HRManager, ROLES_LIST.CEO),getLeaveRequest);
 leaveRequestRouter.get('/leaveRequests/:userId',getLeaveRequestsByUserId);
-leaveRequestRouter.post('/leaveRequest',verifyRoles(ROLES_LIST.Employee),postLeaveRequest);
-leaveRequestRouter.put('/leaveRequest/:id',verifyRoles(ROLES_LIST.HRManager,ROLES_LIST.Employee),updateLeaveRequest);
+leaveRequestRouter.post('/leaveRequest',postLeaveRequest);
+leaveRequestRouter.put('/leaveRequest/:id',verifyRoles(ROLES_LIST.HRManager,ROLES_LIST.CEO),updateLeaveRequest);
 leaveRequestRouter.delete('/leaveRequest/:id',verifyRoles(ROLES_LIST.HRManager,ROLES_LIST.Employee),deleteLeaveRequest);
 
 export default leaveRequestRouter;
