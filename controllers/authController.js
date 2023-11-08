@@ -12,29 +12,29 @@ import passwordValidator from 'password-validator';
 let passwordSchema = new passwordValidator();
 
 // handle errors
-const handleErrors = (err) => {
-    console.log(err.message, err.code);
-    let errors = { email: '', password: '', name: '', phoneNumber: '' };
+// const handleErrors = (err) => {
+//     console.log(err.message, err.code);
+//     let errors = { email: '', password: '', name: '', phoneNumber: '' };
 
-    // incorrect email
-    if (err.message === 'incorrect email') {
-        errors.email = 'That email is not registered';
-    }
+//     // incorrect email
+//     if (err.message === 'incorrect email') {
+//         errors.email = 'That email is not registered';
+//     }
 
-    // incorrect password
-    if (err.message === 'incorrect password') {
-        errors.password = 'That password is incorrect';
-    }
+//     // incorrect password
+//     if (err.message === 'incorrect password') {
+//         errors.password = 'That password is incorrect';
+//     }
 
-    // validation errors
-    if (err.message.includes('user validation failed')) {
-        Object.values(err.errors).forEach(({ properties }) => {
-        errors[properties.path] = properties.message;
-        });
-    }
+//     // validation errors
+//     if (err.message.includes('user validation failed')) {
+//         Object.values(err.errors).forEach(({ properties }) => {
+//         errors[properties.path] = properties.message;
+//         });
+//     }
 
-    return errors;
-};
+//     return errors;
+// };
 
 // define max age of JWT
 const maxAgeAccessToken = 60 * 60;
@@ -121,15 +121,7 @@ const forget_password = async (req, res) => {
 
     const result = await resetToken.save();
 
-    mailTransport().sendMail({
-        from: 'OpenJavaScript <HRManagement2003@gmail.com>',
-        to: user.email,
-        subject: 'Password Reset',
-        html: forgetPasswordTemplate(`http://localhost:3000/reset-password?token=${newToken}&id=${user._id}`),
-        // html: forgetPasswordTemplate(`https://fashion-app-0m3s.onrender.com/reset-password?token=${newToken}&id=${user._id}`),
-    });
-
-    res.status(200).json({"Status": "Success", "message": "Password reset link is sent to your email"});
+    res.status(200).json(result);
 };
 
 passwordSchema
@@ -144,7 +136,7 @@ const reset_password = async (req, res) => {
         const { password } = req.body;
         console.log(password);
     
-    const user = await User.findById(req.user._id);
+    const user = await User.findById(req.params._id);
     if (!user) throw new NotFoundError("User not found!");
     
     const isSamePassword = await user.comparePassword(password);
@@ -176,4 +168,4 @@ const reset_password = async (req, res) => {
 };
 
 
-export {handleErrors, login_post, logout_post, forget_password, reset_password};
+export {login_post, logout_post, forget_password, reset_password};

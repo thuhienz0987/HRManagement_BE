@@ -164,6 +164,42 @@ const verifyEmailUser = async (req, res) => {
 
     res.status(200).json({"Status": "Success"});
 };
+const change_password = async (req, res) => {
+    try {
+        const { newPassword, oldPassword } = req.body;
+        console.log(newPassword, oldPassword);
+    const user = await User.findById(req.params._id);
+    if (!user) throw new NotFoundError("User not found!");
+    
+    const isSameOldPassword = await user.comparePassword(oldPassword);
+    if(!isSameOldPassword) throw new BadRequestError("Wrong password. Please check it again.");
+    const isSameNewPassword = await user.comparePassword(newPassword);
+    if(isSameNewPassword) throw new BadRequestError("New password must be different from the old one!");
+    
+    // validate password
+    const validateResult = passwordSchema.validate(password.trim(), { details: true });
+    if (validateResult.length != 0) {
+        throw new BadRequestError(validateResult);
+    }
+    
+    user.password = password.trim();
+    await user.save();
+    
+    await ResetToken.findOneAndDelete({owner: user._id});
+    
+    mailTransport().sendMail({
+        from: 'HRManagement2003@gmail.com',
+        to: user.email,
+        subject: 'Change Password Successfully',
+        html: passwordResetTemplate(),
+    });
+    
+    res.status(200).json({Status: "Success", message: "Change Password Successfully"}); 
+    }
+    catch (err) { 
+        throw err 
+    }
+};
 const edit_user_profile = async (req, res) => {
     try {
         const { name, phoneNumber, address, birthday, gender, level, isEmployee, teamId, departmentId, positionId} = req.body;
@@ -266,4 +302,7 @@ const get_user_by_id = async (req, res) => {
     }
 }
 
-export {create_user, verifyEmailUser, edit_user_profile, get_all_user, get_user_by_id};
+export {create_user, verifyEmailUser,change_password, edit_user_profile, get_all_user, get_user_by_id};
+
+
+
