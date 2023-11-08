@@ -14,11 +14,11 @@ const allowanceSchema = mongoose.Schema({
         required: true,
         default: false,
     },
-    type: {
-        type: String,
-        enum: ALLOWANCE_TYPES,
-        required: [true, 'Allowance must have a type'],
-    },
+    // type: {
+    //     type: String,
+    //     enum: ALLOWANCE_TYPES,
+    //     required: [true, 'Allowance must have a type'],
+    // },
     name: {
         type: String,
         required: function() {

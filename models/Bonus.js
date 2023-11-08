@@ -4,11 +4,11 @@ import mongoose from 'mongoose';
 const BONUS_TYPES = ['fixed', 'percent'];
 
 const bonusSchema = mongoose.Schema({
-    code: {
+    name: {
         type: String,
         required: [true, 'A Bonus must have a code'],
         minLength: [1, 'A code of Bonus must have a minimum of 1 character'],
-        maxLength: [4, 'A code of Bonus must have a maximum of 4 characters'],
+        maxLength: [50, 'A code of Bonus must have a maximum of 4 characters'],
         unique: [true, 'A code of Bonus with the same name has already exists'],
     },
     bonusAmount: {
