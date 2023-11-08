@@ -15,9 +15,9 @@ const getPositions = async (req,res) => {
 };
 
 const getPosition = async (req,res) =>{
-    const {_id} = req.params;
+    const {id} = req.params;
     try{
-        const position = await Position.findById(_id)
+        const position = await Position.findById(id)
         if (position && position.isDeleted === false) {
             res.status(200).json(position);
           } else if (position && position.isDeleted === true) {
@@ -83,9 +83,9 @@ const updatePosition = async (req,res) => {
 };
 
 const deletePosition = async (req,res) => {
-    const {_id} = req.params;
+    const {id} = req.params;
     try{
-        const position = await Position.findByIdAndUpdate(_id,{ isDeleted: true},{new: true});
+        const position = await Position.findByIdAndUpdate(id,{ isDeleted: true},{new: true});
         res.status(200).json({
             message: 'Deleted Position successfully',
             position: position,
