@@ -13,10 +13,5 @@ router.get('/logout', logout_post);
 router.post('/forget-password', forget_password);
 router.get('/favicon.ico', ()=>{});
 
-router.get('/reset-password', (req, res) => res.render('resetPassword', {
-    token: req.query.token,
-    id: req.query.id
-    }));
-
-router.post('/reset-password', isValidResetToken, reset_password);
+router.post('/reset-password/:_id', isValidResetToken, reset_password);
 export default router;
