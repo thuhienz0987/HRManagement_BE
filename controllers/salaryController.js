@@ -223,7 +223,7 @@ const calculateTotalSalary = async (idPosition, idSalaryGrade, idBonus, idAllowa
     // Tính tổng phụ cấp từ danh sách các mức phụ cấp của nhân viên
     const allowanceAmount = allowances.reduce((total, allowance) => total + allowance.amount, 0);
 
-    const totalIncome = (baseSalary * salaryGrade.level  + allowanceAmount)/26 * (presentDate + overTimeDay)+ bonusAmount  + overTime*((baseSalary * salaryGrade.level  + allowanceAmount)/26)/8;
+    const totalIncome = (baseSalary * salaryGrade.level )/26 * (presentDate + overTimeDay)+ allowanceAmount + bonusAmount  + overTime*((baseSalary * salaryGrade.level  + allowanceAmount)/26)/8;
     
     // Tính toán thuế thu nhập cá nhân dựa trên tổng thu nhập
     const incomeTaxAmount = calculateIncomeTax(totalIncome).incomeTaxAmount;
