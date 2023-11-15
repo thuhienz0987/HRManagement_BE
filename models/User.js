@@ -1,155 +1,152 @@
-import mongoose from 'mongoose';
-import pkg from 'validator';
-import bcrypt from 'bcrypt';
-import validator from 'validator';
-import ROLES_LIST from '../config/roles_list.js';
+import mongoose from "mongoose";
+import pkg from "validator";
+import bcrypt from "bcrypt";
+import validator from "validator";
+import ROLES_LIST from "../config/roles_list.js";
 const { isEmail } = pkg;
-import { generateRandomPassword } from '../utils/helper.js';
-import { mailTransport, UserPassword } from '../utils/mail.js';
+import { generateRandomPassword } from "../utils/helper.js";
+import { mailTransport, UserPassword } from "../utils/mail.js";
 
-const userSchema = new mongoose.Schema({
-    code:{
-        type: String,
-        required: [true, 'A user must have a code'],
-        unique: [true,'A code of user with the same name has already exists'],
+const userSchema = new mongoose.Schema(
+  {
+    code: {
+      type: String,
+      required: [true, "A user must have a code"],
+      unique: [true, "A code of user with the same name has already exists"],
     },
     email: {
-        type: String,
-        required: [true, 'Email is required'],
-        unique: [true,'A email with the same name has already exists'],
-        trim: true,
-        lowercase: true,
-        validate(value) {
-            if (!validator.isEmail(value)) {
-                throw new Error('Invalid email');
-            }
+      type: String,
+      required: [true, "Email is required"],
+      unique: [true, "A email with the same name has already exists"],
+      trim: true,
+      lowercase: true,
+      validate(value) {
+        if (!validator.isEmail(value)) {
+          throw new Error("Invalid email");
         }
+      },
     },
     password: {
-        type: String,
-        required: true,
-        default: function() {
-            const randomPassword = generateRandomPassword(8);
-            const saltRounds = 10;
-            const salt = bcrypt.genSaltSync(saltRounds);
-            const hashedPassword = bcrypt.hashSync(randomPassword, salt);
-            mailTransport().sendMail({
-                from: 'HRManagement2003@gmail.com',
-                to: this.email,
-                subject: 'Your Password',
-                html: UserPassword(randomPassword),
-            });
-      
-            return hashedPassword;
-        },
+      type: String,
+      required: true,
+      default: function () {
+        const randomPassword = generateRandomPassword(8);
+        const saltRounds = 10;
+        const salt = bcrypt.genSaltSync(saltRounds);
+        const hashedPassword = bcrypt.hashSync(randomPassword, salt);
+        mailTransport().sendMail({
+          from: "HRManagement2003@gmail.com",
+          to: this.email,
+          subject: "Your Password",
+          html: UserPassword(randomPassword),
+        });
+
+        return hashedPassword;
+      },
     },
     name: {
-        type: String,
-        required: [true, 'Name is missing']
+      type: String,
+      required: [true, "Name is missing"],
     },
     phoneNumber: {
-        type: String,
-        required: [true, 'Please tell us your phone number'],
-        minLength: [9, 'Please check your phone number'],
-        maxLength: [11, 'Please check your phone number']
+      type: String,
+      required: [true, "Please tell us your phone number"],
+      minLength: [9, "Please check your phone number"],
+      maxLength: [11, "Please check your phone number"],
     },
     birthday: {
-        type: Date,
-        required: [true, 'Birthday is missing']
+      type: Date,
+      required: [true, "Birthday is missing"],
     },
     address: {
-        type: String,
-        required: [true, 'Address is missing']
+      type: String,
+      required: [true, "Address is missing"],
     },
     gender: {
-        type: String,
-        enum: ["male", "female"],
-        required: [true, 'Gender is missing']
+      type: String,
+      enum: ["male", "female"],
+      required: [true, "Gender is missing"],
     },
     homeTown: {
-        type: String,
-        required: [true, 'Home town is missing']
+      type: String,
+      required: [true, "Home town is missing"],
     },
     ethnicGroup: {
-        type: String,
-        required: [true, 'Ethnic group is missing']
+      type: String,
+      required: [true, "Ethnic group is missing"],
     },
     level: {
-        type: String,
-        enum: ["college", "university", "master", "doctorate"],
-        required: [true, 'Level is missing']
+      type: String,
+      enum: ["college", "university", "master", "doctorate"],
+      required: [true, "Level is missing"],
     },
     isEmployee: {
-        type: Boolean,
-        required: [true, 'Is employee is missing'],
-        default: true
+      type: Boolean,
+      required: [true, "Is employee is missing"],
+      default: true,
     },
-    positionId:{
-        type: mongoose.Types.ObjectId,
-        required: [true, 'User must have a position'],
-        ref: 'Position'
+    positionId: {
+      type: mongoose.Types.ObjectId,
+      required: [true, "User must have a position"],
+      ref: "Position",
     },
-    teamId:{
-        type: mongoose.Types.ObjectId,
-        default: null,
-        ref: 'Team'
+    teamId: {
+      type: mongoose.Types.ObjectId,
+      default: null,
+      ref: "Team",
     },
-    departmentId:{
-        type: mongoose.Types.ObjectId,
-        default: null,
-        ref: 'Department'
-    },
-    emailVerified: {
-        type: Boolean,
-        required: [true, 'Your email has not been verified yet, please verify your email to use our app'],
-        default: false
+    departmentId: {
+      type: mongoose.Types.ObjectId,
+      default: null,
+      ref: "Department",
     },
     refreshToken: {
-        type: String
+      type: String,
     },
     avatarImage: {
-        type: String,
-        default: 'https://res.cloudinary.com/dux8aqzzz/image/upload/v1685547037/xd0gen7b4z5wgwuqfvpz.png',
-        required: true
+      type: String,
+      default:
+        "https://res.cloudinary.com/dux8aqzzz/image/upload/v1685547037/xd0gen7b4z5wgwuqfvpz.png",
+      required: true,
     },
     roles: {
-        type: [String],
-        required: true,
-        default: [ROLES_LIST.Employee]
+      type: [String],
+      required: true,
+      default: [ROLES_LIST.Employee],
     },
-},
-    { timestamps: true }
+  },
+  { timestamps: true }
 );
 
 // static method to login user
-userSchema.statics.login = async function(email, password) {
-    const user = await this.findOne({ email });
-    console.log(user);
-    if (user) {
-            const auth = await bcrypt.compare(password, user.password);
-            if (auth) {
-                return user;
-            }
-            throw Error('incorrect password');
+userSchema.statics.login = async function (email, password) {
+  const user = await this.findOne({ email });
+  console.log(user);
+  if (user) {
+    const auth = await bcrypt.compare(password, user.password);
+    if (auth) {
+      return user;
     }
-    throw Error('incorrect email');
+    throw Error("incorrect password");
+  }
+  throw Error("incorrect email");
 };
 
 userSchema.methods.comparePassword = async function (password) {
-    const result = await bcrypt.compare(password, this.password);
-    return result;
+  const result = await bcrypt.compare(password, this.password);
+  return result;
 };
 
-userSchema.pre('save', async function(next) {
-    if (this.isModified('password')) {
-        const salt = await bcrypt.genSalt();
-        const hashedPassword = await bcrypt.hash(this.password, salt);
-        this.password = hashedPassword;
-    }
-    
-    next();
-})
+userSchema.pre("save", async function (next) {
+  if (this.isModified("password")) {
+    const salt = await bcrypt.genSalt();
+    const hashedPassword = await bcrypt.hash(this.password, salt);
+    this.password = hashedPassword;
+  }
 
-const User = mongoose.model('User', userSchema);
+  next();
+});
+
+const User = mongoose.model("User", userSchema);
 
 export default User;
