@@ -22,9 +22,9 @@ const getSalaryGrades = async(req,res) =>{
 }
 
 const getSalaryGrade = async (req,res) =>{
-    const {_id} = req.params;
+    const {id} = req.params;
     try{
-        const salaryGrade = await SalaryGrade.findById(_id).populate({
+        const salaryGrade = await SalaryGrade.findById(id).populate({
             
             path: 'idPosition',
         })
@@ -103,9 +103,9 @@ const updateSalaryGrade = async (req,res) =>{
 }
 
 const deleteSalaryGrade = async(req,res) =>{
-    const {_id} = req.params;
+    const {id} = req.params;
     try{
-        const salaryGrade = await SalaryGrade.findByIdAndUpdate(_id,{ isDeleted: true},{new: true});
+        const salaryGrade = await SalaryGrade.findByIdAndUpdate(id,{ isDeleted: true},{new: true});
         res.status(200).json({
             message: 'Deleted salary grade successfully',
             salaryGrade: salaryGrade,

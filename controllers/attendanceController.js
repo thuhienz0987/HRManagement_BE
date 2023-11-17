@@ -117,9 +117,9 @@ const updateAttendance = async (req, res) => {
     // Tạo một đối tượng lịch sử cập nhật mới
     const updateRecord = {
       updateDate: new Date(),
-      checkInTime: checkInTime,
-      checkOutTime: checkOutTime,
-      attendanceDate: attendanceDate,
+      checkInTime: attendance.checkInTime,
+      checkOutTime: attendance.checkOutTime,
+      attendanceDate: attendance.attendanceDate,
     };
 
     // Thêm đối tượng lịch sử cập nhật vào mảng updateHistory
