@@ -12,7 +12,7 @@ import 'express-async-errors';
 import router from './routes/index.js';
 
 connectDB();
-const Port = process.env.PORT || 3000;
+const Port = process.env.PORT || 3001;
 
 mongoose.set("strictQuery", false);
 // connectDB();
