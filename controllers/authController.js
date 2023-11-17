@@ -50,6 +50,8 @@ const maxAgeRefreshToken = 60 * 60 * 24 * 30 * 6;
 const login_post = async (req, res) => {
   const { email, password } = req.body;
 
+  console.log(email)
+
   try {
     const user = await User.login(email, password);
     // create JWTs for logged in user.
@@ -116,6 +118,7 @@ const logout_post = async (req, res) => {
 
 const forget_password = async (req, res) => {
   const { email } = req.body;
+  console.log({email})
   if (!email) throw new BadRequestError("Please provide a valid email!");
 
   const user = await User.findOne({ email });
