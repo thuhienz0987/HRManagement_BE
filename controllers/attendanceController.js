@@ -30,6 +30,52 @@ const getAttendance = async (req, res) => {
   }
 };
 
+const getAttendancesByDate = async (req,res) =>{
+  const {day,month,year} = req.params;
+
+  try{
+    const targetDate = new Date(year, month-1, day);
+
+    const attendances = await Attendance.find({
+      isDeleted: false,
+      attendanceDate: {$gte: targetDate, $lte: new Date(targetDate.getTime() + 24 * 60 * 60 * 1000) },
+    });
+
+    if(attendances.length === 0){
+      throw new NotFoundError(`No attendance found for ${day}/${month}/${year}`);
+    }
+
+    res.status(200).json(attendances);
+
+  }catch(err){
+    throw err
+  }
+}
+
+const getAttendancesByMonth= async (req,res) =>{
+  const {month,year} = req.params;
+
+  try{
+    const targetDate = new Date(year, month-1, 1);
+    const endDate = new Date(year, month, 0);
+
+
+    const attendances = await Attendance.find({
+      isDeleted: false,
+      attendanceDate: {$gte: targetDate, $lte: endDate },
+    });
+
+    if(attendances.length === 0){
+      throw new NotFoundError(`No attendance found for ${month}/${year}`);
+    }
+
+    res.status(200).json(attendances);
+
+  }catch(err){
+    throw err
+  }
+}
+
 const postAttendance = async (req, res) => {
   const { userId } = req.body;
   try {
@@ -154,4 +200,4 @@ const deleteAttendance = async (req,res) =>{
 }
 }
 
-export {getAttendances,getAttendance,postAttendance,closeAttendance,updateAttendance,deleteAttendance}
+export {getAttendances,getAttendance,getAttendancesByDate,getAttendancesByMonth,postAttendance,closeAttendance,updateAttendance,deleteAttendance}
