@@ -4,6 +4,12 @@ import mongoose from 'mongoose';
 const BONUS_TYPES = ['fixed', 'percent'];
 
 const bonusSchema = mongoose.Schema({
+    code: {
+        type: String,
+        required: [true, 'Bonus must have a code'],
+        minLength: [1, 'A code of allowance have minimum of 1 character'],
+        maxLength: [10, 'A code of allowance must have maximum of 10 characters'],
+    },
     name: {
         type: String,
         required: [true, 'A Bonus must have a name'],
