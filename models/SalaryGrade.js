@@ -4,7 +4,7 @@ const salaryGradeSchema = mongoose.Schema({
         type: String,
         required: [true, 'A salary grade must have a code'],
         minLength: [1,'A code of salary grade must have minimum of 1 character'],
-        maxLength:[4,'A code of salary grade must have maximum of 4 character'],
+        maxLength:[5,'A code of salary grade must have maximum of 5 character'],
         unique: [true,'A code of salary grade with the same name has already exists'],
     },
     factor:{
