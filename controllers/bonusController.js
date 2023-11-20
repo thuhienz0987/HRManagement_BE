@@ -31,30 +31,31 @@ const getBonus = async (req,res) =>{
 };
 
 const postBonus = async (req,res) =>{
-    const {name, bonusAmount,bonusType } = req.body;
+    const {name, bonusAmount,bonusType, code } = req.body;
     try{
         const bonusExist = await Bonus.findOne({name});   
         if(bonusExist && bonusExist.isDeleted===true){
             bonusExist.name= name;
             bonusExist.bonusAmount=bonusAmount;
             bonusExist.bonusType = bonusType;
+            bonusExist.code = code
             bonusExist.isDeleted= false;
             const newBonus = await bonusExist.save()
             res.status(201).json({
-                message: 'restore Position successfully',
+                message: 'restore Bonus successfully',
                 bonus: newBonus,
             })
         }
         else if (!bonusExist){
-            const bonus = new Bonus({name,bonusAmount,bonusType});
+            const bonus = new Bonus({name,bonusAmount,bonusType, code});
             const newBonus = await bonus.save()
             res.status(200).json({
-                message: 'Create Position successfully',
+                message: 'Create Bonus successfully',
                 bonus: newBonus,
             })
         }
         else{
-            throw new BadRequestError(`Bonus with name ${bonusExist.name} exist`)
+            throw new BadRequestError("Bonus with code ${bonusExist.code} exist")
         }
 
     }catch(err){
@@ -64,12 +65,13 @@ const postBonus = async (req,res) =>{
 
 const updateBonus = async (req,res) => {
     const {id}= req.params;
-    const {name,bonusAmount,bonusType} = req.body;
+    const {name,code,bonusAmount,bonusType} = req.body;
     const bonus = await Bonus.findById(id);
     if(!bonus) {
         throw new NotFoundError('Not found Bonus');
     }
     bonus.name= name ?name:bonus.name;
+    bonus.code = code ? code : bonus.code;
     bonus.bonusAmount= bonusAmount?bonusAmount:bonus.bonusAmount;
     bonus.bonusType = bonusType?bonusType:bonus.bonusType;
     try{
