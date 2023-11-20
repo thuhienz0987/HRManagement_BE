@@ -54,7 +54,7 @@ const postBonus = async (req,res) =>{
             })
         }
         else{
-            throw new BadRequestError(`Position with name ${bonusExist.name} exist`)
+            throw new BadRequestError(`Bonus with name ${bonusExist.name} exist`)
         }
 
     }catch(err){

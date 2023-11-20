@@ -81,7 +81,7 @@ const userSchema = new mongoose.Schema(
       required: [true, "Level is missing"],
     },
     isEmployee: {
-      type: Boolean,
+      type: String,
       required: [true, "Is employee is missing"],
       default: true,
     },
