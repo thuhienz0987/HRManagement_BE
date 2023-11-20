@@ -343,7 +343,7 @@ const edit_user_profile = async (req, res) => {
 };
 
 const get_all_user = async (req, res) => {
-  User.find()
+  User.find().populate('departmentId').populate('positionId').populate('teamId')
     .then((result) => {
       let handledResult = result.map((item) => {
         item.password = undefined;
@@ -359,7 +359,7 @@ const get_all_user = async (req, res) => {
 const get_user_by_id = async (req, res) => {
   try {
     const id = req.params._id;
-    const user = await User.findById(id);
+    const user = await User.findById(id).populate('departmentId').populate('positionId').populate('teamId');
     if (!user) throw new NotFoundError("User not found");
     user.password = undefined;
     res.status(200).json({ status: "Success", user: user });
