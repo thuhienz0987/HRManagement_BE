@@ -1,21 +1,24 @@
 import mongoose from 'mongoose';
 
-
 const LeaveRequestSchema = new mongoose.Schema({
-    reason:{
+    reason: {
         type: String,
         required: [true, "Reason is missing"],
     },
-    status:{
+    status: {
         type: String,
         required: [true, "Status is missing"],
         enum: ['pending', 'approved', 'denied'],
         default: 'pending'
     },
-    userId:{
+    userId: {
         type: mongoose.Types.ObjectId,
         required: true,
         ref: 'User'
+    },
+    startDate: {
+        type: Date,
+        required: [true, 'Start date is missing']
     },
     endDate: {
         type: Date,
@@ -25,12 +28,40 @@ const LeaveRequestSchema = new mongoose.Schema({
         type: Boolean,
         required: true,
         default: false
-    }
-},
-    { timestamps: true }
-);
+    },
+    approverId:{
+        type: mongoose.Types.ObjectId,
+        // required: true,
+        ref: 'User'
+    },
+    history: [
+        {
+            reason: String,
+            status: String,
+            userId: mongoose.Types.ObjectId,
+            startDate: Date,
+            endDate: Date,
+            updatedAt: Date,
+            approverId: mongoose.Types.ObjectId,
+        }
+    ]
+}, { 
+    timestamps: true 
+});
 
-
+LeaveRequestSchema.pre('save', function(next) {
+    // Before saving, push the current values to the history array
+    this.history.push({
+        reason: this.reason,
+        status: this.status,
+        userId: this.userId,
+        startDate: this.startDate,
+        endDate: this.endDate,
+        updatedAt: new Date(),
+        approverId: this.approverId,
+    });
+    next();
+});
 
 const LeaveRequest = mongoose.model('LeaveRequest', LeaveRequestSchema);
 

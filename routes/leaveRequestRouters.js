@@ -1,5 +1,5 @@
 import Router from "express";
-import {getLeaveRequests,getLeaveRequest,getLeaveRequestsByUserId,postLeaveRequest,updateLeaveRequest,deleteLeaveRequest} from "../controllers/leaveRequestController.js";
+import {getLeaveRequests,getLeaveRequest,getLeaveRequestsByUserId,postLeaveRequest,updateLeaveRequest,deleteLeaveRequest, ChangeStatus} from "../controllers/leaveRequestController.js";
 import verifyRoles from "../middlewares/verifyRoles.js";
 import ROLES_LIST from "../config/roles_list.js"
 
@@ -10,6 +10,7 @@ leaveRequestRouter.get('/leaveRequest/:id',verifyRoles(ROLES_LIST.HRManager, ROL
 leaveRequestRouter.get('/leaveRequests/:userId',getLeaveRequestsByUserId);
 leaveRequestRouter.post('/leaveRequest',postLeaveRequest);
 leaveRequestRouter.put('/leaveRequest/:id',verifyRoles(ROLES_LIST.HRManager,ROLES_LIST.CEO),updateLeaveRequest);
+leaveRequestRouter.put('/approverLeaveRequest/:id',ChangeStatus)
 leaveRequestRouter.delete('/leaveRequest/:id',verifyRoles(ROLES_LIST.HRManager,ROLES_LIST.Employee),deleteLeaveRequest);
 
 export default leaveRequestRouter;

@@ -6,7 +6,6 @@ import refreshRouters from './refreshRouters.js';
 
 import userRouters from './userRouters.js';
 import commentRouter from "./commentRouters.js";
-import commentTeamRouter from "./commentTeamRouters.js";
 import teamRouter from "./teamRouters.js";
 import departmentRouter from "./departmentRouters.js";
 import positionRouters from './positionRouters.js';
@@ -30,7 +29,6 @@ router.use(verifyJWT);
 router.get('/test', (req, res) => {res.status(200).json('OK')});
 router.use(userRouters);
 router.use(commentRouter);
-router.use(commentTeamRouter);
 router.use(teamRouter);
 router.use(departmentRouter);
 router.use(positionRouters);

@@ -1,12 +1,12 @@
 import BadRequestError from '../errors/badRequestError.js';
 import NotFoundError from '../errors/notFoundError.js';
-import LeaveRequest from '../models/leaveRequest.js';
+import LeaveRequest from '../models/LeaveRequest.js';
 import User from '../models/User.js';
 import {parse, format } from 'date-fns';
 
 const getLeaveRequests = async (req,res) => {
     try{
-        const leaveRequest = await LeaveRequest.find({isDeleted: false})
+        const leaveRequest = await LeaveRequest.find({isDeleted: false}).populate('userId')
         if(!leaveRequest) {
             throw new NotFoundError('Not found any leave request')
         }
@@ -17,9 +17,9 @@ const getLeaveRequests = async (req,res) => {
 };
 
 const getLeaveRequest = async (req,res) =>{
-    const {_id} = req.params;
+    const {id} = req.params;
     try{
-        const leaveRequest = await LeaveRequest.findById(_id)
+        const leaveRequest = await LeaveRequest.findById(id).populate('userId')
         if (leaveRequest && leaveRequest.isDeleted === false) {
             res.status(200).json(leaveRequest);
           } else if (leaveRequest && leaveRequest.isDeleted === true) {
@@ -33,18 +33,18 @@ const getLeaveRequest = async (req,res) =>{
 };
 const getLeaveRequestsByUserId = async (req,res) =>{
     try {
-        const _id = req.params._id;
-        const user = User.findById(_id);
+        const id = req.params.id;
+        const user = await User.findById(id);
         if (!user)
             throw new NotFoundError(
-            `The leave requests with user _id ${_id} does not exists`
+            `User with id ${id} does not exists`
             );
-        else if (user.isDeleted === true) {
+        else if (user && user.isDeleted === true) {
             res.status(410).send("User is deleted");
         } else {
-            const leaveRequests = await LeaveRequest.find({ userId: _id , isDeleted: false});
-            if (leaveRequests.length === 0)
-            throw new NotFoundError(`Not found leave requests in user id ${_id}`);
+            const leaveRequests = await LeaveRequest.find({ userId: id , isDeleted: false});
+            if (!leaveRequests || leaveRequests.length === 0)
+            throw new NotFoundError(`Not found leave requests in user id ${id}`);
 
             res.status(200).json(leaveRequests);
         }
@@ -53,83 +53,170 @@ const getLeaveRequestsByUserId = async (req,res) =>{
     }
 };
 
-const postLeaveRequest = async (req,res) =>{
-    const {reason, status, userId, endDate} = req.body;
-    try{
-        const leaveRequestExist = await LeaveRequest.findOne({userId}); 
-        const currentDate = new Date(); 
-        const endDay = parse(endDate, 'dd/MM/yyyy', new Date());
-        const isoEndDayStr = format(endDay, "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
-        const twentyFourHoursInMilliseconds = 24 * 60 * 60 * 1000;
-        if((endDay.getFullYear() < currentDate.getFullYear()
-        ||(endDay.getFullYear() === currentDate.getFullYear() && endDay.getMonth() + 1 < currentDate.getMonth())
-        ||(endDay.getFullYear() === currentDate.getFullYear() && endDay.getMonth() + 1 === currentDate.getMonth() 
-            && endDay.getDate() < currentDate.getDate())))
-        {
-            throw new BadRequestError
-            (`The end date cannot be past the beginning date`)
+const postLeaveRequest = async (req, res) => {
+    const { reason, status, userId, startDate, endDate } = req.body;
+
+    try {
+        const currentDate = new Date();
+        const newStartDate = new Date(startDate);
+        const newEndDate = new Date(endDate);
+
+        // Check if the start date is greater than the current date
+        if (newStartDate <= currentDate) {
+            throw new BadRequestError(`The start date must be later than the current date.`);
         }
-        if(leaveRequestExist && ((currentDate - leaveRequestExist.createdAt) / twentyFourHoursInMilliseconds > 1) 
-        && (leaveRequestExist.isDeleted === false))
-        {
-            throw new BadRequestError
-            (`The employee with the given ${leaveRequestExist.userId} requested leave in the past.`)
+        // Check if the start date is greater than the end date
+        if (newStartDate >= newEndDate) {
+            throw new BadRequestError('The start date must be earlier than the end date.');
         }
-        else if(leaveRequestExist 
-        && ((currentDate - leaveRequestExist.createdAt) / twentyFourHoursInMilliseconds < 1) 
-        && ((currentDate - leaveRequestExist.createdAt) / twentyFourHoursInMilliseconds > 0) 
-        && (leaveRequestExist.isDeleted === true))
-        {
-            leaveRequestExist.reason = reason;
-            leaveRequestExist.status = status;
-            leaveRequestExist.endDate = isoEndDayStr;
-            const newLeaveRequest = await leaveRequestExist.save()
-            res.status(201).json({
-                message: 'restore leave request successfully',
-                leaveRequest: newLeaveRequest,
-            })
+
+        // Check for overlapping leave requests for the specified user
+        const overlappingRequests = await LeaveRequest.find({
+            userId,
+            isDeleted: false,
+            $or: [
+                {
+                    startDate: { $gte: newStartDate, $lt: newEndDate },
+                },
+                {
+                    endDate: { $gt: newStartDate, $lte: newEndDate },
+                },
+                {
+                    startDate: { $lte: newStartDate },
+                    endDate: { $gte: newEndDate },
+                },
+            ],
+        });
+
+        // Check if there are any overlapping requests
+        if (overlappingRequests.length > 0) {
+            throw new BadRequestError(`The user already has overlapping leave requests for the specified time.`);
         }
-        else if (!leaveRequestExist){
-            const newLeaveRequest = new LeaveRequest({reason, status, userId, endDate: isoEndDayStr});
-            await newLeaveRequest.save()
-                res.status(200).json({
-                    message: 'Create Leave Request successfully',
-                    leaveRequest: newLeaveRequest,
-                })
-        }
-        
-    }catch(err){
+
+        // Create a new leave request
+        const newLeaveRequest = new LeaveRequest({
+            reason,
+            status,
+            userId,
+            startDate: newStartDate,
+            endDate: newEndDate,
+        });
+
+        await newLeaveRequest.save();
+
+        res.status(200).json({
+            message: 'Create Leave Request successfully',
+            leaveRequest: newLeaveRequest,
+        });
+    } catch (err) {
         throw err;
     }
 };
 
-const updateLeaveRequest = async (req,res) => {
-    const {_id}= req.params;
-    const {reason, status, userId, endDate} = req.body;
-    const endDay = parse(endDate, 'dd/MM/yyyy', new Date());
-    const isoEndDayStr = format(endDay, "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
-    const leaveRequestExist = await LeaveRequest.findById(_id);
-    if(!leaveRequestExist) {
-        throw new NotFoundError('Not found Leave Request');
-    }
-    else{
-        leaveRequestExist.reason = reason||leaveRequestExist.reason;
-        leaveRequestExist.status = status||leaveRequestExist.status;
-        leaveRequestExist.endDate = isoEndDayStr||leaveRequestExist.endDate;
-    }
-    try{
-        const updateLeaveRequest = await leaveRequestExist.save();
-        res.status(200).json(updateLeaveRequest)
-    }
-    catch(err){
-        throw err
+
+
+const updateLeaveRequest = async (req, res) => {
+    const { id } = req.params;
+    const { reason, startDate, endDate } = req.body;
+
+    try {
+        const leaveRequestExist = await LeaveRequest.findById(id);
+
+        if (!leaveRequestExist) {
+            throw new NotFoundError('Not found Leave Request');
+        }
+
+        const newStartDate = new Date(startDate);
+        const newEndDate = new Date(endDate);
+
+        // Check if the start date is greater than the end date
+        if (newStartDate >= newEndDate) {
+            throw new BadRequestError('The start date must be earlier than the end date.');
+        }
+
+        // Check for overlapping leave requests for the specified user
+        const overlappingRequests = await LeaveRequest.find({
+            userId: leaveRequestExist.userId,
+            isDeleted: false,
+            id: { $ne: id }, // Exclude the current leave request
+            $or: [
+                {
+                    startDate: { $lt: newEndDate, $gte: newStartDate },
+                },
+                {
+                    endDate: { $gt: newStartDate, $lte: newEndDate },
+                },
+                {
+                    startDate: { $lte: newStartDate },
+                    endDate: { $gte: newEndDate },
+                },
+            ],
+        });
+
+        // Check if there are any overlapping requests
+        if (overlappingRequests.length > 0) {
+            throw new BadRequestError('The user already has overlapping leave requests for the specified time.');
+        }
+
+        // Check if the start date is in the future or is the same as the current date
+        const currentDate = new Date();
+        if (newStartDate < currentDate) {
+            throw new BadRequestError('The start date must be in the future or the same as the current date.');
+        }
+
+        // Update leave request fields only if the new values are provided
+        leaveRequestExist.reason = reason !== undefined ? reason : leaveRequestExist.reason;
+        leaveRequestExist.startDate = newStartDate;
+        leaveRequestExist.endDate = newEndDate;
+
+        const updatedLeaveRequest = await leaveRequestExist.save();
+        res.status(200).json(updatedLeaveRequest);
+    } catch (err) {
+        throw err;
     }
 };
 
+const ChangeStatus = async (req,res) =>{
+
+    const { id } = req.params;
+    const { newStatus, approverId } = req.body;
+
+    try {
+        const leaveRequest = await LeaveRequest.findById(id);
+
+        if (!leaveRequest) {
+            throw new NotFoundError('Leave Request not found');
+        }
+
+        if (!newStatus || !['approved', 'denied'].includes(newStatus)) {
+            throw new BadRequestError('Invalid status provided');
+        }
+
+        if (leaveRequest.status !== 'pending') {
+            throw new BadRequestError('Leave request can only be changed from "pending" status');
+        }
+
+        // Update status, approverId, and add to history
+        leaveRequest.status = newStatus;
+        leaveRequest.approverId = approverId;
+
+        // Save the leave request
+        const updatedLeaveRequest = await leaveRequest.save();
+
+        res.status(200).json({
+            message: 'Status changed successfully',
+            leaveRequest: updatedLeaveRequest,
+        });
+    } catch (err) {
+        throw err;
+    }
+};
+
+
 const deleteLeaveRequest = async (req,res) => {
-    const {_id} = req.params;
+    const {id} = req.params;
     try{
-        const leaveRequestExist = await LeaveRequest.findByIdAndUpdate(_id,{ isDeleted: true},{new: true});
+        const leaveRequestExist = await LeaveRequest.findByIdAndUpdate(id,{ isDeleted: true},{new: true});
         res.status(200).json({
             message: 'Deleted Leave Request successfully',
             leaveRequest: leaveRequestExist,
@@ -140,4 +227,4 @@ const deleteLeaveRequest = async (req,res) => {
     }
 }
 
-export {getLeaveRequests,getLeaveRequest,getLeaveRequestsByUserId,postLeaveRequest,updateLeaveRequest,deleteLeaveRequest}
+export {getLeaveRequests,getLeaveRequest,getLeaveRequestsByUserId,postLeaveRequest,updateLeaveRequest,ChangeStatus,deleteLeaveRequest}
