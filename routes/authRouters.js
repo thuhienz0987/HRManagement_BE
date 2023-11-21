@@ -18,5 +18,5 @@ router.get("/logout", logout_post);
 router.post("/forget-password", forget_password);
 router.get("/favicon.ico", () => {});
 
-router.post("/reset-password/:_id", reset_password);
+router.post("/reset-password/:id", reset_password);
 export default router;

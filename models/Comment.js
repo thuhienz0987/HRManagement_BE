@@ -1,33 +1,59 @@
 import mongoose from 'mongoose';
 
 // excellent performance, average performance, under average performance
-const RatingBar = [1,2,3];
+const RatingBar = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
 const commentSchema = new mongoose.Schema({
-    rate:{
-        type: String,
-        required: [true, "Rating must include rating bar"],
-        enum: RatingBar,
-    },
-    comment:{
-        type: String,
-        required: [true, "Comment is missing"],
-    },
-    userId:{
-        type: mongoose.Types.ObjectId,
+  reviewerId: {
+    type: mongoose.Types.ObjectId,
+    required: true,
+    ref: 'User',
+  },
+  revieweeId: {
+    type: mongoose.Types.ObjectId,
+    required: true,
+    ref: 'User',
+  },
+  rate: {
+    type: Number,
+    required: [true, 'Rating must include rating bar'],
+    enum: RatingBar,
+  },
+  comment: {
+    type: String,
+    required: [true, 'Comment is missing'],
+  },
+  isDeleted: {
+    type: Boolean,
+    required: true,
+    default: false,
+  },
+  history: [
+    {
+      rate: {
+        type: Number,
         required: true,
-        ref: 'User'
-    },
-    isDeleted: {
-        type: Boolean,
+      },
+      comment: {
+        type: String,
         required: true,
-        default: false
-    }
-},
-    { timestamps: true }
-);
+      },
+      updatedAt: {
+        type: Date,
+        default: Date.now,
+      },
+    },
+  ],
+}, { timestamps: true });
 
-
+commentSchema.pre('save', function (next) {
+  // Before saving, push the current values to the history array
+  this.history.push({
+    rate: this.rate,
+    comment: this.comment,
+  });
+  next();
+});
 
 const Comment = mongoose.model('Comment', commentSchema);
 
