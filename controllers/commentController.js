@@ -98,6 +98,11 @@ const postComment = async (req, res) => {
     const { rate, comment, reviewerId, revieweeId } = req.body;
     try {
         const currentDate = new Date();
+
+        // Kiểm tra xem ngày hiện tại có phải là ngày mùng 2 hay không
+        if (currentDate.getDate() !== 2) {
+            throw new BadRequestError('Comments can only be posted on the 2nd day of each month.');
+        }
         const existingComment = await Comment.findOne({
             reviewerId,
             revieweeId,
@@ -135,12 +140,55 @@ const updateComment = async (req, res) => {
             throw new NotFoundError('Comment not found');
         }
 
+         // Kiểm tra xem đã qua 2 ngày từ khi tạo comment chưa
+         const twoDaysAgo = new Date();
+         twoDaysAgo.setDate(twoDaysAgo.getDate() - 1);
+ 
+         if (commentExist.createdAt < twoDaysAgo) {
+             throw new ForbiddenError('Updating is not allowed after 1 days');
+         }
+
         commentExist.rate = rate !== undefined ? rate : commentExist.rate;
         commentExist.comment = comment !== undefined ? comment : commentExist.comment;
 
         const updatedComment = await commentExist.save();
 
         res.status(200).json(updatedComment);
+    } catch (err) {
+        throw err;
+    }
+};
+
+const additionalComment = async (req, res) => {
+    const { rate, comment, reviewerId, revieweeId } = req.body;
+    try {
+        const currentDate = new Date();
+
+        // Kiểm tra xem ngày hiện tại có phải là ngày mùng 3 hay không
+        if (currentDate.getDate() !== 3) {
+            throw new BadRequestError('Comments can only be posted on the 2nd day of each month.');
+        }
+        const existingComment = await Comment.findOne({
+            reviewerId,
+            revieweeId,
+            createdAt: {
+                $gte: new Date(currentDate.getFullYear(), currentDate.getMonth(), 1),
+                $lt: new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1),
+            },
+        });
+
+        if (existingComment) {
+            const formattedDate = `${existingComment.createdAt.getMonth() + 1}/${existingComment.createdAt.getFullYear()}`;
+            throw new BadRequestError(`A comment already exists for this pair in ${formattedDate}.`);
+        }
+
+        const newComment = new Comment({ rate, comment, reviewerId, revieweeId });
+        await newComment.save();
+
+        res.status(200).json({
+            message: 'Create Comment successfully',
+            comment: newComment,
+        });
     } catch (err) {
         throw err;
     }
@@ -159,4 +207,4 @@ const deleteComment = async (req, res) => {
     }
 };
 
-export { getComments, getComment, getCommentsByReviewerId, getCommentsByRevieweeId, postComment, updateComment, deleteComment };
+export { getComments, getComment, getCommentsByReviewerId, getCommentsByRevieweeId, postComment, updateComment,additionalComment, deleteComment };

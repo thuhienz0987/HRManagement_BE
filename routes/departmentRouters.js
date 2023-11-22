@@ -6,9 +6,9 @@ import ROLES_LIST from "../config/roles_list.js"
 const departmentRouter = Router();
 
 departmentRouter.get('/departments',getDepartments);
-departmentRouter.get('/department/:_id',getDepartment);
+departmentRouter.get('/department/:id',getDepartment);
 departmentRouter.post('/department',verifyRoles(ROLES_LIST.HRManager),postDepartment);
-departmentRouter.put('/department/:_id',verifyRoles(ROLES_LIST.HRManager),updateDepartment);
-departmentRouter.delete('/department/:_id',verifyRoles(ROLES_LIST.HRManager),deleteDepartment);
+departmentRouter.put('/department/:id',verifyRoles(ROLES_LIST.HRManager),updateDepartment);
+departmentRouter.delete('/department/:id',verifyRoles(ROLES_LIST.HRManager),deleteDepartment);
 
 export default departmentRouter;

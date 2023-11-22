@@ -120,7 +120,7 @@ const userSchema = new mongoose.Schema(
 
 // static method to login user
 userSchema.statics.login = async function (email, password) {
-  const user = await this.findOne({ email });
+  const user = await this.findOne({ email }).populate('positionId').populate('departmentId').populate('teamId');
   console.log(user);
   if (user) {
     const auth = await bcrypt.compare(password, user.password);
