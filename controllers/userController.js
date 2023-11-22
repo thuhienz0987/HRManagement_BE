@@ -359,13 +359,10 @@ const get_all_user = async (req, res) => {
 const get_user_by_id = async (req, res) => {
   try {
     const id = req.params._id;
-    const users = await User.findById(id).populate('departmentId').populate('positionId').populate('teamId');
-    if (!users) throw new NotFoundError("User not found");
-    const usersWithoutPassword = users.map(user => {
-      user.password = undefined;
-      return user;
-    });
-    res.status(200).json({ status: "Success", user: usersWithoutPassword });
+    const user = await User.findById(id).populate('departmentId').populate('positionId').populate('teamId');
+    if (!user) throw new NotFoundError("User not found");
+    user.password = undefined;
+    res.status(200).json({ status: "Success", user: user });
   } catch (err) {
     throw err;
   }
@@ -373,10 +370,13 @@ const get_user_by_id = async (req, res) => {
 const get_user_by_teamId = async (req, res) => {
   try {
     const teamId = req.params.teamId;
-    const user = await User.find({teamId: teamId}).populate('departmentId').populate('positionId').populate('teamId');
-    if (!user) throw new NotFoundError("User not found");
-    user.password = undefined;
-    res.status(200).json({ status: "Success", user: user });
+    const users = await User.find({teamId: teamId}).populate('departmentId').populate('positionId').populate('teamId');
+    if (!users) throw new NotFoundError("User not found");
+    const usersWithoutPassword = users.map(user => {
+      user.password = undefined;
+      return user;
+    });
+    res.status(200).json({ status: "Success", user: usersWithoutPassword });
   } catch (err) {
     throw err;
   }
@@ -422,8 +422,7 @@ const get_user_by_departmentId = async (req, res) => {
 
     res.status(200).json({ status: "Success", user: [...handledResult, ...usersWithoutPassword] });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ status: "Error", message: "Internal Server Error" });
+    throw err;
   }
 };
 
