@@ -6,6 +6,11 @@ const salarySchema = mongoose.Schema({
         ref:'User',
         required:[true,'A salary must link a id of user']
     },
+    idComment:{
+        type:  mongoose.Types.ObjectId,
+        ref:'Comment',
+        required:[true,'A salary must link a id of comment']
+    },
     idPosition:{
         type:  mongoose.Types.ObjectId,
         ref:'Position',
@@ -16,10 +21,9 @@ const salarySchema = mongoose.Schema({
         ref:'SalaryGrade',
         required:[true,'A salary must link a id of salary grade']
     },
-    idBonus:[{
-        type:  mongoose.Types.ObjectId,
-        ref:'Bonus',
-        required:[true,'A salary must link a id of bonus']
+    bonus:[{
+        type:  Number,
+        default:0,
     },],
     idAllowance:[{
         type:  mongoose.Types.ObjectId,
@@ -35,8 +39,6 @@ const salarySchema = mongoose.Schema({
     },
     payDay:{
         type: Date,
-        // default: Date.now(),
-        // required: true,
     },
     presentDate:{
         type: Number,

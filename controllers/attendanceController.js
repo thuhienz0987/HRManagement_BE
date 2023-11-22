@@ -76,6 +76,33 @@ const getAttendancesByMonth= async (req,res) =>{
   }
 }
 
+
+const getAttendanceByMonth= async (req,res) =>{
+  const {month,year,userId} = req.params;
+
+  try{
+    const targetDate = new Date(year, month-1, 1);
+    const endDate = new Date(year, month, 0);
+
+
+    const attendances = await Attendance.find({
+      isDeleted: false,
+      userId:mongoose.Types.ObjectId(userId),
+      attendanceDate: {$gte: targetDate, $lte: endDate },
+    });
+
+    if(attendances.length === 0){
+      throw new NotFoundError(`No attendance found for ${month}/${year}`);
+    }
+
+    res.status(200).json(attendances);
+
+  }catch(err){
+    throw err
+  }
+}
+
+
 const postAttendance = async (req, res) => {
   const { userId } = req.body;
   try {
@@ -191,7 +218,7 @@ const deleteAttendance = async (req,res) =>{
   const {id} = req.params;
 
   try{
-    const attendance = await Attendance.findByIdAndUpdate(_id,{ isDeleted: true},{new: true});
+    const attendance = await Attendance.findByIdAndUpdate(id,{ isDeleted: true},{new: true});
     res.status(200).json({
         message: 'Deleted attendance successfully',
         attendance: attendance,
@@ -200,4 +227,7 @@ const deleteAttendance = async (req,res) =>{
 }
 }
 
-export {getAttendances,getAttendance,getAttendancesByDate,getAttendancesByMonth,postAttendance,closeAttendance,updateAttendance,deleteAttendance}
+
+
+
+export {getAttendances,getAttendance,getAttendancesByDate,getAttendancesByMonth,postAttendance,closeAttendance,updateAttendance,deleteAttendance,getAttendanceByMonth}

@@ -24,13 +24,13 @@ const handleRefreshToken = async (req, res) => {
         process.env.REFRESH_TOKEN_SECRET,
         (err, decoded) => {
             console.log(decoded);
-            if (err || user._id.toString() !== decoded.userId) 
+            if (err || user.id.toString() !== decoded.userId) 
                 throw new ForbiddenError("invalid refresh token");;
 
             const accessToken = jwt.sign(
                 {
                     "userInfo": {
-                        "userId": user._id,
+                        "userId": user.id,
                     }
                 },
                 process.env.ACCESS_TOKEN_SECRET,

@@ -1,3 +1,4 @@
+import ROLES_LIST from '../config/roles_list.js';
 import BadRequestError from '../errors/badRequestError.js';
 import NotFoundError from '../errors/notFoundError.js';
 import LeaveRequest from '../models/LeaveRequest.js';
@@ -54,12 +55,14 @@ const getLeaveRequestsByUserId = async (req,res) =>{
 };
 
 const postLeaveRequest = async (req, res) => {
-    const { reason, status, userId, startDate, endDate } = req.body;
+    const { reason,userId, startDate, endDate } = req.body;
 
     try {
         const currentDate = new Date();
         const newStartDate = new Date(startDate);
         const newEndDate = new Date(endDate);
+        const approver = await User.findOne({ roles: { $in: [ROLES_LIST.HRManager] } });
+
 
         // Check if the start date is greater than the current date
         if (newStartDate <= currentDate) {
@@ -96,8 +99,8 @@ const postLeaveRequest = async (req, res) => {
         // Create a new leave request
         const newLeaveRequest = new LeaveRequest({
             reason,
-            status,
             userId,
+            approverId: approver.id,
             startDate: newStartDate,
             endDate: newEndDate,
         });
@@ -179,7 +182,7 @@ const updateLeaveRequest = async (req, res) => {
 const ChangeStatus = async (req,res) =>{
 
     const { id } = req.params;
-    const { newStatus, approverId } = req.body;
+    const { newStatus } = req.body;
 
     try {
         const leaveRequest = await LeaveRequest.findById(id);
@@ -198,7 +201,7 @@ const ChangeStatus = async (req,res) =>{
 
         // Update status, approverId, and add to history
         leaveRequest.status = newStatus;
-        leaveRequest.approverId = approverId;
+        // leaveRequest.approverId = approverId;
 
         // Save the leave request
         const updatedLeaveRequest = await leaveRequest.save();
