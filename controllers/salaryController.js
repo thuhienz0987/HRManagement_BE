@@ -1,7 +1,6 @@
 import NotFoundError from "../errors/notFoundError.js";
 import Salary from "../models/Salary.js";
 import SalaryGrade from "../models/SalaryGrade.js";
-import Bonus from "../models/Bonus.js"
 import Allowance from "../models/Allowance.js";
 import Position from "../models/Position.js";
 import Attendance from "../models/Attendance.js";
