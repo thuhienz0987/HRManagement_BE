@@ -14,23 +14,23 @@ const attendanceSchema = mongoose.Schema({
     checkInTime:{
         type: Date,
         required: [true,''],
-        default: Date.now()
+        // default: Date.now()
     },
     checkOutTime:{
         type: Date,
         // required: [true,''],
     },
-    updateHistory: [
-        {
-            updateDate: {
-                type: Date,
-                default: Date.now(),
-            },
-            checkInTime: Date,
-            checkOutTime: Date,
-            attendanceDate: Date,
-        },
-    ],
+    // updateHistory: [
+    //     {
+    //         updateDate: {
+    //             type: Date,
+    //             default: Date.now(),
+    //         },
+    //         checkInTime: Date,
+    //         checkOutTime: Date,
+    //         attendanceDate: Date,
+    //     },
+    // ],
     overTime:{
         type: Number,
         default: 0
@@ -43,26 +43,26 @@ const attendanceSchema = mongoose.Schema({
 })
 
 
-attendanceSchema.pre('save', async function (next) {
-    // Kiểm tra nếu checkOutTime thay đổi và tồn tại
-    if (this.isModified('checkOutTime') && this.checkOutTime) {
-        const checkOutTime = this.checkOutTime;
-        const checkOutHour = checkOutTime.getHours();
+// attendanceSchema.pre('save', async function (next) {
+//     // Kiểm tra nếu checkOutTime thay đổi và tồn tại
+//     if (this.isModified('checkOutTime') && this.checkOutTime) {
+//         const checkOutTime = this.checkOutTime;
+//         const checkOutHour = checkOutTime.getHours();
 
-        // Giờ giới hạn mềm mại
-        const limitHour = 17;
+//         // Giờ giới hạn mềm mại
+//         const limitHour = 17;
 
-        // Kiểm tra nếu checkOutTime sau giờ giới hạn
-        if (checkOutHour >= limitHour) {
-            // Tính toán thời gian làm thêm (overTime) và cập nhật trường overTime
-            this.overTime = (checkOutHour - limitHour); // tính toán theo phút, có thể điều chỉnh theo yêu cầu
-        } else {
-            this.overTime = 0; // Nếu checkOutTime trước giờ giới hạn, không tính làm thêm
-        }
-    }
+//         // Kiểm tra nếu checkOutTime sau giờ giới hạn
+//         if (checkOutHour >= limitHour) {
+//             // Tính toán thời gian làm thêm (overTime) và cập nhật trường overTime
+//             this.overTime = (checkOutHour - limitHour); // tính toán theo phút, có thể điều chỉnh theo yêu cầu
+//         } else {
+//             this.overTime = 0; // Nếu checkOutTime trước giờ giới hạn, không tính làm thêm
+//         }
+//     }
 
-    next();
-});
+//     next();
+// });
 
 
 const Attendance = mongoose.model('Attendance', attendanceSchema)

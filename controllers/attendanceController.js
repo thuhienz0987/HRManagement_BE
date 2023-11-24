@@ -1,6 +1,9 @@
 import Attendance from "../models/Attendance.js";
 import NotFoundError from "../errors/notFoundError.js";
 import BadRequestError from "../errors/badRequestError.js";
+import User from "../models/User.js"
+import { startOfDay , set, addMinutes,addHours ,format } from 'date-fns';
+import * as dateFns from 'date-fns';
 
 const getAttendances = async (req, res) => {
   try {
@@ -227,7 +230,76 @@ const deleteAttendance = async (req,res) =>{
 }
 }
 
+const generateMockAttendanceData = async (req, res) => {
+  const { month, year } = req.params;
+
+  try {
+    // Fetch all users
+    const users = await User.find();
+
+    let recordsCreated = 0;
+
+    // Loop through each user
+    for (const user of users) {
+      // Loop through each day in the specified month
+      for (let day = 1; day <= new Date(year, month, 0).getDate(); day++) {
+        const attendanceDate = new Date(year, month - 1, day, 0, 0, 0, 0); // Set hours, minutes, seconds, and milliseconds to 0
+        const randomCheckInHour = getRndInteger(7,8);
+        
+        const randomCheckOutHour = getRndInteger(17,20);
+        console.log({randomCheckInHour})
+        const checkInTime = new Date(year, month - 1, day, randomCheckInHour, 0);
+        console.log({checkInTime})
+        const checkOutTime = new Date(year, month - 1, day, randomCheckOutHour, 0);
+        // Check if attendance already exists for the user on the current date
+        // const existingAttendance = await Attendance.findOne({
+        //   userId: user.id,
+        //   attendanceDate: {
+        //     $gte: attendanceDate,
+        //     $lt: addMinutes(attendanceDate, 1440), // 1440 minutes = 24 hours
+        //   },
+        // });
+
+          // Create a new attendance record
+          const newAttendance = new Attendance({
+            userId: user.id,
+            attendanceDate,
+            checkInTime,
+            checkOutTime,
+          });
+
+          await newAttendance.save();
+          recordsCreated++;
+      }
+    }
+
+    console.log(`Mock attendance data generated successfully. ${recordsCreated} records created.`);
+    res.status(200).send(`Mock attendance data generated successfully. ${recordsCreated} records created.`);
+  } catch (err) {
+    console.error('Error generating mock attendance data:', err);
+    res.status(500).send('Error generating mock attendance data.');
+  }
+};
+
+// Helper function to get a random integer between min (inclusive) and max (exclusive)
+function getRandomInt(min, max) {
+  return Math.floor(Math.random() * (max - min) + min);
+}
+
+function getRndInteger(min, max) {
+  return Math.floor(Math.random() * (max - min) ) + min;
+}
+const hour = getRndInteger(7, 10);
+const minute = getRndInteger(0, 60);
 
 
 
-export {getAttendances,getAttendance,getAttendancesByDate,getAttendancesByMonth,postAttendance,closeAttendance,updateAttendance,deleteAttendance,getAttendanceByMonth}
+
+
+
+
+
+export {getAttendances,getAttendance,getAttendancesByDate,getAttendancesByMonth,postAttendance,closeAttendance,updateAttendance,deleteAttendance,getAttendanceByMonth, generateMockAttendanceData}
+
+
+
