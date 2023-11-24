@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { closeAttendance, deleteAttendance, getAttendance, getAttendanceByMonth, getAttendances, getAttendancesByDate, getAttendancesByMonth, postAttendance, updateAttendance } from "../controllers/attendanceController.js";
+import { closeAttendance, deleteAttendance, generateMockAttendanceData, getAttendance, getAttendanceByMonth, getAttendances, getAttendancesByDate, getAttendancesByMonth, postAttendance, updateAttendance } from "../controllers/attendanceController.js";
 import ROLES_LIST from "../config/roles_list.js";
 import verifyRoles from "../middlewares/verifyRoles.js";
 
@@ -10,6 +10,7 @@ attendanceRouter.get('/attendancesByDate/:day/:month/:year',verifyRoles(ROLES_LI
 attendanceRouter.get('/attendancesByMonth/:month/:year',verifyRoles(ROLES_LIST.HRManager),getAttendancesByMonth);
 attendanceRouter.get('/attendanceByMonth/:month/:year/:userId',getAttendanceByMonth);
 
+attendanceRouter.post('/auto/:month/:year',generateMockAttendanceData);
 
 attendanceRouter.post('/attendance',verifyRoles(ROLES_LIST.HRManager),postAttendance);
 attendanceRouter.put('/attendance_close/:id',verifyRoles(ROLES_LIST.HRManager),closeAttendance);
