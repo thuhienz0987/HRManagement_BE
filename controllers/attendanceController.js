@@ -1,7 +1,10 @@
 import Attendance from "../models/Attendance.js";
 import NotFoundError from "../errors/notFoundError.js";
 import BadRequestError from "../errors/badRequestError.js";
-import User from "../models/User.js";
+import User from "../models/User.js"
+import { startOfDay , set, addMinutes,addHours ,format } from 'date-fns';
+import * as dateFns from 'date-fns';
+import mongoose from "mongoose";
 
 const getAttendances = async (req, res) => {
   try {
@@ -88,6 +91,8 @@ const getAttendanceByMonth = async (req, res) => {
 
     const attendances = await Attendance.find({
       isDeleted: false,
+      userId:new mongoose.Types.ObjectId(userId),
+      attendanceDate: {$gte: targetDate, $lte: endDate },
       userId: mongoose.Types.ObjectId(userId),
       attendanceDate: { $gte: targetDate, $lte: endDate },
     });
