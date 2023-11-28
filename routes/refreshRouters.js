@@ -6,6 +6,6 @@ const router = Router();
 
 
 // refresh token router
-router.get('/refresh', handleRefreshToken);
+router.post('/refresh', handleRefreshToken);
 
 export default router;
