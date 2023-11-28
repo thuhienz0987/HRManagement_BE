@@ -82,6 +82,58 @@ const getAttendancesByMonth = async (req, res) => {
   }
 };
 
+
+const getMonthlyEmployeeAttendance = async (req, res) => {
+  const { month, year } = req.params;
+
+  try {
+    // Get all users
+    const users = await User.find();
+
+    // Initialize an array to store employee attendance information
+    const employeeAttendances = [];
+
+    // Loop through each user
+    for (const user of users) {
+      // Get attendance records for the user in the specified month
+      const attendances = await Attendance.find({
+        isDeleted: false,
+        userId:new mongoose.Types.ObjectId(user._id),
+        attendanceDate: {
+          $gte: new Date(year, month - 1, 1),
+          $lte: new Date(year, month, 0),
+        },
+      });
+
+      // Calculate total overtime hours and total working days
+      let totalOvertimeHours = 0;
+      let totalWorkingDays = 0;
+
+      for (const attendance of attendances) {
+        if (attendance.checkInTime && attendance.checkOutTime) {
+          
+          
+          totalOvertimeHours += attendance.overTime;
+          totalWorkingDays++;
+        }
+      }
+
+      // Add employee attendance information to the array
+      employeeAttendances.push({
+        user: user,
+        totalOvertimeHours,
+        totalWorkingDays,
+      });
+    }
+
+    res.status(200).json(employeeAttendances);
+  } catch (err) {
+    throw err;
+  }
+};
+
+// const get
+
 const getAttendanceByMonth = async (req, res) => {
   const { month, year, userId } = req.params;
 
@@ -323,5 +375,6 @@ export {
   updateAttendance,
   deleteAttendance,
   getAttendanceByMonth,
+  getMonthlyEmployeeAttendance,
   generateMockAttendanceData,
 };
