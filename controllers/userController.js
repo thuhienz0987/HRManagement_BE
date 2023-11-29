@@ -426,6 +426,23 @@ const get_user_by_departmentId = async (req, res) => {
   }
 };
 
+const deleteUser = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const user = await User.findByIdAndUpdate(
+      id,
+      { isEmployee: false ,dayOff: new Date()},
+      { new: true }
+    );
+    res.status(200).json({
+      message: "Deleted user successfully",
+      user: user,
+    });
+  } catch (err) {
+    throw err;
+  }
+};
 
 export {
   create_user,
@@ -435,5 +452,6 @@ export {
   get_all_user,
   get_user_by_id,
   get_user_by_teamId,
-  get_user_by_departmentId
+  get_user_by_departmentId,
+  deleteUser
 };

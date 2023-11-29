@@ -2,7 +2,7 @@ import Attendance from "../models/Attendance.js";
 import NotFoundError from "../errors/notFoundError.js";
 import BadRequestError from "../errors/badRequestError.js";
 import User from "../models/User.js"
-import { startOfDay , set, addMinutes,addHours ,format } from 'date-fns';
+import { startOfDay , set, addMinutes,addHours ,format, addDays } from 'date-fns';
 import * as dateFns from 'date-fns';
 import mongoose from "mongoose";
 
@@ -88,7 +88,8 @@ const getMonthlyEmployeeAttendance = async (req, res) => {
 
   try {
     // Get all users
-    const users = await User.find();
+    const users = await User.find({isEmployee: true});
+    console.log({users})
 
     // Initialize an array to store employee attendance information
     const employeeAttendances = [];
@@ -132,7 +133,6 @@ const getMonthlyEmployeeAttendance = async (req, res) => {
   }
 };
 
-// const get
 
 const getAttendanceByMonth = async (req, res) => {
   const { month, year, userId } = req.params;
@@ -158,6 +158,172 @@ const getAttendanceByMonth = async (req, res) => {
     throw err;
   }
 };
+
+const getAttendanceEmployeeToday = async (req, res) => {
+  try {
+    const users = await User.find({ isEmployee: true });
+    console.log({ users });
+    let totalEmployees = users.length;
+    let onTimeEmployeesToday = 0;
+    let lateEmployeesToday = 0;
+    let onTimeEmployeesYesterday = 0;
+    let lateEmployeesYesterday = 0;
+
+    for (const user of users) {
+      // Get attendance records for the user for today
+      const today = startOfDay(new Date());
+      const yesterday = startOfDay(addDays(today, -1));
+
+      const attendancesToday = await Attendance.find({
+        isDeleted: false,
+        userId: new mongoose.Types.ObjectId(user._id),
+        attendanceDate: {
+          $gte: today,
+          $lt: addMinutes(today, 24 * 60),
+        },
+      });
+
+      const attendancesYesterday = await Attendance.find({
+        isDeleted: false,
+        userId: new mongoose.Types.ObjectId(user._id),
+        attendanceDate: {
+          $gte: yesterday,
+          $lt: addMinutes(yesterday, 24 * 60),
+        },
+      });
+
+      // Calculate total on-time, late for today
+      for (const attendance of attendancesToday) {
+        if (attendance.checkInTime) {
+          const checkInDateTime = set(attendance.attendanceDate, {
+            hours: 7,
+            minutes: 30,
+          });
+          if (attendance.checkInTime <= checkInDateTime) {
+            onTimeEmployeesToday++;
+          } else {
+            lateEmployeesToday++;
+          }
+        }
+      }
+
+      // Calculate total on-time, late for yesterday
+      for (const attendance of attendancesYesterday) {
+        if (attendance.checkInTime) {
+          const checkInDateTime = set(attendance.attendanceDate, {
+            hours: 7,
+            minutes: 30,
+          });
+          if (attendance.checkInTime <= checkInDateTime) {
+            onTimeEmployeesYesterday++;
+          } else {
+            lateEmployeesYesterday++;
+          }
+        }
+      }
+    }
+
+    // Calculate percentage change
+    const onTimePercentageChange = calculatePercentageChange(
+      onTimeEmployeesYesterday,
+      onTimeEmployeesToday
+    );
+    const latePercentageChange = calculatePercentageChange(
+      lateEmployeesYesterday,
+      lateEmployeesToday
+    );
+
+    const result = {
+      onTimeEmployeesToday,
+      lateEmployeesToday,
+      onTimeEmployeesYesterday,
+      lateEmployeesYesterday,
+      onTimePercentageChange,
+      latePercentageChange,
+      totalEmployees,
+    };
+
+    res.status(200).json(result);
+  } catch (err) {
+    throw err;
+  }
+};
+
+// Helper function to calculate percentage change
+const calculatePercentageChange = (previousValue, currentValue) => {
+  if (previousValue === 0) {
+    return currentValue === 0 ? 0 : 100;
+  }
+  return ((currentValue - previousValue) / Math.abs(previousValue)) * 100;
+};
+
+
+const getAttendanceEmployee = async (req, res) => {
+  try {
+    const users = await User.find({ isEmployee: true });
+    const { month, year } = req.params;
+    console.log({ users, month, year });
+
+    const daysInMonth = new Date(year, month, 0).getDate();
+    let totalEmployees = users.length;
+    const attendanceByDay = [];
+
+    for (let day = daysInMonth; day >=1; day--) {
+      let onTimeEmployees = 0;
+      let lateEmployees = 0;
+      let date = new Date(year, month - 1, day);
+
+      for (const user of users) {
+        // Check if the user has a dayOff for the specific day
+        if (user.dayOff) {
+          totalEmployees++;
+          continue; // Skip this user for the current day
+        }
+
+        // Get attendance records for the user for the specific day
+        const targetDate = startOfDay(new Date(year, month - 1, day));
+        const attendances = await Attendance.find({
+          isDeleted: false,
+          userId: new mongoose.Types.ObjectId(user._id),
+          attendanceDate: {
+            $gte: targetDate,
+            $lt: addMinutes(targetDate, 24 * 60),
+          },
+        });
+
+        // Calculate total on-time and late employees for the day
+        for (const attendance of attendances) {
+          if (attendance.checkInTime) {
+            const checkInDateTime = set(attendance.attendanceDate, {
+              hours: 7,
+              minutes: 30,
+            });
+              if (attendance.checkInTime <= checkInDateTime) {
+                onTimeEmployees++;
+              } else {
+                lateEmployees++;
+              }
+          }
+        }
+      }
+
+      // Add attendance information for the day to the array
+      attendanceByDay.push({
+        totalEmployees,
+        onTimeEmployees,
+        lateEmployees,
+        date,
+      });
+    }
+
+    
+
+    res.status(200).json(attendanceByDay);
+  } catch (err) {
+    throw err;
+  }
+};
+
 
 const postAttendance = async (req, res) => {
   const { userId } = req.body;
@@ -376,5 +542,7 @@ export {
   deleteAttendance,
   getAttendanceByMonth,
   getMonthlyEmployeeAttendance,
+  getAttendanceEmployeeToday,
+  getAttendanceEmployee,
   generateMockAttendanceData,
 };
