@@ -81,7 +81,7 @@ const userSchema = new mongoose.Schema(
       required: [true, "Level is missing"],
     },
     isEmployee: {
-      type: String,
+      type: Boolean,
       required: [true, "Is employee is missing"],
       default: true,
     },
@@ -114,6 +114,10 @@ const userSchema = new mongoose.Schema(
       required: true,
       default: [ROLES_LIST.Employee],
     },
+
+    dayOff:{
+      type: Date,      
+    }
   },
   { timestamps: true }
 );
