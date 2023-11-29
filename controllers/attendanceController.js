@@ -1,9 +1,8 @@
 import Attendance from "../models/Attendance.js";
 import NotFoundError from "../errors/notFoundError.js";
 import BadRequestError from "../errors/badRequestError.js";
-import User from "../models/User.js"
+import User from "../models/User.js";
 import { startOfDay , set, addMinutes,addHours ,format, addDays } from 'date-fns';
-import * as dateFns from 'date-fns';
 import mongoose from "mongoose";
 
 const getAttendances = async (req, res) => {
@@ -44,7 +43,12 @@ const getAttendancesByDate = async (req, res) => {
       isDeleted: false,
       attendanceDate: {
         $gte: targetDate,
-        $lte: new Date(targetDate.getTime() + 24 * 60 * 60 * 1000),
+        $lte: new Date(targetDate.getTime() + 12 * 60 * 60 * 1000),
+      },
+    }).populate({
+      path: "userId",
+      populate: {
+        path: "departmentId",
       },
     });
 
@@ -143,9 +147,7 @@ const getAttendanceByMonth = async (req, res) => {
 
     const attendances = await Attendance.find({
       isDeleted: false,
-      userId:new mongoose.Types.ObjectId(userId),
-      attendanceDate: {$gte: targetDate, $lte: endDate },
-      userId: mongoose.Types.ObjectId(userId),
+      userId: new mongoose.Types.ObjectId(userId),
       attendanceDate: { $gte: targetDate, $lte: endDate },
     });
 

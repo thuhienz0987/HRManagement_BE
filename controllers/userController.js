@@ -343,13 +343,16 @@ const edit_user_profile = async (req, res) => {
 };
 
 const get_all_user = async (req, res) => {
-  User.find().populate('departmentId').populate('positionId').populate('teamId')
+  User.find()
+    .populate("departmentId")
+    .populate("positionId")
+    .populate("teamId")
     .then((result) => {
       let handledResult = result.map((item) => {
         item.password = undefined;
         return item;
       });
-      res.send(handledResult);
+      res.status(200).json(handledResult);
     })
     .catch((err) => {
       throw err;
@@ -359,10 +362,13 @@ const get_all_user = async (req, res) => {
 const get_user_by_id = async (req, res) => {
   try {
     const id = req.params._id;
-    const user = await User.findById(id).populate('departmentId').populate('positionId').populate('teamId');
+    const user = await User.findById(id)
+      .populate("departmentId")
+      .populate("positionId")
+      .populate("teamId");
     if (!user) throw new NotFoundError("User not found");
     user.password = undefined;
-    res.status(200).json({ status: "Success", user: user });
+    res.status(200).json(user);
   } catch (err) {
     throw err;
   }
@@ -370,13 +376,16 @@ const get_user_by_id = async (req, res) => {
 const get_user_by_teamId = async (req, res) => {
   try {
     const teamId = req.params.teamId;
-    const users = await User.find({teamId: teamId}).populate('departmentId').populate('positionId').populate('teamId');
+    const users = await User.find({ teamId: teamId })
+      .populate("departmentId")
+      .populate("positionId")
+      .populate("teamId");
     if (!users) throw new NotFoundError("User not found");
-    const usersWithoutPassword = users.map(user => {
+    const usersWithoutPassword = users.map((user) => {
       user.password = undefined;
       return user;
     });
-    res.status(200).json({ status: "Success", user: usersWithoutPassword });
+    res.status(200).json(usersWithoutPassword);
   } catch (err) {
     throw err;
   }
@@ -384,48 +393,28 @@ const get_user_by_teamId = async (req, res) => {
 const get_user_by_departmentId = async (req, res) => {
   try {
     const departmentId = req.params.departmentId;
-    const teamList = await Team.find({ departmentId: departmentId });
-
-    const handledResult = await Promise.all(
-      teamList.map(async (team) => {
-        const users = await User.find({ teamId: team._id })
-          .populate('departmentId')
-          .populate('positionId')
-          .populate('teamId');
-        
-        if (!users || users.length === 0) {
-          throw new NotFoundError("User not found");
-        }
-
-        const usersWithoutPassword = users.map(user => {
-          user.password = undefined;
-          return user;
-        });
-
-        return usersWithoutPassword;
-      })
-    );
 
     const users = await User.find({ departmentId: departmentId })
-      .populate('departmentId')
-      .populate('positionId')
-      .populate('teamId');
+      .populate("departmentId")
+      .populate("positionId")
+      .populate("teamId");
 
     if (!users || users.length === 0) {
       throw new NotFoundError("User not found");
     }
 
-    const usersWithoutPassword = users.map(user => {
+    const usersWithoutPassword = users.map((user) => {
       user.password = undefined;
       return user;
     });
 
-    res.status(200).json({ status: "Success", user: [...handledResult, ...usersWithoutPassword] });
+    res.status(200).json(usersWithoutPassword);
   } catch (err) {
     throw err;
   }
 };
 
+<<<<<<< HEAD
 const deleteUser = async (req, res) => {
   const { id } = req.params;
 
@@ -444,6 +433,8 @@ const deleteUser = async (req, res) => {
   }
 };
 
+=======
+>>>>>>> e515cb3597d25d9bdfe44c2ae4c15366d4f31128
 export {
   create_user,
   request_change_password,
@@ -453,5 +444,8 @@ export {
   get_user_by_id,
   get_user_by_teamId,
   get_user_by_departmentId,
+<<<<<<< HEAD
   deleteUser
+=======
+>>>>>>> e515cb3597d25d9bdfe44c2ae4c15366d4f31128
 };

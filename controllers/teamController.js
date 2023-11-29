@@ -7,7 +7,7 @@ import Position from "../models/Position.js";
 
 const getTeams = async (req, res) => {
   try {
-    const team = await Team.find({ isDeleted: false });
+    const team = await Team.find({ isDeleted: false }).populate("managerId");
     if (!team) {
       throw new NotFoundError("Not found any team");
     }
@@ -18,7 +18,7 @@ const getTeams = async (req, res) => {
 };
 const getTeamsByDepartmentId = async (req, res) => {
   try {
-    const id = req.params.id;
+    const id = req.params.departmentId;
     const department = Department.findById(id);
     if (!department)
       throw new NotFoundError(
@@ -27,11 +27,14 @@ const getTeamsByDepartmentId = async (req, res) => {
     else if (department.isDeleted === true) {
       res.status(410).send("Department is deleted");
     } else {
-      const team = await Team.find({ departmentId: id, isDeleted: false });
-      if (team.length === 0)
+      const team = await Team.find({
+        departmentId: id,
+        isDeleted: false,
+      }).populate("managerId");
+      if (!team)
         throw new NotFoundError(`Not found Team in department id ${id}`);
 
-      res.status(200).json(Team);
+      res.status(200).json(team);
     }
   } catch (err) {
     throw err;
@@ -41,7 +44,7 @@ const getTeamsByDepartmentId = async (req, res) => {
 const getTeam = async (req, res) => {
   const { id } = req.params;
   try {
-    const team = await Team.findById(id);
+    const team = await Team.findById(id).populate("managerId");
     if (team && team.isDeleted === false) {
       res.status(200).json(team);
     } else if (team && team.isDeleted === true) {

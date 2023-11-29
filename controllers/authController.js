@@ -50,15 +50,13 @@ const maxAgeRefreshToken = 60 * 60 * 24 * 30 * 6;
 const login_post = async (req, res) => {
   const { email, password } = req.body;
 
-  console.log(email)
-
   try {
     const user = await User.login(email, password);
     // create JWTs for logged in user.
     const accessToken = jwt.sign(
       {
         userInfo: {
-          userId: user.id,
+          userId: user._id,
           roles: user.roles,
         },
       },
@@ -66,7 +64,7 @@ const login_post = async (req, res) => {
       { expiresIn: maxAgeAccessToken }
     );
     const refreshToken = jwt.sign(
-      { userId: user.id },
+      { userId: user._id },
       process.env.REFRESH_TOKEN_SECRET,
       { expiresIn: maxAgeRefreshToken }
     );
@@ -77,15 +75,13 @@ const login_post = async (req, res) => {
     console.log("login success: ", result);
 
     // Creates Secure Cookie with refresh token
-    res.cookie("jwt", refreshToken, {
-      httpOnly: true,
-      secure: false,
-      sameSite: "None",
-      maxAge: maxAgeRefreshToken * 1000,
-    });
-
+    // res.cookie("jwt", refreshToken, {
+    //     httpOnly: true,
+    //     secure: false,
+    //     sameSite: "None",
+    //     maxAge: maxAgeRefreshToken * 1000,
+    // });
     // delete refresh token and password from user info
-    user.refreshToken = undefined;
     user.password = undefined;
 
     // Send authorization roles and access token to user
@@ -118,7 +114,7 @@ const logout_post = async (req, res) => {
 
 const forget_password = async (req, res) => {
   const { email } = req.body;
-  console.log({email})
+  console.log({ email });
   if (!email) throw new BadRequestError("Please provide a valid email!");
 
   const user = await User.findOne({ email });
