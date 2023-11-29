@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { closeAttendance, deleteAttendance, generateMockAttendanceData, getAttendance, getAttendanceByMonth, getAttendanceEmployee, getAttendanceEmployeeToday, getAttendances, getAttendancesByDate, getAttendancesByMonth, getMonthlyEmployeeAttendance, postAttendance, updateAttendance } from "../controllers/attendanceController.js";
+import { closeAttendance, deleteAttendance, generateMockAttendanceData, getAttendance, getAttendanceByMonth, getAttendanceEmployee, getAttendanceEmployeeToday, getAttendanceMonthYear, getAttendances, getAttendancesByDate, getAttendancesByMonth, getMonthlyEmployeeAttendance, postAttendance, updateAttendance } from "../controllers/attendanceController.js";
 import ROLES_LIST from "../config/roles_list.js";
 import verifyRoles from "../middlewares/verifyRoles.js";
 
@@ -11,7 +11,8 @@ attendanceRouter.get('/attendancesByMonth/:month/:year',verifyRoles(ROLES_LIST.H
 attendanceRouter.get('/attendanceByMonth/:month/:year/:userId',getAttendanceByMonth);
 attendanceRouter.get('/attendancesByMonth_total/:month/:year',getMonthlyEmployeeAttendance);;
 attendanceRouter.get('/attendanceEmployeeToday',getAttendanceEmployeeToday)
-attendanceRouter.get('/attendanceEmployee/:month/:year',getAttendanceEmployee)
+attendanceRouter.get('/attendanceEmployee/:month/:year',getAttendanceEmployee);
+attendanceRouter.get('/attendanceByMonthYear',getAttendanceMonthYear);
 
 
 

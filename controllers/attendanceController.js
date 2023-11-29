@@ -2,7 +2,7 @@ import Attendance from "../models/Attendance.js";
 import NotFoundError from "../errors/notFoundError.js";
 import BadRequestError from "../errors/badRequestError.js";
 import User from "../models/User.js";
-import { startOfDay , set, addMinutes,addHours ,format, addDays } from 'date-fns';
+import { startOfDay , set, addMinutes,addHours ,format, addDays,startOfMonth } from 'date-fns';
 import mongoose from "mongoose";
 
 const getAttendances = async (req, res) => {
@@ -92,7 +92,7 @@ const getMonthlyEmployeeAttendance = async (req, res) => {
 
   try {
     // Get all users
-    const users = await User.find({isEmployee: true});
+    const users = await User.find({isEmployee: true}).populate('departmentId');
     console.log({users})
 
     // Initialize an array to store employee attendance information
@@ -259,25 +259,57 @@ const calculatePercentageChange = (previousValue, currentValue) => {
   return ((currentValue - previousValue) / Math.abs(previousValue)) * 100;
 };
 
+const getAttendanceMonthYear = async (req, res) => {
+  try {
+    // Lấy tất cả các năm và tháng duy nhất có trong dữ liệu chấm công
+    const distinctMonths = await Attendance.aggregate([
+      {
+        $group: {
+          _id: {
+            year: { $year: '$attendanceDate' },
+            month: { $month: '$attendanceDate' },
+          },
+        },
+      },
+    ]);
 
+    // Tạo danh sách các ngày đầu tiên của từng tháng và năm
+    const firstDays = distinctMonths.map((item) => {
+      return startOfMonth(new Date(item._id.year, item._id.month - 1));
+    });
+
+    // Format kết quả theo định dạng mong muốn
+    const formattedResult = firstDays.map((date) => format(date, "yyyy-MM-dd'T'HH:mm:ss.SSSxxx"));
+
+    res.status(200).json(formattedResult);
+  } catch (err) {
+    throw err;
+  }
+};
+
+//dang low 
 const getAttendanceEmployee = async (req, res) => {
   try {
     const users = await User.find({ isEmployee: true });
     const { month, year } = req.params;
-    console.log({ users, month, year });
 
     const daysInMonth = new Date(year, month, 0).getDate();
-    let totalEmployees = users.length;
     const attendanceByDay = [];
 
-    for (let day = daysInMonth; day >=1; day--) {
+    for (let day = daysInMonth; day >= 1; day--) {
       let onTimeEmployees = 0;
       let lateEmployees = 0;
       let date = new Date(year, month - 1, day);
+      let totalEmployees = users.length;
 
       for (const user of users) {
         // Check if the user has a dayOff for the specific day
-        if (user.dayOff) {
+        const formattedDate = format(date, "yyyy-MM-dd'T'HH:mm:ss.SSSxxx");
+        console.log({formattedDate})
+        if (user.dayOff && user.dayOff<=formattedDate) {
+          console.log({user});
+          console.log(user.dayOff)
+          console.log({date})
           totalEmployees++;
           continue; // Skip this user for the current day
         }
@@ -300,11 +332,11 @@ const getAttendanceEmployee = async (req, res) => {
               hours: 7,
               minutes: 30,
             });
-              if (attendance.checkInTime <= checkInDateTime) {
-                onTimeEmployees++;
-              } else {
-                lateEmployees++;
-              }
+            if (attendance.checkInTime <= checkInDateTime) {
+              onTimeEmployees++;
+            } else {
+              lateEmployees++;
+            }
           }
         }
       }
@@ -317,8 +349,6 @@ const getAttendanceEmployee = async (req, res) => {
         date,
       });
     }
-
-    
 
     res.status(200).json(attendanceByDay);
   } catch (err) {
@@ -544,6 +574,7 @@ export {
   deleteAttendance,
   getAttendanceByMonth,
   getMonthlyEmployeeAttendance,
+  getAttendanceMonthYear,
   getAttendanceEmployeeToday,
   getAttendanceEmployee,
   generateMockAttendanceData,
