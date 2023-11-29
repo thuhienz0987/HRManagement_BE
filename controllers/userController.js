@@ -414,7 +414,6 @@ const get_user_by_departmentId = async (req, res) => {
   }
 };
 
-<<<<<<< HEAD
 const deleteUser = async (req, res) => {
   const { id } = req.params;
 
@@ -433,8 +432,7 @@ const deleteUser = async (req, res) => {
   }
 };
 
-=======
->>>>>>> e515cb3597d25d9bdfe44c2ae4c15366d4f31128
+
 export {
   create_user,
   request_change_password,
@@ -444,8 +442,6 @@ export {
   get_user_by_id,
   get_user_by_teamId,
   get_user_by_departmentId,
-<<<<<<< HEAD
   deleteUser
-=======
->>>>>>> e515cb3597d25d9bdfe44c2ae4c15366d4f31128
+
 };
