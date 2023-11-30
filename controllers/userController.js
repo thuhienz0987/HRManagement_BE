@@ -126,11 +126,13 @@ const create_user = async (req, res) => {
       avatarImage = result.url;
     }
     // new user create
+    const pass = "Xyz12345";
     const newUser = new User({
       email,
       code: generateUserCode(position.code, positionAmount),
       name,
       phoneNumber,
+      password: pass.trim(),
       birthday: isoBirthDayStr,
       address,
       gender,
@@ -420,7 +422,7 @@ const deleteUser = async (req, res) => {
   try {
     const user = await User.findByIdAndUpdate(
       id,
-      { isEmployee: false ,dayOff: new Date()},
+      { isEmployee: false, dayOff: new Date() },
       { new: true }
     );
     res.status(200).json({
@@ -432,7 +434,6 @@ const deleteUser = async (req, res) => {
   }
 };
 
-
 export {
   create_user,
   request_change_password,
@@ -442,6 +443,5 @@ export {
   get_user_by_id,
   get_user_by_teamId,
   get_user_by_departmentId,
-  deleteUser
-
+  deleteUser,
 };

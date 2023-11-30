@@ -43,7 +43,7 @@ const generateDepartmentCode = (DepartmentName) => {
 const postDepartment = async (req, res) => {
   const { managerId, name } = req.body;
   try {
-    const manager = await User.findOne({ id: managerId, isEmployee: true });
+    const manager = await User.findOne({ _id: managerId, isEmployee: true });
     if (!manager)
       throw new NotFoundError(
         `The manager with user id ${managerId} does not exists`
