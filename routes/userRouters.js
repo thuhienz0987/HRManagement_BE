@@ -8,7 +8,8 @@ import {
   get_user_by_id,
   get_user_by_departmentId,
   get_user_by_teamId,
-  deleteUser
+  get_user_by_createdAtMonth,
+  deleteUser,
 } from "../controllers/userController.js";
 import uploads from "../middlewares/image.js";
 import verifyRoles from "../middlewares/verifyRoles.js";
@@ -34,6 +35,10 @@ router.get(
 router.get("/user/:_id", get_user_by_id);
 router.get("/team-member/:teamId", get_user_by_teamId);
 router.get("/department-member/:departmentId", get_user_by_departmentId);
-router.delete('/deleteUser/:id',deleteUser);
+router.get(
+  "/employee-created-at-month/:month/:year",
+  get_user_by_createdAtMonth
+);
+router.delete("/deleteUser/:id", deleteUser);
 
 export default router;
