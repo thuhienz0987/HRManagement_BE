@@ -415,7 +415,34 @@ const get_user_by_departmentId = async (req, res) => {
     throw err;
   }
 };
+const get_user_by_createdAtMonth = async (req, res) => {
+  try {
+    const { month, year } = req.params;
 
+    const startDate = new Date(year, month - 1, 1);
+    const endDate = new Date(year, month, 0, 23, 59, 59);
+
+    const users = await User.find({
+      createdAt: { $gte: startDate, $lte: endDate },
+    })
+      .populate("departmentId")
+      .populate("positionId")
+      .populate("teamId");
+
+    if (!users || users.length === 0) {
+      throw new NotFoundError("User not found");
+    }
+
+    const usersWithoutPassword = users.map((user) => {
+      user.password = undefined;
+      return user;
+    });
+
+    res.status(200).json(usersWithoutPassword);
+  } catch (err) {
+    throw err;
+  }
+};
 const deleteUser = async (req, res) => {
   const { id } = req.params;
 
@@ -443,5 +470,6 @@ export {
   get_user_by_id,
   get_user_by_teamId,
   get_user_by_departmentId,
+  get_user_by_createdAtMonth,
   deleteUser,
 };

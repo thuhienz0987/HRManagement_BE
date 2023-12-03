@@ -34,12 +34,38 @@ const getLeaveRequest = async (req, res) => {
     throw err;
   }
 };
+const getRemainingLeaveRequestDaysByUserId = async (req, res) => {
+  try {
+    const id = req.params.id;
+    const user = await User.findById(id);
+    if (!user) throw new NotFoundError(`User with id ${id} does not exists`);
+    else if (user && user.isEmployee === true) {
+      res.status(410).send("User has quit");
+    } else {
+      const currentYear = new Date().getFullYear();
+      const startDate = new Date(currentYear, 0, 1); // January 1st of the current year
+      const endDate = new Date(currentYear, 11, 31);
+      const leaveRequestsDays = await LeaveRequest.countDocuments({
+        userId: id,
+        status: "approved",
+        isDeleted: false,
+        startDate: { $gte: startDate },
+        endDate: { $lte: endDate },
+      });
+      let remainingLeaveRequestDays = 12 - leaveRequestsDays;
+
+      res.status(200).json(remainingLeaveRequestDays);
+    }
+  } catch (err) {
+    throw err;
+  }
+};
 const getLeaveRequestsByUserId = async (req, res) => {
   try {
     const id = req.params.id;
     const user = await User.findById(id);
     if (!user) throw new NotFoundError(`User with id ${id} does not exists`);
-    else if (user && user.isDeleted === true) {
+    else if (user && user.isEmployee === true) {
       res.status(410).send("User is deleted");
     } else {
       const leaveRequests = await LeaveRequest.find({
@@ -253,6 +279,7 @@ const deleteLeaveRequest = async (req, res) => {
 export {
   getLeaveRequests,
   getLeaveRequest,
+  getRemainingLeaveRequestDaysByUserId,
   getLeaveRequestsByUserId,
   postLeaveRequest,
   updateLeaveRequest,
