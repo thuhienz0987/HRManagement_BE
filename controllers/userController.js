@@ -132,7 +132,7 @@ const create_user = async (req, res) => {
       code: generateUserCode(position.code, positionAmount),
       name,
       phoneNumber,
-      password: pass.trim(),
+      // password: pass.trim(),
       birthday: isoBirthDayStr,
       address,
       gender,
