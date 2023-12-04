@@ -196,11 +196,11 @@ const updateLeaveRequest = async (req, res) => {
     });
 
     // Check if there are any overlapping requests
-    if (overlappingRequests.length > 0) {
-      throw new BadRequestError(
-        "The user already has overlapping leave requests for the specified time."
-      );
-    }
+    // if (overlappingRequests.length > 0) {
+    //   throw new BadRequestError(
+    //     "The user already has overlapping leave requests for the specified time."
+    //   );
+    // }
 
     // Check if the start date is in the future or is the same as the current date
     const currentDate = new Date();
