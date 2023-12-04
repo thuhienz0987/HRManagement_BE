@@ -5,15 +5,17 @@ import Allowance from "../models/Allowance.js";
 import Position from "../models/Position.js";
 import Attendance from "../models/Attendance.js";
 import Holiday from "../models/Holiday.js";
+import User from "../models/User.js";
+import mongoose from "mongoose";
+import Comment from "../models/Comment.js";
 
 
 const getSalaries = async (req,res) =>{
     try{
-        const salary = await Salary.find({ isDeleted: true })
-            .populate('idUser')
+        const salary = await Salary.find()
+            .populate('userId')
             .populate('idPosition')
             .populate('idSalaryGrade')
-            .populate('idBonus')
             .populate('idAllowance')
             .populate('idComment');
           
@@ -31,17 +33,14 @@ const getSalary = async (req,res) =>{
     const {id} = req.params 
     try{
         const salary = await Salary.findById(id)
-            .populate('idUser')
+            .populate('userId')
             .populate('idPosition')
             .populate('idSalaryGrade')
-            .populate('idBonus')
             .populate('idAllowance')
             .populate('idComment');
-        if (salary && salary.isDeleted === false) {
+        if (salary ) {
               res.status(200).json(salary);
-            } else if (salary && salary.isDeleted === true) {
-              res.status(410).send("salary is deleted");
-            } else {
+        }else {
               throw new NotFoundError("salary  not found");
             }
 
@@ -51,13 +50,29 @@ const getSalary = async (req,res) =>{
 }
 
 const postSalary = async (req,res) =>{
-    const {userId, idPosition, idSalaryGrade, idAllowance,idComment} = req.body
+    const {userId, idSalaryGrade, idAllowance} = req.body
     try{
                 
-
+                const user= await User.findById(userId).populate('positionId');
+                const idPosition = user.positionId;
                 const today = new Date();
                 const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1); // Ngày đầu tiên của tháng trước
                 const lastDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 0); // Ngày cuối cùng của tháng trước
+
+                const comment = await Comment.findOne({
+                  revieweeId: new mongoose.Types.ObjectId(userId),
+                  createdAt: {
+                    $gte: new Date(today.getFullYear(), today.getMonth(), 1),
+                    $lte: new Date(today.getFullYear(), today.getMonth()+1, 0),
+                  },
+                  isDeleted: false,
+                });
+
+
+                if (!comment) {
+                  return res.status(404).json({ message: 'No comment found for the specified user and date range.' });
+                }
+                const idComment = comment._id
 
                 const holidays = await Holiday.find({
                     day: {
@@ -84,7 +99,7 @@ const postSalary = async (req,res) =>{
                     isDeleted: false
                   });
 
-                  const overTime = await Attendance.aggregate([
+                  const overTimeData = await Attendance.aggregate([
                     {
                       $match: { ////Sử dụng $match để lọc các bản ghi theo điều kiện nhất định.
                         userId: userId,
@@ -122,13 +137,27 @@ const postSalary = async (req,res) =>{
                     }
                   ]);
 
+                  // Extract the total overtime hours for each day
+                    const dailyOvertimeHours = overTimeData.map(entry => entry.totalOvertime);
+
+                    // Sum up the total overtime hours for the month
+                    const overTime = dailyOvertimeHours.reduce((sum, hours) => sum + hours, 0);
+
                 
 
-                const totalSalary = (await calculateTotalSalary(idPosition, idSalaryGrade, idAllowance, presentDate, overTimeDay, overTime, idComment)).totalSalary;
-                const incomeTax = (await calculateTotalSalary(idPosition, idSalaryGrade, idAllowance, presentDate,overTimeDay,overTime,idComment)).taxRate;
-                const totalIncome=(await calculateTotalSalary(idPosition, idSalaryGrade, idAllowance, presentDate,overTimeDay,overTime,idComment)).totalIncome;
-                const incomeTaxAmount = (await calculateTotalSalary(idPosition, idSalaryGrade, idAllowance, presentDate,overTimeDay,overTime,idComment)).incomeTaxAmount;
-                const bonus = (await calculateTotalSalary(idPosition, idSalaryGrade, idAllowance, presentDate,overTimeDay,overTime)).bonus;
+                  const calculate = await calculateTotalSalary(idPosition, idSalaryGrade, idAllowance, presentDate, overTimeDay, overTime, idComment);
+                // const totalSalary = (await calculateTotalSalary(idPosition, idSalaryGrade, idAllowance, presentDate, overTimeDay, overTime, idComment)).totalSalary;
+                // const incomeTax = (await calculateTotalSalary(idPosition, idSalaryGrade, idAllowance, presentDate,overTimeDay,overTime,idComment)).taxRate;
+                // const totalIncome=(await calculateTotalSalary(idPosition, idSalaryGrade, idAllowance, presentDate,overTimeDay,overTime,idComment)).totalIncome;
+                // const incomeTaxAmount = (await calculateTotalSalary(idPosition, idSalaryGrade, idAllowance, presentDate,overTimeDay,overTime,idComment)).incomeTaxAmount;
+                // const bonus = (await calculateTotalSalary(idPosition, idSalaryGrade, idAllowance, presentDate,overTimeDay,overTime)).bonus;
+                const totalSalary= calculate.totalSalary;
+                const incomeTax= calculate.incomeTax;
+                const totalIncome= calculate.totalIncome;
+                const incomeTaxAmount= calculate.incomeTaxAmount;
+                const bonus= calculate.bonus;
+
+
 
                 
                 const newSalary = new Salary({
@@ -140,6 +169,7 @@ const postSalary = async (req,res) =>{
                     presentDate,
                     totalSalary,
                     incomeTax,
+                    idComment,
                     totalIncome,
                     incomeTaxAmount,
                     overTimeDay,
@@ -205,21 +235,26 @@ const calculateTotalSalary = async (idPosition, idSalaryGrade, idAllowances, pre
 
     const baseSalary = position ? position.basicSalary : 0;
 
+
     // Truy vấn tất cả các bản ghi Bonus cùng lúc
     const comment = await Comment.findById(idComment);
+
     const bonus = await calculateBonus(comment.rate);
 
     // Tính tổng phụ cấp từ danh sách các mức phụ cấp của nhân viên
     const allowanceAmount = allowances.reduce((total, allowance) => total + allowance.amount, 0);
 
-    const total = (baseSalary * salaryGrade.level )/26 * (presentDate + overTimeDay)+ allowanceAmount  + overTime*((baseSalary * salaryGrade.level  + allowanceAmount)/26)/8;
+    const total = (baseSalary * salaryGrade.factor )/26 * (presentDate + overTimeDay)+ allowanceAmount  + overTime*((baseSalary * salaryGrade.factor  + allowanceAmount)/26)/8;
     const totalIncome = total*bonus + total;
-    
+
 
     // Tính toán thuế thu nhập cá nhân dựa trên tổng thu nhập
     const incomeTaxAmount = calculateIncomeTax(totalIncome).incomeTaxAmount;
 
     const taxRate = calculateIncomeTax(totalIncome).taxRate
+
+    console.log({totalIncome})
+    console.log({incomeTaxAmount})
     // Tính mức lương cuối cùng sau khi trừ thuế
     const totalSalary = totalIncome - incomeTaxAmount;
 
