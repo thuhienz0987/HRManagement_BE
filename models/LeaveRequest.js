@@ -34,6 +34,10 @@ const LeaveRequestSchema = new mongoose.Schema({
         // required: true,
         ref: 'User'
     },
+    commitment:{
+        type: String,
+        require:  [true, "Commitment is missing"]
+    },
     history: [
         {
             reason: String,
@@ -53,6 +57,7 @@ LeaveRequestSchema.pre('save', function(next) {
     // Before saving, push the current values to the history array
     this.history.push({
         reason: this.reason,
+        commitment: this.commitment,
         status: this.status,
         userId: this.userId,
         startDate: this.startDate,

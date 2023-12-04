@@ -32,13 +32,11 @@ leaveRequestRouter.get(
 leaveRequestRouter.post("/leaveRequest", postLeaveRequest);
 leaveRequestRouter.put(
   "/leaveRequest/:id",
-  verifyRoles(ROLES_LIST.HRManager, ROLES_LIST.CEO),
   updateLeaveRequest
 );
 leaveRequestRouter.put("/approverLeaveRequest/:id", ChangeStatus);
 leaveRequestRouter.delete(
   "/leaveRequest/:id",
-  verifyRoles(ROLES_LIST.HRManager, ROLES_LIST.Employee),
   deleteLeaveRequest
 );
 
