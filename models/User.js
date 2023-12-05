@@ -114,17 +114,25 @@ const userSchema = new mongoose.Schema(
       required: true,
       default: [ROLES_LIST.Employee],
     },
-
-    dayOff:{
-      type: Date,      
-    }
+    salaryGrade: {
+      type: Number,
+      default: 1.0,
+      required: [true, "A user must have a salary grade"],
+      min: [1.0, "Salary grade must not be smaller than 1.0"],
+    },
+    dayOff: {
+      type: Date,
+    },
   },
   { timestamps: true }
 );
 
 // static method to login user
 userSchema.statics.login = async function (email, password) {
-  const user = await this.findOne({ email }).populate('positionId').populate('departmentId').populate('teamId');
+  const user = await this.findOne({ email })
+    .populate("positionId")
+    .populate("departmentId")
+    .populate("teamId");
   console.log(user);
   if (user) {
     const auth = await bcrypt.compare(password, user.password);

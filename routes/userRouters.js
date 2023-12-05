@@ -3,6 +3,7 @@ import {
   create_user,
   request_change_password,
   change_password,
+  update_salary_grade,
   edit_user_profile,
   get_all_user,
   get_user_by_id,
@@ -26,7 +27,12 @@ router.post(
 );
 router.get("/request-change-password/:_id", request_change_password);
 router.post("/change-password/:_id", change_password);
-router.post("/user/:_id", uploads.single("avatarImage"), edit_user_profile);
+router.put("/user/:_id", uploads.single("avatarImage"), edit_user_profile);
+router.put(
+  "/update-salary-grade/:userId",
+  verifyRoles(ROLES_LIST.HRManager),
+  update_salary_grade
+);
 router.get(
   "/all-user",
   verifyRoles(ROLES_LIST.CEO, ROLES_LIST.HRManager),
