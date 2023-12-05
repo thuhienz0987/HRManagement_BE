@@ -2,7 +2,15 @@ import Attendance from "../models/Attendance.js";
 import NotFoundError from "../errors/notFoundError.js";
 import BadRequestError from "../errors/badRequestError.js";
 import User from "../models/User.js";
-import { startOfDay , set, addMinutes,addHours ,format, addDays,startOfMonth } from 'date-fns';
+import {
+  startOfDay,
+  set,
+  addMinutes,
+  addHours,
+  format,
+  addDays,
+  startOfMonth,
+} from "date-fns";
 import mongoose from "mongoose";
 
 const getAttendances = async (req, res) => {
@@ -86,14 +94,15 @@ const getAttendancesByMonth = async (req, res) => {
   }
 };
 
-
 const getMonthlyEmployeeAttendance = async (req, res) => {
   const { month, year } = req.params;
 
   try {
     // Get all users
-    const users = await User.find({isEmployee: true}).populate('departmentId');
-    console.log({users})
+    const users = await User.find({ isEmployee: true }).populate(
+      "departmentId"
+    );
+    console.log({ users });
 
     // Initialize an array to store employee attendance information
     const employeeAttendances = [];
@@ -103,7 +112,7 @@ const getMonthlyEmployeeAttendance = async (req, res) => {
       // Get attendance records for the user in the specified month
       const attendances = await Attendance.find({
         isDeleted: false,
-        userId:new mongoose.Types.ObjectId(user._id),
+        userId: new mongoose.Types.ObjectId(user._id),
         attendanceDate: {
           $gte: new Date(year, month - 1, 1),
           $lte: new Date(year, month, 0),
@@ -116,8 +125,6 @@ const getMonthlyEmployeeAttendance = async (req, res) => {
 
       for (const attendance of attendances) {
         if (attendance.checkInTime && attendance.checkOutTime) {
-          
-          
           totalOvertimeHours += attendance.overTime;
           totalWorkingDays++;
         }
@@ -136,7 +143,6 @@ const getMonthlyEmployeeAttendance = async (req, res) => {
     throw err;
   }
 };
-
 
 const getAttendanceByMonth = async (req, res) => {
   const { month, year, userId } = req.params;
@@ -266,8 +272,8 @@ const getAttendanceMonthYear = async (req, res) => {
       {
         $group: {
           _id: {
-            year: { $year: '$attendanceDate' },
-            month: { $month: '$attendanceDate' },
+            year: { $year: "$attendanceDate" },
+            month: { $month: "$attendanceDate" },
           },
         },
       },
@@ -279,7 +285,9 @@ const getAttendanceMonthYear = async (req, res) => {
     });
 
     // Format kết quả theo định dạng mong muốn
-    const formattedResult = firstDays.map((date) => format(date, "yyyy-MM-dd'T'HH:mm:ss.SSSxxx"));
+    const formattedResult = firstDays.map((date) =>
+      format(date, "yyyy-MM-dd'T'HH:mm:ss.SSSxxx")
+    );
 
     res.status(200).json(formattedResult);
   } catch (err) {
@@ -287,7 +295,7 @@ const getAttendanceMonthYear = async (req, res) => {
   }
 };
 
-//dang low 
+//dang low
 const getAttendanceEmployee = async (req, res) => {
   try {
     const users = await User.find({ isEmployee: true });
@@ -305,11 +313,11 @@ const getAttendanceEmployee = async (req, res) => {
       for (const user of users) {
         // Check if the user has a dayOff for the specific day
         const formattedDate = format(date, "yyyy-MM-dd'T'HH:mm:ss.SSSxxx");
-        console.log({formattedDate})
-        if (user.dayOff && user.dayOff<=formattedDate) {
-          console.log({user});
-          console.log(user.dayOff)
-          console.log({date})
+        console.log({ formattedDate });
+        if (user.dayOff && user.dayOff <= formattedDate) {
+          console.log({ user });
+          console.log(user.dayOff);
+          console.log({ date });
           totalEmployees++;
           continue; // Skip this user for the current day
         }
@@ -355,7 +363,6 @@ const getAttendanceEmployee = async (req, res) => {
     throw err;
   }
 };
-
 
 const postAttendance = async (req, res) => {
   const { userId } = req.body;
@@ -502,8 +509,8 @@ const generateMockAttendanceData = async (req, res) => {
       for (let day = 1; day <= new Date(year, month, 0).getDate(); day++) {
         const attendanceDate = new Date(year, month - 1, day); // Date without specific time
 
-        const randomCheckInHour = getRndInteger(7, 9); // Use the provided function to generate random check-in hour
-        const randomCheckOutHour = getRndInteger(17, 20); // Use the provided function to generate random check-out hour
+        const randomCheckInHour = getRndInteger(6, 9); // Use the provided function to generate random check-in hour
+        const randomCheckOutHour = getRndInteger(16, 20); // Use the provided function to generate random check-out hour
 
         // Set the check-in and check-out times for the current day
         const checkInTime = new Date(
@@ -568,14 +575,14 @@ export {
   getAttendance,
   getAttendancesByDate,
   getAttendancesByMonth,
-  postAttendance,
-  closeAttendance,
-  updateAttendance,
-  deleteAttendance,
   getAttendanceByMonth,
   getMonthlyEmployeeAttendance,
   getAttendanceMonthYear,
   getAttendanceEmployeeToday,
   getAttendanceEmployee,
+  postAttendance,
+  closeAttendance,
+  updateAttendance,
+  deleteAttendance,
   generateMockAttendanceData,
 };
