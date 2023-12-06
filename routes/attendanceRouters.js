@@ -11,6 +11,7 @@ import {
   getAttendances,
   getAttendancesByDate,
   getAttendancesByMonth,
+  getEmployeeNotAttendanceToday,
   getMonthlyEmployeeAttendance,
   postAttendance,
   updateAttendance,
@@ -44,6 +45,8 @@ attendanceRouter.get(
   getMonthlyEmployeeAttendance
 );
 attendanceRouter.get("/attendanceEmployeeToday", getAttendanceEmployeeToday);
+attendanceRouter.get("/employeeNotAttendanceToday", getEmployeeNotAttendanceToday);
+
 attendanceRouter.get("/attendanceEmployee/:month/:year", getAttendanceEmployee);
 attendanceRouter.get("/attendanceByMonthYear", getAttendanceMonthYear);
 

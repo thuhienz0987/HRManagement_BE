@@ -18,6 +18,8 @@ const holidaySchema = mongoose.Schema({
     },
 })
 
+// Define the 'some' method to check if a holiday exists
+
 
 const Holiday = mongoose.model('Holiday',holidaySchema);
 
