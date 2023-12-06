@@ -11,6 +11,7 @@ import {
   addDays,
   startOfMonth,
 } from "date-fns";
+
 import mongoose from "mongoose";
 
 const getAttendances = async (req, res) => {
@@ -403,7 +404,6 @@ const getAttendanceEmployee = async (req, res) => {
   }
 };
 
-
 const postAttendance = async (req, res) => {
   const { userId } = req.body;
   try {
@@ -549,8 +549,8 @@ const generateMockAttendanceData = async (req, res) => {
       for (let day = 1; day <= new Date(year, month, 0).getDate(); day++) {
         const attendanceDate = new Date(year, month - 1, day); // Date without specific time
 
-        const randomCheckInHour = getRndInteger(7, 9); // Use the provided function to generate random check-in hour
-        const randomCheckOutHour = getRndInteger(17, 20); // Use the provided function to generate random check-out hour
+        const randomCheckInHour = getRndInteger(6, 9); // Use the provided function to generate random check-in hour
+        const randomCheckOutHour = getRndInteger(16, 20); // Use the provided function to generate random check-out hour
 
         // Set the check-in and check-out times for the current day
         const checkInTime = new Date(
@@ -615,15 +615,15 @@ export {
   getAttendance,
   getAttendancesByDate,
   getAttendancesByMonth,
-  postAttendance,
-  closeAttendance,
-  updateAttendance,
-  deleteAttendance,
   getAttendanceByMonth,
   getMonthlyEmployeeAttendance,
   getAttendanceMonthYear,
   getAttendanceEmployeeToday,
   getEmployeeNotAttendanceToday,
   getAttendanceEmployee,
+  postAttendance,
+  closeAttendance,
+  updateAttendance,
+  deleteAttendance,
   generateMockAttendanceData,
 };

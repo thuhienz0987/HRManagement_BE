@@ -242,6 +242,31 @@ const change_password = async (req, res) => {
     throw err;
   }
 };
+const update_salary_grade = async (req, res) => {
+  try {
+    const { salaryGrade } = req.body;
+    const userId = req.params.userId;
+    // find user by id
+    const user = await User.findById(userId);
+
+    // check if user found
+    if (!user) throw new NotFoundError("User not found!");
+
+    user.salaryGrade = salaryGrade;
+
+    // save the user
+    await user.save();
+
+    // send success message to front end
+    res.status(200).json({
+      Status: "Success",
+      message: `Update ${user.firstName}'s salary garde successfully`,
+      user: user,
+    });
+  } catch (err) {
+    throw err;
+  }
+};
 const edit_user_profile = async (req, res) => {
   try {
     const {
@@ -465,6 +490,7 @@ export {
   create_user,
   request_change_password,
   change_password,
+  update_salary_grade,
   edit_user_profile,
   get_all_user,
   get_user_by_id,
