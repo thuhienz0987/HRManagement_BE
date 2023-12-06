@@ -16,11 +16,6 @@ const salarySchema = mongoose.Schema({
         ref:'Position',
         required:[true,'A salary must link a id of position']
     },
-    idSalaryGrade:{
-        type:  mongoose.Types.ObjectId,
-        ref:'SalaryGrade',
-        required:[true,'A salary must link a id of salary grade']
-    },
     bonus:[{
         type:  Number,
         default:0,
