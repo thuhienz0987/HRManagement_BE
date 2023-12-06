@@ -4,6 +4,10 @@ import Department from "../models/Department.js";
 import User from "../models/User.js";
 import Team from "../models/Team.js";
 import Position from "../models/Position.js";
+import Attendance from "../models/Attendance.js";
+import Holiday from "../models/Holiday.js";
+import { eachDayOfInterval, isWeekend, isSameDay } from 'date-fns';
+
 
 const getDepartments = async (req, res) => {
   try {
@@ -177,10 +181,160 @@ const deleteDepartment = async (req, res) => {
   }
 };
 
+const getDepartmentEmployeeRatio = async (req, res) => {
+  try {
+    const departments = await Department.find({ isDeleted: false });
+    const employeeRatios = [];
+    const user = await User.find({ isEmployee: true });
+    console.log(user.length);
+
+    for (const department of departments) {
+      const employeesInDepartment =  (
+        await User.find({ isEmployee: true, departmentId: department._id })
+      ).length;
+      console.log({ employeesInDepartment });
+
+      const employeeRatio =
+        user.length > 0 ? (employeesInDepartment + 1) / user.length : 0;
+
+      employeeRatios.push({
+        departmentName: department.name,
+        employeeRatio,
+      });
+    }
+    const sumRatios = employeeRatios.reduce(
+      (sum, ratio) => sum + ratio.employeeRatio,
+      0
+    );
+    const adjustmentFactor = sumRatios !== 1 ? 1 / sumRatios : 1;
+
+    // Apply the adjustment factor to make the sum of ratios equal to 1
+    for (const ratio of employeeRatios) {
+      ratio.employeeRatio *= adjustmentFactor;
+    }
+
+    res.status(200).json(employeeRatios);
+  } catch (err) {
+    throw err;
+  }
+};
+const getAbsenteeismRatio = async (req, res) => {
+  const { month, year } = req.params;
+
+  try {
+    const departments = await Department.find({ isDeleted: false });
+    const absenteeismRatios = [];
+
+    const absenteeismCounts = await getAbsenteeismCountForAllEmployees(year, month);
+
+    for (const department of departments) {
+      const employeesInDepartment = await User.find({
+        isEmployee: true,
+        departmentId: department._id,
+      });
+
+      let absentEmployees = 0;
+
+      for (const employee of employeesInDepartment) {
+        absentEmployees = absentEmployees + await getAbsenteeismCountForUser(employee._id,year,month) ;
+      }
+
+      const absenteeismRatio =
+      absentEmployees > 0 ? (absentEmployees / absenteeismCounts) : 0;
+
+      absenteeismRatios.push({
+        departmentName: department.name,
+        absenteeismRatio,
+      });
+    }
+
+    res.status(200).json(absenteeismRatios);
+  } catch (err) {
+    throw err;
+  }
+};
+
+
+const getAbsenteeismCountForAllEmployees = async (year, month) => {
+  try {
+    const users = await User.find({ isEmployee: true });
+    let absenteeismCounts = 0;
+
+    for (const user of users) {
+      const absenteeismCount = await getAbsenteeismCountForUser(user._id, year, month);
+      absenteeismCounts = absenteeismCounts + absenteeismCount;
+    }
+
+    return absenteeismCounts;
+  } catch (err) {
+    throw err;
+  }
+};
+
+const getAbsenteeismCountForUser = async (userId, year, month) => {
+  try {
+    // Lấy danh sách ngày lễ trong tháng
+    const holidays = await Holiday.find({
+      day: {
+        $gte: new Date(year, month - 1, 1),
+        $lte: new Date(year, month, 0),
+      },
+      isDeleted: false,
+    });
+    console.log({holidays})
+    
+    // const holidays = holidaysData.map(holiday => {
+    //   const formattedDate = new Date(holiday.day).toISOString().split('T')[0];
+    //   return `new Date('${formattedDate}')`;
+    // });
+
+    // Lấy danh sách chấm công của nhân viên trong tháng
+    const attendances = await Attendance.find({
+      userId,
+      attendanceDate: {
+        $gte: new Date(year, month - 1, 1),
+        $lte: new Date(year, month, 0),
+        $nin: holidays.day
+      },
+      isDeleted: false,
+    });
+
+    // Lọc những ngày chấm công không trùng với ngày lễ, thứ 7 và chủ nhật
+    const validAttendances = attendances.filter((attendance) => {
+      const attendanceDate = new Date(attendance.attendanceDate);
+      const isWeekend = attendanceDate.getDay() === 0 || attendanceDate.getDay() === 6;
+      return !isWeekend ;
+    });
+
+    const workday = await getWorkingDaysInMonth(year,month,holidays).length
+    // Đếm số lượt nghỉ
+    const absenteeismCount = workday - validAttendances.length;
+
+    return absenteeismCount;
+  } catch (err) {
+    throw err;
+  }
+};
+
+const getWorkingDaysInMonth = (year, month, holidays) => {
+  const startDate = new Date(year, month - 1, 1);
+  const endDate = new Date(year, month, 0);
+
+  const allDaysInMonth = eachDayOfInterval({ start: startDate, end: endDate });
+
+  const workingDays = allDaysInMonth.filter((day) => !isWeekend(day) && !holidays.some((holiday) => isSameDay(day, holiday)));
+  console.log({workingDays})
+
+  return workingDays;
+};
+
+
 export {
   getDepartments,
   getDepartment,
   postDepartment,
   updateDepartment,
   deleteDepartment,
+  getDepartmentEmployeeRatio,
+  getAbsenteeismRatio
 };
