@@ -36,17 +36,18 @@ const getLeaveRequest = async (req, res) => {
 };
 const getRemainingLeaveRequestDaysByUserId = async (req, res) => {
   try {
-    const id = req.params.id;
-    const user = await User.findById(id);
-    if (!user) throw new NotFoundError(`User with id ${id} does not exists`);
-    else if (user && user.isEmployee === true) {
+    const userId = req.params.userId;
+    const user = await User.findById(userId);
+    if (!user)
+      throw new NotFoundError(`User with id ${userId} does not exists`);
+    else if (user && user.isEmployee === false) {
       res.status(410).send("User has quit");
     } else {
       const currentYear = new Date().getFullYear();
       const startDate = new Date(currentYear, 0, 1); // January 1st of the current year
       const endDate = new Date(currentYear, 11, 31);
       const leaveRequestsDays = await LeaveRequest.countDocuments({
-        userId: id,
+        userId: userId,
         status: "approved",
         isDeleted: false,
         startDate: { $gte: startDate },
@@ -83,7 +84,7 @@ const getLeaveRequestsByUserId = async (req, res) => {
 };
 
 const postLeaveRequest = async (req, res) => {
-    const { reason,userId, startDate, endDate, commitment} = req.body;
+  const { reason, userId, startDate, endDate, commitment } = req.body;
 
   try {
     const currentDate = new Date();
@@ -133,15 +134,15 @@ const postLeaveRequest = async (req, res) => {
       );
     }
 
-        // Create a new leave request
-        const newLeaveRequest = new LeaveRequest({
-            reason,
-            userId,
-            approverId: approver.id,
-            startDate: newStartDate,
-            endDate: newEndDate,
-            commitment: commitment,
-        });
+    // Create a new leave request
+    const newLeaveRequest = new LeaveRequest({
+      reason,
+      userId,
+      approverId: approver.id,
+      startDate: newStartDate,
+      endDate: newEndDate,
+      commitment: commitment,
+    });
 
     await newLeaveRequest.save();
 
@@ -155,8 +156,8 @@ const postLeaveRequest = async (req, res) => {
 };
 
 const updateLeaveRequest = async (req, res) => {
-    const { id } = req.params;
-    const { reason, startDate, endDate,commitment } = req.body;
+  const { id } = req.params;
+  const { reason, startDate, endDate, commitment } = req.body;
 
   try {
     const leaveRequestExist = await LeaveRequest.findById(id);
@@ -210,11 +211,13 @@ const updateLeaveRequest = async (req, res) => {
       );
     }
 
-        // Update leave request fields only if the new values are provided
-        leaveRequestExist.reason = reason !== undefined ? reason : leaveRequestExist.reason;
-        leaveRequestExist.startDate = newStartDate;
-        leaveRequestExist.endDate = newEndDate;
-        leaveRequestExist.commitment = commitment!==undefined?commitment:leaveRequestExist.commitment;
+    // Update leave request fields only if the new values are provided
+    leaveRequestExist.reason =
+      reason !== undefined ? reason : leaveRequestExist.reason;
+    leaveRequestExist.startDate = newStartDate;
+    leaveRequestExist.endDate = newEndDate;
+    leaveRequestExist.commitment =
+      commitment !== undefined ? commitment : leaveRequestExist.commitment;
 
     const updatedLeaveRequest = await leaveRequestExist.save();
     res.status(200).json(updatedLeaveRequest);
