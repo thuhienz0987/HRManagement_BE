@@ -8,13 +8,13 @@ const attendanceSchema = mongoose.Schema({
   },
   attendanceDate: {
     type: Date,
-    required: [true, ""],
-    default: Date.now(),
+    // required: [true, ""],
+    // default: Date.now(),
   },
   checkInTime: {
     type: Date,
-    required: [true, ""],
-    default: Date.now(),
+    // required: [true, ""],
+    // default: Date.now(),
   },
   checkOutTime: {
     type: Date,

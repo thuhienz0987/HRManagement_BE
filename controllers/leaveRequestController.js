@@ -84,7 +84,7 @@ const getLeaveRequestsByUserId = async (req, res) => {
 };
 
 const postLeaveRequest = async (req, res) => {
-  const { reason, userId, startDate, endDate, commitment } = req.body;
+  const { reason, userId, startDate, endDate } = req.body;
 
   try {
     const currentDate = new Date();
@@ -141,7 +141,6 @@ const postLeaveRequest = async (req, res) => {
       approverId: approver.id,
       startDate: newStartDate,
       endDate: newEndDate,
-      commitment: commitment,
     });
 
     await newLeaveRequest.save();
@@ -157,7 +156,7 @@ const postLeaveRequest = async (req, res) => {
 
 const updateLeaveRequest = async (req, res) => {
   const { id } = req.params;
-  const { reason, startDate, endDate, commitment } = req.body;
+  const { reason, startDate, endDate } = req.body;
 
   try {
     const leaveRequestExist = await LeaveRequest.findById(id);
@@ -216,8 +215,6 @@ const updateLeaveRequest = async (req, res) => {
       reason !== undefined ? reason : leaveRequestExist.reason;
     leaveRequestExist.startDate = newStartDate;
     leaveRequestExist.endDate = newEndDate;
-    leaveRequestExist.commitment =
-      commitment !== undefined ? commitment : leaveRequestExist.commitment;
 
     const updatedLeaveRequest = await leaveRequestExist.save();
     res.status(200).json(updatedLeaveRequest);
