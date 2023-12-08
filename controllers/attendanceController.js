@@ -612,10 +612,9 @@ const generateMockAttendanceData = async (req, res) => {
             }
           } else {
             // Create absence record
-            const absenceStartDate = currentDate;
-            absenceStartDate.setDate(currentDate.getDate() + 1);
-            const absenceEndDate = currentDate;
-            absenceEndDate.setDate(absenceStartDate.getDate() + 1);
+            const absenceStartDate = new Date(currentDate.getTime());
+            const absenceEndDate = new Date(currentDate.getTime());
+            // absenceEndDate.setDate(currentDate.getDate() + 2);
             if (
               absenceStartDate.getDay() != 0 &&
               absenceStartDate.getDay() != 6
@@ -630,19 +629,6 @@ const generateMockAttendanceData = async (req, res) => {
                 reason,
               });
               await leaveRequest.save();
-
-              // Mark existing attendances as deleted
-              await Attendance.updateMany(
-                {
-                  userId: user._id,
-                  attendanceDate: {
-                    $gte: new Date(absenceStartDate.setHours(0, 0, 0, 0)), // Set start time to the beginning of the day
-                    $lte: new Date(absenceEndDate.setHours(23, 59, 59, 999)), // Set end time to the end of the day
-                  },
-                  isDeleted: false,
-                },
-                { $set: { isDeleted: true } }
-              );
             }
           }
         }
