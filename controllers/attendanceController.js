@@ -374,7 +374,7 @@ const getAttendanceMonthYear = async (req, res) => {
   }
 };
 
-//dang low
+
 const getAttendanceEmployee = async (req, res) => {
   try {
     const users = await User.find();
