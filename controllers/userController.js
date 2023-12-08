@@ -356,7 +356,6 @@ const edit_user_profile = async (req, res) => {
     throw err;
   }
 };
-
 const get_all_user = async (req, res) => {
   User.find()
     .populate("departmentId")
@@ -456,6 +455,7 @@ const get_user_by_createdAtMonth = async (req, res) => {
     throw err;
   }
 };
+
 const deleteUser = async (req, res) => {
   const { id } = req.params;
 

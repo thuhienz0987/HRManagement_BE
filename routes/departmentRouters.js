@@ -1,5 +1,5 @@
 import Router from "express";
-import { getDepartments,getDepartment,postDepartment,updateDepartment,deleteDepartment, getDepartmentEmployeeRatio, getAbsenteeismRatio } from "../controllers/departmentController.js";
+import { getDepartments,getDepartment,postDepartment,updateDepartment,deleteDepartment, getDepartmentEmployeeRatio, getAbsenteeismRatio, getRatioNewEmployeeOfDepartment } from "../controllers/departmentController.js";
 import verifyRoles from "../middlewares/verifyRoles.js";
 import ROLES_LIST from "../config/roles_list.js"
 
@@ -12,6 +12,7 @@ departmentRouter.put('/department/:id',verifyRoles(ROLES_LIST.HRManager),updateD
 departmentRouter.delete('/department/:id',verifyRoles(ROLES_LIST.HRManager),deleteDepartment);
 departmentRouter.get('/departmentEmployeeRatio',getDepartmentEmployeeRatio);
 departmentRouter.get('/departmentAbsenteeismRatio/:month/:year',getAbsenteeismRatio);
+departmentRouter.get('/departmentNewEmployeeRatio/:month/:year',getRatioNewEmployeeOfDepartment);
 
 
 
