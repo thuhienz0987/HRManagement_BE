@@ -97,7 +97,7 @@ const postTeam = async (req, res) => {
       });
       if (teamExist && teamExist.isDeleted === true) {
         const users = await User.find({
-          teamId: teamExist.id,
+          teamId: teamExist._id,
           isEmployee: false,
         });
 
@@ -109,7 +109,7 @@ const postTeam = async (req, res) => {
         const newTeam = await teamExist.save();
 
         if (users.length === 0)
-          throw new NotFoundError(`Not found user in Team id ${teamExist.id}`);
+          throw new NotFoundError(`Not found user in Team id ${teamExist._id}`);
         else {
           users.map(async (user) => {
             user.isEmployee = true;
@@ -117,8 +117,8 @@ const postTeam = async (req, res) => {
             await user.save();
           });
         }
-        manager.teamId = newTeam.id;
-        manager.positionId = managerPosition.id;
+        manager.teamId = newTeam._id;
+        manager.positionId = managerPosition._id;
         await manager.save();
         res.status(201).json({
           message: "restore Team successfully",
@@ -132,8 +132,8 @@ const postTeam = async (req, res) => {
           code: generateTeamCode(name, department.name),
         });
         const newTeam = await team.save();
-        manager.teamId = newTeam.id;
-        manager.positionId = managerPosition.id;
+        manager.teamId = newTeam._id;
+        manager.positionId = managerPosition._id;
         await manager.save();
         res.status(200).json({
           message: "Create Team successfully",
@@ -153,7 +153,7 @@ const updateTeam = async (req, res) => {
     const { id } = req.params;
     const { managerId, name, departmentId } = req.body;
     const department = await Department.findOne({
-      id: departmentId,
+      _id: departmentId,
       isDeleted: false,
     });
     if (!department)
@@ -163,12 +163,12 @@ const updateTeam = async (req, res) => {
     else if (department.isDeleted === true) {
       res.status(410).send(`Department with id ${departmentId} is deleted`);
     }
-    const team = await Team.findById({ id: id, isDeleted: false });
+    const team = await Team.findById({ _id: id, isDeleted: false });
     if (!team) {
       throw new NotFoundError("Not found Team");
     }
 
-    const manager = await User.findOne({ id: managerId, isEmployee: true });
+    const manager = await User.findOne({ _id: managerId, isEmployee: true });
     if (!manager)
       throw new NotFoundError(
         `The manager with user id ${managerId} does not exists`
@@ -185,7 +185,7 @@ const updateTeam = async (req, res) => {
     team.departmentId = departmentId || team.departmentId;
     team.code = generateTeamCode(name, department.name) || team.code;
 
-    const updateTeam = await Team.save();
+    const updateTeam = await team.save();
     manager.teamId = updateTeam.id;
     manager.positionId = managerPosition.id;
     await manager.save();
