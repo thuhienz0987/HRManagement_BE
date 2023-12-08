@@ -10,6 +10,7 @@ import {
   format,
   addDays,
   startOfMonth,
+  differenceInMinutes
 } from "date-fns";
 
 import mongoose from "mongoose";
@@ -445,6 +446,51 @@ const getAttendanceEmployee = async (req, res) => {
   }
 };
 
+const getWorkTimeADayInMonth = async (req,res) =>{
+  const {month,year, userId} = req.params;
+  try {
+    const daysInMonth = new Date(year, month, 0).getDate();
+    const workTimeByDay = [];
+
+    for (let day = 2; day <= daysInMonth+1; day++) {
+      const targetDate = new Date(year, month - 1, day);
+
+      const attendances = await Attendance.find({
+        isDeleted: false,
+        userId: new mongoose.Types.ObjectId(userId),
+        attendanceDate: {
+          $gte: startOfDay(targetDate),
+          $lt: addMinutes(startOfDay(targetDate), 24 * 60),
+        },
+      });
+
+      let totalWorkTime = 0;
+
+      for (const attendance of attendances) {
+        if (attendance.checkInTime && attendance.checkOutTime) {
+          const workDuration = differenceInMinutes(
+            attendance.checkOutTime,
+            attendance.checkInTime
+          );
+          totalWorkTime += workDuration;
+        }
+      }
+
+      // Convert totalWorkTime to hours
+      const totalWorkTimeHours = totalWorkTime / 60;
+
+      workTimeByDay.push({
+        date: targetDate,
+        totalWorkTime: totalWorkTimeHours,
+      });
+    }
+
+    res.status(200).json(workTimeByDay);
+  } catch (err) {
+    throw err;
+  }
+}
+
 const postAttendance = async (req, res) => {
   const { userId } = req.body;
   try {
@@ -663,6 +709,7 @@ export {
   getEmployeeNotAttendanceToday,
   getEmployeeNotCheckOutToday,
   getAttendanceEmployee,
+  getWorkTimeADayInMonth,
   postAttendance,
   closeAttendance,
   updateAttendance,

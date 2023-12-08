@@ -14,6 +14,7 @@ import {
   getEmployeeNotAttendanceToday,
   getEmployeeNotCheckOutToday,
   getMonthlyEmployeeAttendance,
+  getWorkTimeADayInMonth,
   postAttendance,
   updateAttendance,
 } from "../controllers/attendanceController.js";
@@ -52,6 +53,8 @@ attendanceRouter.get("/employeeNotCheckOutToday", getEmployeeNotCheckOutToday);
 
 attendanceRouter.get("/attendanceEmployee/:month/:year", getAttendanceEmployee);
 attendanceRouter.get("/attendanceByMonthYear", getAttendanceMonthYear);
+attendanceRouter.get("/attendanceWorkTimeADayInMonth/:month/:year/:userId", getWorkTimeADayInMonth);
+
 
 attendanceRouter.post("/auto/:month/:year", generateMockAttendanceData);
 
