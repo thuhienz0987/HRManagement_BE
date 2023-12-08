@@ -1,6 +1,5 @@
 import NotFoundError from "../errors/notFoundError.js";
 import Salary from "../models/Salary.js";
-import SalaryGrade from "../models/SalaryGrade.js";
 import Allowance from "../models/Allowance.js";
 import Position from "../models/Position.js";
 import Attendance from "../models/Attendance.js";
@@ -15,7 +14,6 @@ const getSalaries = async (req,res) =>{
         const salary = await Salary.find()
             .populate('userId')
             .populate('idPosition')
-            .populate('idSalaryGrade')
             .populate('idAllowance')
             .populate('idComment');
           
@@ -35,7 +33,6 @@ const getSalary = async (req,res) =>{
         const salary = await Salary.findById(id)
             .populate('userId')
             .populate('idPosition')
-            .populate('idSalaryGrade')
             .populate('idAllowance')
             .populate('idComment');
         if (salary ) {
@@ -50,11 +47,12 @@ const getSalary = async (req,res) =>{
 }
 
 const postSalary = async (req,res) =>{
-    const {userId, idSalaryGrade, idAllowance} = req.body
+    const {userId, idAllowance} = req.body
     try{
                 
                 const user= await User.findById(userId).populate('positionId');
                 const idPosition = user.positionId;
+                const salaryGrade = user.salaryGrade;
                 const today = new Date();
                 const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1); // Ngày đầu tiên của tháng trước
                 const lastDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 0); // Ngày cuối cùng của tháng trước
@@ -145,12 +143,8 @@ const postSalary = async (req,res) =>{
 
                 
 
-                  const calculate = await calculateTotalSalary(idPosition, idSalaryGrade, idAllowance, presentDate, overTimeDay, overTime, idComment);
-                // const totalSalary = (await calculateTotalSalary(idPosition, idSalaryGrade, idAllowance, presentDate, overTimeDay, overTime, idComment)).totalSalary;
-                // const incomeTax = (await calculateTotalSalary(idPosition, idSalaryGrade, idAllowance, presentDate,overTimeDay,overTime,idComment)).taxRate;
-                // const totalIncome=(await calculateTotalSalary(idPosition, idSalaryGrade, idAllowance, presentDate,overTimeDay,overTime,idComment)).totalIncome;
-                // const incomeTaxAmount = (await calculateTotalSalary(idPosition, idSalaryGrade, idAllowance, presentDate,overTimeDay,overTime,idComment)).incomeTaxAmount;
-                // const bonus = (await calculateTotalSalary(idPosition, idSalaryGrade, idAllowance, presentDate,overTimeDay,overTime)).bonus;
+                  const calculate = await calculateTotalSalary(idPosition, salaryGrade, idAllowance, presentDate, overTimeDay, overTime, idComment);
+                
                 const totalSalary= calculate.totalSalary;
                 const incomeTax= calculate.incomeTax;
                 const totalIncome= calculate.totalIncome;
@@ -163,7 +157,7 @@ const postSalary = async (req,res) =>{
                 const newSalary = new Salary({
                     userId,
                     idPosition,
-                    idSalaryGrade,
+                    salaryGrade,
                     idAllowance,
                     payDay: null,
                     presentDate,
@@ -194,11 +188,11 @@ const updateSalary = async (req,res) =>{
         if(!salary){
             throw new NotFoundError('Not found salary');
         }
-        salary.totalSalary = (await calculateTotalSalary(salary.idPosition, salary.idSalaryGrade, idAllowance, salary.presentDate,salary.overTimeDay, salary.overTime,salary.idComment)).totalSalary;
-        salary.incomeTax = (await calculateTotalSalary(salary.idPosition, salary.idSalaryGrade, idAllowance, salary.presentDate, salary.overTimeDay, salary.overTime,salary.idComment)).taxRate;
-        salary.totalIncome=(await calculateTotalSalary(salary.idPosition, salary.idSalaryGrade, idAllowance, salary.presentDate,salary.overTimeDay, salary.overTime,salary.idComment)).totalIncome;
-        salary.incomeTaxAmount = (await calculateTotalSalary(salary.idPosition, salary.idSalaryGrade, idAllowance, salary.presentDate,salary.overTimeDay, salary.overTime,salary.idComment)).incomeTaxAmount;
-        salary.bonus = (await calculateTotalSalary(salary.idPosition, salary.idSalaryGrade, idAllowance, salary.presentDate,salary.overTimeDay, salary.overTime,salary.idComment)).bonus;
+        salary.totalSalary = (await calculateTotalSalary(salary.idPosition, salary.salaryGrade, idAllowance, salary.presentDate,salary.overTimeDay, salary.overTime,salary.idComment)).totalSalary;
+        salary.incomeTax = (await calculateTotalSalary(salary.idPosition, salary.salaryGrade, idAllowance, salary.presentDate, salary.overTimeDay, salary.overTime,salary.idComment)).taxRate;
+        salary.totalIncome=(await calculateTotalSalary(salary.idPosition, salary.salaryGrade, idAllowance, salary.presentDate,salary.overTimeDay, salary.overTime,salary.idComment)).totalIncome;
+        salary.incomeTaxAmount = (await calculateTotalSalary(salary.idPosition, salary.salaryGrade, idAllowance, salary.presentDate,salary.overTimeDay, salary.overTime,salary.idComment)).incomeTaxAmount;
+        salary.bonus = (await calculateTotalSalary(salary.idPosition, salary.salaryGrade, idAllowance, salary.presentDate,salary.overTimeDay, salary.overTime,salary.idComment)).bonus;
         const updateSalary = await salary.save();
         res.status(200).json(updateSalary)
 
@@ -228,8 +222,7 @@ const confirmSalary = async (req,res) =>{
 
 
 
-const calculateTotalSalary = async (idPosition, idSalaryGrade, idAllowances, presentDate, overTimeDay, overTime, idComment) => {
-    const salaryGrade = await SalaryGrade.findById(idSalaryGrade);
+const calculateTotalSalary = async (idPosition, salaryGrade, idAllowances, presentDate, overTimeDay, overTime, idComment) => {
     const position = await Position.findById(idPosition);
     const allowances = await Allowance.find({ _id: { $in: idAllowances } });
 
@@ -244,7 +237,7 @@ const calculateTotalSalary = async (idPosition, idSalaryGrade, idAllowances, pre
     // Tính tổng phụ cấp từ danh sách các mức phụ cấp của nhân viên
     const allowanceAmount = allowances.reduce((total, allowance) => total + allowance.amount, 0);
 
-    const total = (baseSalary * salaryGrade.factor )/26 * (presentDate + overTimeDay)+ allowanceAmount  + overTime*((baseSalary * salaryGrade.factor  + allowanceAmount)/26)/8;
+    const total = (baseSalary * salaryGrade )/26 * (presentDate + overTimeDay)+ allowanceAmount  + overTime*((baseSalary * salaryGrade  + allowanceAmount)/26)/8;
     const totalIncome = total*bonus + total;
 
 

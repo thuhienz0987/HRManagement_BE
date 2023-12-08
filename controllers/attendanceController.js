@@ -259,6 +259,14 @@ const getAttendanceEmployeeToday = async (req, res) => {
   }
 };
 
+// Helper function to calculate percentage change
+const calculatePercentageChange = (previousValue, currentValue) => {
+  if (previousValue === 0) {
+    return currentValue === 0 ? 0 : 100;
+  }
+  return ((currentValue - previousValue) / Math.abs(previousValue)) * 100;
+};
+
 const getEmployeeNotAttendanceToday = async (req, res) => {
   try {
     const users = await User.find({ isEmployee: true });
@@ -296,12 +304,43 @@ const getEmployeeNotAttendanceToday = async (req, res) => {
   }
 };
 
-// Helper function to calculate percentage change
-const calculatePercentageChange = (previousValue, currentValue) => {
-  if (previousValue === 0) {
-    return currentValue === 0 ? 0 : 100;
+const getEmployeeNotCheckOutToday = async (req, res) => {
+  try {
+    const users = await User.find({ isEmployee: true });
+
+    let employee = [];
+
+    for (const user of users) {
+      // Get attendance records for the user for today
+      const today = startOfDay(new Date());
+      const currentTime = new Date();
+
+      const attendancesToday = await Attendance.find({
+        isDeleted: false,
+        userId: new mongoose.Types.ObjectId(user._id),
+        checkInTime: {
+          $gte: today,
+          $lt: currentTime,
+        },
+      });
+
+      // Check if there are attendances today and none of them have a checkOutTime
+      if (
+        attendancesToday.length === 0 &&
+        !attendancesToday.some((attendance) => attendance.checkOutTime)
+      ) {
+        employee.push(user);
+      }
+    }
+
+    const result = {
+      employee,
+    };
+
+    res.status(200).json(result);
+  } catch (err) {
+    throw err;
   }
-  return ((currentValue - previousValue) / Math.abs(previousValue)) * 100;
 };
 
 const getAttendanceMonthYear = async (req, res) => {
@@ -352,7 +391,7 @@ const getAttendanceEmployee = async (req, res) => {
         // Check if the user has a dayOff for the specific day
         const formattedDate = format(date, "yyyy-MM-dd'T'HH:mm:ss.SSSxxx");
 
-        if (user.dayOff && new Date(user.dayOff) > date) {
+        if (user.dayOff && new Date(user.dayOff) >= date) {
           // Skip this user for the current day
           totalEmployees--;
           // continue;
@@ -641,6 +680,7 @@ export {
   getAttendanceMonthYear,
   getAttendanceEmployeeToday,
   getEmployeeNotAttendanceToday,
+  getEmployeeNotCheckOutToday,
   getAttendanceEmployee,
   postAttendance,
   closeAttendance,

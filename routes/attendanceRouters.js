@@ -12,6 +12,7 @@ import {
   getAttendancesByDate,
   getAttendancesByMonth,
   getEmployeeNotAttendanceToday,
+  getEmployeeNotCheckOutToday,
   getMonthlyEmployeeAttendance,
   postAttendance,
   updateAttendance,
@@ -46,6 +47,8 @@ attendanceRouter.get(
 );
 attendanceRouter.get("/attendanceEmployeeToday", getAttendanceEmployeeToday);
 attendanceRouter.get("/employeeNotAttendanceToday", getEmployeeNotAttendanceToday);
+attendanceRouter.get("/employeeNotCheckOutToday", getEmployeeNotCheckOutToday);
+
 
 attendanceRouter.get("/attendanceEmployee/:month/:year", getAttendanceEmployee);
 attendanceRouter.get("/attendanceByMonthYear", getAttendanceMonthYear);
