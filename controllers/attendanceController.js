@@ -13,7 +13,6 @@ import {
 } from "date-fns";
 
 import mongoose from "mongoose";
-import LeaveRequest from "../models/LeaveRequest.js";
 
 const getAttendances = async (req, res) => {
   try {
@@ -267,6 +266,7 @@ const calculatePercentageChange = (previousValue, currentValue) => {
   return ((currentValue - previousValue) / Math.abs(previousValue)) * 100;
 };
 
+
 const getEmployeeNotAttendanceToday = async (req, res) => {
   try {
     const users = await User.find({ isEmployee: true });
@@ -289,13 +289,13 @@ const getEmployeeNotAttendanceToday = async (req, res) => {
         },
       });
 
-      if (attendancesToday.length === 0) {
+      if (attendancesToday.length===0) {
         employee.push(user);
       }
     }
 
     const result = {
-      employee,
+      employee
     };
 
     res.status(200).json(result);
@@ -343,6 +343,7 @@ const getEmployeeNotCheckOutToday = async (req, res) => {
   }
 };
 
+
 const getAttendanceMonthYear = async (req, res) => {
   try {
     // Lấy tất cả các năm và tháng duy nhất có trong dữ liệu chấm công
@@ -381,7 +382,7 @@ const getAttendanceEmployee = async (req, res) => {
     const daysInMonth = new Date(year, month, 0).getDate();
     const attendanceByDay = [];
 
-    for (let day = daysInMonth; day >= 0; day--) {
+    for (let day = daysInMonth + 1; day >1; day--) {
       let onTimeEmployees = 0;
       let lateEmployees = 0;
       let date = new Date(year, month - 1, day);
@@ -389,39 +390,44 @@ const getAttendanceEmployee = async (req, res) => {
 
       for (const user of users) {
         // Check if the user has a dayOff for the specific day
-        const formattedDate = format(date, "yyyy-MM-dd'T'HH:mm:ss.SSSxxx");
-
         if (user.dayOff && new Date(user.dayOff) >= date) {
           // Skip this user for the current day
           totalEmployees--;
           // continue;
-        } else {
-          // Get attendance records for the user for the specific day
-          const targetDate = startOfDay(new Date(year, month - 1, day));
-          const attendances = await Attendance.find({
-            isDeleted: false,
-            userId: new mongoose.Types.ObjectId(user._id),
-            attendanceDate: {
-              $gte: targetDate,
-              $lt: addMinutes(targetDate, 24 * 60),
-            },
-          });
+        }
+        else if(user.createdAt > date){
+          totalEmployees--;
 
-          // Calculate total on-time and late employees for the day
-          for (const attendance of attendances) {
-            if (attendance.checkInTime) {
-              const checkInDateTime = set(attendance.attendanceDate, {
-                hours: 7,
-                minutes: 30,
-              });
-              if (attendance.checkInTime <= checkInDateTime) {
-                onTimeEmployees++;
-              } else {
-                lateEmployees++;
-              }
+        }
+        else{
+                  // Get attendance records for the user for the specific day
+        const targetDate = startOfDay(new Date(year, month - 1, day));
+        const attendances = await Attendance.find({
+          isDeleted: false,
+          userId: new mongoose.Types.ObjectId(user._id),
+          attendanceDate: {
+            $gte: targetDate,
+            $lt: addMinutes(targetDate, 24 * 60),
+          },
+        });
+
+        // Calculate total on-time and late employees for the day
+        for (const attendance of attendances) {
+          if (attendance.checkInTime) {
+            const checkInDateTime = set(attendance.attendanceDate, {
+              hours: 7,
+              minutes: 30,
+            });
+            if (attendance.checkInTime <= checkInDateTime) {
+              onTimeEmployees++;
+            } else {
+              lateEmployees++;
             }
           }
         }
+        }
+
+
       }
 
       // Add attendance information for the day to the array
@@ -435,7 +441,7 @@ const getAttendanceEmployee = async (req, res) => {
 
     res.status(200).json(attendanceByDay);
   } catch (err) {
-    throw err;
+    throw err
   }
 };
 
@@ -575,76 +581,53 @@ const generateMockAttendanceData = async (req, res) => {
   try {
     // Fetch all users
     const users = await User.find();
+
     let recordsCreated = 0;
 
     // Loop through each user
     for (const user of users) {
       // Loop through each day in the specified month
       for (let day = 1; day <= new Date(year, month, 0).getDate(); day++) {
-        const currentDate = new Date(year, month - 1, day);
-        const dayOfWeek = currentDate.getDay(); // 0 for Sunday, 6 for Saturday
+        const attendanceDate = new Date(year, month - 1, day); // Date without specific time
 
-        // Skip generation of attendance records if the current day is a Saturday or Sunday
-        if (dayOfWeek !== 0 && dayOfWeek !== 6) {
-          const shouldCreateRecord = Math.random() < 0.97; // 97% chance of creating a record
-          if (shouldCreateRecord) {
-            const attendanceDate = currentDate; // Date without specific time
-            const checkInTime = getRandomTime(year, month, day, 6, 9); // Use the provided function to generate random check-in hour
-            const checkOutTime = getRandomTime(year, month, day, 16, 20); // Use the provided function to generate random check-out hour
+        const randomCheckInHour = getRndInteger(6, 9); // Use the provided function to generate random check-in hour
+        const randomCheckOutHour = getRndInteger(16, 20); // Use the provided function to generate random check-out hour
 
-            // Check if attendance already exists for the user on the current date, and create a new attendance record
-            const existingAttendance = await Attendance.findOne({
-              userId: user._id,
-              attendanceDate: {
-                $gte: attendanceDate,
-                $lt: new Date(attendanceDate.getTime() + 24 * 60 * 60 * 1000), // Add 24 hours in milliseconds
-              },
-            });
-            if (!existingAttendance) {
-              const newAttendance = new Attendance({
-                userId: user._id,
-                attendanceDate,
-                checkInTime,
-                checkOutTime,
-              });
-              await newAttendance.save();
-              recordsCreated++;
-            }
-          } else {
-            // Create absence record
-            const absenceStartDate = currentDate;
-            absenceStartDate.setDate(currentDate.getDate() + 1);
-            const absenceEndDate = currentDate;
-            absenceEndDate.setDate(absenceStartDate.getDate() + 1);
-            if (
-              absenceStartDate.getDay() != 0 &&
-              absenceStartDate.getDay() != 6
-            ) {
-              const reason = "Sick leave";
-              // Create absence record
-              const leaveRequest = new LeaveRequest({
-                userId: user._id,
-                startDate: absenceStartDate,
-                endDate: absenceEndDate,
-                status: "approved",
-                reason,
-              });
-              await leaveRequest.save();
+        // Set the check-in and check-out times for the current day
+        const checkInTime = new Date(
+          year,
+          month - 1,
+          day,
+          randomCheckInHour,
+          0
+        );
+        const checkOutTime = new Date(
+          year,
+          month - 1,
+          day,
+          randomCheckOutHour,
+          0
+        );
 
-              // Mark existing attendances as deleted
-              await Attendance.updateMany(
-                {
-                  userId: user._id,
-                  attendanceDate: {
-                    $gte: new Date(absenceStartDate.setHours(0, 0, 0, 0)), // Set start time to the beginning of the day
-                    $lte: new Date(absenceEndDate.setHours(23, 59, 59, 999)), // Set end time to the end of the day
-                  },
-                  isDeleted: false,
-                },
-                { $set: { isDeleted: true } }
-              );
-            }
-          }
+        // Check if attendance already exists for the user on the current date, and create a new attendance record
+        const existingAttendance = await Attendance.findOne({
+          userId: user.id,
+          attendanceDate: {
+            $gte: attendanceDate,
+            $lt: new Date(attendanceDate.getTime() + 24 * 60 * 60 * 1000), // Add 24 hours in milliseconds
+          },
+        });
+
+        if (!existingAttendance) {
+          const newAttendance = new Attendance({
+            userId: user.id,
+            attendanceDate,
+            checkInTime,
+            checkOutTime,
+          });
+
+          await newAttendance.save();
+          recordsCreated++;
         }
       }
     }
@@ -661,13 +644,11 @@ const generateMockAttendanceData = async (req, res) => {
     throw err;
   }
 };
-function getRandomTime(year, month, day, minHour, maxHour) {
-  const randomHour = Math.floor(Math.random() * (maxHour - minHour) + minHour);
-  return new Date(year, month - 1, day, randomHour, getRndInteger(0, 59), 0, 0); // Random time within the specified hour
-}
+
 // Helper function to get a random integer between min (inclusive) and max (exclusive)
+
 function getRndInteger(min, max) {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
+  return Math.floor(Math.random() * (max - min)) + min;
 }
 
 export {
