@@ -294,23 +294,7 @@ const edit_user_profile = async (req, res) => {
     // else if (team.isDeleted === true) {
     //   res.status(410).send("Team is deleted");
     // }
-    const newPosition = await Position.findOne({
-      _id: positionId,
-      isDeleted: false,
-    });
-    if (!newPosition)
-      throw new NotFoundError(
-        `The position with position _id ${positionId} does not exists`
-      );
-    else if (newPosition.isDeleted === true) {
-      res
-        .status(410)
-        .send(`Position with position _id ${positionId} is deleted`);
-    }
-    const positionAmount = await User.countDocuments({
-      positionId: newPosition._id,
-      isEmployee: true,
-    });
+
     const id = req.params._id;
     // find user by id
     const user = await User.findById(id);
@@ -319,9 +303,8 @@ const edit_user_profile = async (req, res) => {
     if (!user) throw new NotFoundError("User not found!");
 
     // edit user information
-    (user.code =
-      generateUserCode(newPosition.code, positionAmount) || user.code),
-      (user.name = name || user.name);
+
+    user.name = name || user.name;
     user.address = address || user.address;
     user.phoneNumber = phoneNumber || user.phoneNumber;
     user.birthday = isoBirthDayStr || user.birthday;
@@ -334,7 +317,6 @@ const edit_user_profile = async (req, res) => {
     user.teamId = teamId || user.teamId;
     user.departmentId = departmentId || user.departmentId;
     user.positionId = positionId || user.positionId;
-    user.roles = handleRoles(newPosition.code);
 
     // upload result init
     let result;
@@ -367,14 +349,13 @@ const edit_user_profile = async (req, res) => {
     // send success message to front end
     res.status(200).json({
       Status: "Success",
-      message: `Update ${user.firstName}'s information successfully`,
+      message: `Update ${user.name}'s information successfully`,
       user: user,
     });
   } catch (err) {
     throw err;
   }
 };
-
 const get_all_user = async (req, res) => {
   User.find()
     .populate("departmentId")
