@@ -455,6 +455,7 @@ const get_user_by_createdAtMonth = async (req, res) => {
     throw err;
   }
 };
+
 const deleteUser = async (req, res) => {
   const { id } = req.params;
 
