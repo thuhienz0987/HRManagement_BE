@@ -10,7 +10,8 @@ import {
   format,
   addDays,
   startOfMonth,
-  differenceInMinutes
+  differenceInMinutes,
+  isAfter,
 } from "date-fns";
 
 import mongoose from "mongoose";
@@ -267,7 +268,6 @@ const calculatePercentageChange = (previousValue, currentValue) => {
   return ((currentValue - previousValue) / Math.abs(previousValue)) * 100;
 };
 
-
 const getEmployeeNotAttendanceToday = async (req, res) => {
   try {
     const users = await User.find({ isEmployee: true });
@@ -290,13 +290,13 @@ const getEmployeeNotAttendanceToday = async (req, res) => {
         },
       });
 
-      if (attendancesToday.length===0) {
+      if (attendancesToday.length === 0) {
         employee.push(user);
       }
     }
 
     const result = {
-      employee
+      employee,
     };
 
     res.status(200).json(result);
@@ -344,7 +344,6 @@ const getEmployeeNotCheckOutToday = async (req, res) => {
   }
 };
 
-
 const getAttendanceMonthYear = async (req, res) => {
   try {
     // Lấy tất cả các năm và tháng duy nhất có trong dữ liệu chấm công
@@ -375,7 +374,6 @@ const getAttendanceMonthYear = async (req, res) => {
   }
 };
 
-
 const getAttendanceEmployee = async (req, res) => {
   try {
     const users = await User.find();
@@ -383,7 +381,7 @@ const getAttendanceEmployee = async (req, res) => {
     const daysInMonth = new Date(year, month, 0).getDate();
     const attendanceByDay = [];
 
-    for (let day = daysInMonth + 1; day >1; day--) {
+    for (let day = daysInMonth + 1; day > 1; day--) {
       let onTimeEmployees = 0;
       let lateEmployees = 0;
       let date = new Date(year, month - 1, day);
@@ -395,40 +393,35 @@ const getAttendanceEmployee = async (req, res) => {
           // Skip this user for the current day
           totalEmployees--;
           // continue;
-        }
-        else if(user.createdAt > date){
+        } else if (user.createdAt > date) {
           totalEmployees--;
+        } else {
+          // Get attendance records for the user for the specific day
+          const targetDate = startOfDay(new Date(year, month - 1, day));
+          const attendances = await Attendance.find({
+            isDeleted: false,
+            userId: new mongoose.Types.ObjectId(user._id),
+            attendanceDate: {
+              $gte: targetDate,
+              $lt: addMinutes(targetDate, 24 * 60),
+            },
+          });
 
-        }
-        else{
-                  // Get attendance records for the user for the specific day
-        const targetDate = startOfDay(new Date(year, month - 1, day));
-        const attendances = await Attendance.find({
-          isDeleted: false,
-          userId: new mongoose.Types.ObjectId(user._id),
-          attendanceDate: {
-            $gte: targetDate,
-            $lt: addMinutes(targetDate, 24 * 60),
-          },
-        });
-
-        // Calculate total on-time and late employees for the day
-        for (const attendance of attendances) {
-          if (attendance.checkInTime) {
-            const checkInDateTime = set(attendance.attendanceDate, {
-              hours: 7,
-              minutes: 30,
-            });
-            if (attendance.checkInTime <= checkInDateTime) {
-              onTimeEmployees++;
-            } else {
-              lateEmployees++;
+          // Calculate total on-time and late employees for the day
+          for (const attendance of attendances) {
+            if (attendance.checkInTime) {
+              const checkInDateTime = set(attendance.attendanceDate, {
+                hours: 7,
+                minutes: 30,
+              });
+              if (attendance.checkInTime <= checkInDateTime) {
+                onTimeEmployees++;
+              } else {
+                lateEmployees++;
+              }
             }
           }
         }
-        }
-
-
       }
 
       // Add attendance information for the day to the array
@@ -442,17 +435,17 @@ const getAttendanceEmployee = async (req, res) => {
 
     res.status(200).json(attendanceByDay);
   } catch (err) {
-    throw err
+    throw err;
   }
 };
 
-const getWorkTimeADayInMonth = async (req,res) =>{
-  const {month,year, userId} = req.params;
+const getWorkTimeADayInMonth = async (req, res) => {
+  const { month, year, userId } = req.params;
   try {
     const daysInMonth = new Date(year, month, 0).getDate();
     const workTimeByDay = [];
 
-    for (let day = 2; day <= daysInMonth+1; day++) {
+    for (let day = 2; day <= daysInMonth + 1; day++) {
       const targetDate = new Date(year, month - 1, day);
 
       const attendances = await Attendance.find({
@@ -472,12 +465,19 @@ const getWorkTimeADayInMonth = async (req,res) =>{
             attendance.checkOutTime,
             attendance.checkInTime
           );
-          totalWorkTime += workDuration;
+          const checkInTimeAfter1PM = new Date(year, month - 1, day, 13, 0, 0);
+
+          if (isAfter(attendance.checkInTime, checkInTimeAfter1PM)) {
+            // Do something here if checkInTime is after 1:00 PM
+            totalWorkTime += workDuration;
+          } else {
+            // Nếu không phải sau 1 giờ chiều, trừ đi 2 giờ từ totalWorkTime
+            totalWorkTime += workDuration - 2 * 60; // Trừ đi 2 giờ (2 * 60 phút)
+          }
         }
       }
-
       // Convert totalWorkTime to hours
-      const totalWorkTimeHours = totalWorkTime / 60;
+      const totalWorkTimeHours = totalWorkTime / 60 ;
 
       workTimeByDay.push({
         date: targetDate,
@@ -489,7 +489,7 @@ const getWorkTimeADayInMonth = async (req,res) =>{
   } catch (err) {
     throw err;
   }
-}
+};
 
 const postAttendance = async (req, res) => {
   const { userId } = req.body;
