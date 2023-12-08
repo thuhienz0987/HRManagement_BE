@@ -280,17 +280,20 @@ const edit_user_profile = async (req, res) => {
       teamId,
       departmentId,
       positionId,
+      homeTown,
+      ethnicGroup,
+      salaryGrade,
     } = req.body;
     const birthDay = parse(birthday, "dd/MM/yyyy", new Date());
     const isoBirthDayStr = format(birthDay, "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
-    const team = await Team.findOne({ _id: teamId, isDeleted: false });
-    if (!team)
-      throw new NotFoundError(
-        `The users with team _id ${teamId} does not exists`
-      );
-    else if (team.isDeleted === true) {
-      res.status(410).send("Team is deleted");
-    }
+    // const team = await Team.findOne({ _id: teamId, isDeleted: false });
+    // if (!team)
+    //   throw new NotFoundError(
+    //     `The users with team _id ${teamId} does not exists`
+    //   );
+    // else if (team.isDeleted === true) {
+    //   res.status(410).send("Team is deleted");
+    // }
     const newPosition = await Position.findOne({
       _id: positionId,
       isDeleted: false,
@@ -325,6 +328,9 @@ const edit_user_profile = async (req, res) => {
     user.gender = gender || user.gender;
     user.level = level || user.level;
     user.isEmployee = isEmployee || user.isEmployee;
+    user.homeTown = homeTown || user.homeTown;
+    user.ethnicGroup = ethnicGroup || user.ethnicGroup;
+    user.salaryGrade = salaryGrade || user.salaryGrade;
     user.teamId = teamId || user.teamId;
     user.departmentId = departmentId || user.departmentId;
     user.positionId = positionId || user.positionId;

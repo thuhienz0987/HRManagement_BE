@@ -44,6 +44,23 @@ const generateDepartmentCode = (DepartmentName) => {
 
   return DepartmentCode;
 };
+const generateTeamCode = (TeamName, DepartmentName) => {
+  const cleanedTeamName = TeamName.toUpperCase().replace(/\s/g, "");
+  const cleanedDepartmentName = DepartmentName.toUpperCase().replace(/\s/g, "");
+  const TeamCode =
+    cleanedDepartmentName.substring(0, 3) +
+    "_" +
+    cleanedTeamName.substring(0, 3);
+
+  return TeamCode;
+};
+const generateUserCode = (positionCode, positionAmount) => {
+  positionAmount++;
+  let formattedAmount = positionAmount.toString().padStart(3, "0");
+  let userCode = positionCode + "_" + formattedAmount;
+
+  return userCode;
+};
 const postDepartment = async (req, res) => {
   const { managerId, name } = req.body;
   try {
@@ -99,8 +116,13 @@ const postDepartment = async (req, res) => {
         code: generateDepartmentCode(name),
       });
       const newDepartment = await department.save();
-      manager.departmentId = newDepartment.id;
-      manager.positionId = managerPosition.id;
+      manager.departmentId = newDepartment._id;
+      manager.positionId = managerPosition._id;
+      const positionAmount = await User.countDocuments({
+        positionId: managerPosition._id,
+        isEmployee: true,
+      });
+      manager.code = generateUserCode(managerPosition.code, positionAmount);
       if (manager.teamId != null) {
         manager.teamId = null;
       }
@@ -123,7 +145,7 @@ const updateDepartment = async (req, res) => {
   const { id } = req.params;
   const { managerId, name } = req.body;
   try {
-    const manager = await User.findOne({ id: managerId, isEmployee: true });
+    const manager = await User.findOne({ _id: managerId, isEmployee: true });
     if (!manager)
       throw new NotFoundError(
         `The manager with user id ${managerId} does not exists`
@@ -135,16 +157,33 @@ const updateDepartment = async (req, res) => {
       code: "DEM",
       isDeleted: false,
     });
-    const department = await Department.findById(id);
+    const department = await Department.findById({ _id: id, isDeleted: false });
     if (!department) {
       throw new NotFoundError("Not found Department");
     }
     department.managerId = managerId || department.managerId;
     department.name = name || department.name;
+    department.code = generateDepartmentCode(name) || department.code;
 
-    const updateDepartment = await Department.save();
+    const updateDepartment = await department.save();
+    const teams = await Team.find({ departmentId: id, isDeleted: false });
+    if (teams || teams.length != 0) {
+      await Promise.all(
+        teams.map(async (team) => {
+          team.code =
+            generateTeamCode(name, updateDepartment.name) || team.code;
+          await team.save();
+        })
+      );
+    }
+
     manager.departmentId = updateDepartment.id;
     manager.positionId = managerPosition.id;
+    const positionAmount = await User.countDocuments({
+      positionId: managerPosition._id,
+      isEmployee: true,
+    });
+    manager.code = generateUserCode(managerPosition.code, positionAmount);
     if (manager.teamId != null) {
       manager.teamId = null;
     }
