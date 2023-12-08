@@ -367,6 +367,79 @@ const getWorkingDaysInMonth = (year, month, holidays) => {
   return workingDays;
 };
 
+const getRatioNewEmployeeOfDepartment = async (req,res) =>{
+  const {month,year} = req.params
+  try {
+  
+    const departments = await Department.find({ isDeleted: false });
+    const employeeRatios = [];
+
+    const users = await User.find({ isEmployee: true });
+    const newEmployees = await getNewEmployeesInMonth(users,month,year);
+
+    for (const department of departments) {
+      const newEmployeesInDepartment = newEmployees.filter(
+        (employee) => String(employee.departmentId) === String(department._id)
+      );
+
+      const employeeRatio =
+        users.length > 0 ? (newEmployeesInDepartment.length ) / users.length : 0;
+
+      employeeRatios.push({
+        departmentName: department.name,
+        employeeRatio,
+      });
+    }
+
+    const sumRatios = employeeRatios.reduce(
+      (sum, ratio) => sum + ratio.employeeRatio,
+      0
+    );
+    const adjustmentFactor = sumRatios !== 1 ? 1 / sumRatios : 1;
+
+    // Apply the adjustment factor to make the sum of ratios equal to 1
+    for (const ratio of employeeRatios) {
+      ratio.employeeRatio *= adjustmentFactor;
+    }
+
+    res.status(200).json(employeeRatios);
+  } catch (err) {
+    throw err;
+  }
+}
+
+const getNewEmployeesInMonth = async (users, month,year) => {
+  try {
+    const endDayOfMonth = new Date(
+      year,month,0
+    );
+    console.log({endDayOfMonth})
+    const firstDayOfMonth = new Date(
+      year,
+      month - 1,
+      1
+    );
+    console.log({firstDayOfMonth})
+
+    const newEmployees = await Promise.all(
+      users.map(async (user) => {
+        const joinDate = new Date(user.createdAt);
+        if (
+          joinDate >= firstDayOfMonth &&
+          joinDate <= endDayOfMonth &&
+          user.isEmployee === true
+        ) {
+          return user;
+        }
+      })
+    );
+
+    return newEmployees.filter((employee) => employee !== undefined);
+  } catch (err) {
+    throw err;
+  }
+};
+
 
 export {
   getDepartments,
@@ -375,5 +448,7 @@ export {
   updateDepartment,
   deleteDepartment,
   getDepartmentEmployeeRatio,
-  getAbsenteeismRatio
+  getAbsenteeismRatio,
+  getRatioNewEmployeeOfDepartment,
+
 };
