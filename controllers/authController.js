@@ -112,6 +112,7 @@ const logout_post = async (req, res) => {
   res.sendStatus(204);
 };
 
+
 const forget_password = async (req, res) => {
   const { email } = req.body;
   console.log({ email });

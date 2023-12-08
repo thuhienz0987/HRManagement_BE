@@ -382,7 +382,7 @@ const getAttendanceEmployee = async (req, res) => {
     const daysInMonth = new Date(year, month, 0).getDate();
     const attendanceByDay = [];
 
-    for (let day = daysInMonth; day >= 0; day--) {
+    for (let day = daysInMonth + 1; day >1; day--) {
       let onTimeEmployees = 0;
       let lateEmployees = 0;
       let date = new Date(year, month - 1, day);
@@ -390,12 +390,14 @@ const getAttendanceEmployee = async (req, res) => {
 
       for (const user of users) {
         // Check if the user has a dayOff for the specific day
-        const formattedDate = format(date, "yyyy-MM-dd'T'HH:mm:ss.SSSxxx");
-
         if (user.dayOff && new Date(user.dayOff) >= date) {
           // Skip this user for the current day
           totalEmployees--;
           // continue;
+        }
+        else if(user.createdAt > date){
+          totalEmployees--;
+
         }
         else{
                   // Get attendance records for the user for the specific day
