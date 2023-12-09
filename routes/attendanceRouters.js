@@ -15,6 +15,7 @@ import {
   getEmployeeNotCheckOutToday,
   getMonthlyEmployeeAttendance,
   getWorkTimeADayInMonth,
+  getPercentAttendancesByMonth,
   postAttendance,
   updateAttendance,
 } from "../controllers/attendanceController.js";
@@ -39,6 +40,11 @@ attendanceRouter.get(
   getAttendancesByMonth
 );
 attendanceRouter.get(
+  "/attendanceDepartmentsPercentByMonth/:month/:year",
+  verifyRoles(ROLES_LIST.HRManager),
+  getPercentAttendancesByMonth
+);
+attendanceRouter.get(
   "/attendanceByMonth/:month/:year/:userId",
   getAttendanceByMonth
 );
@@ -47,14 +53,18 @@ attendanceRouter.get(
   getMonthlyEmployeeAttendance
 );
 attendanceRouter.get("/attendanceEmployeeToday", getAttendanceEmployeeToday);
-attendanceRouter.get("/employeeNotAttendanceToday", getEmployeeNotAttendanceToday);
+attendanceRouter.get(
+  "/employeeNotAttendanceToday",
+  getEmployeeNotAttendanceToday
+);
 attendanceRouter.get("/employeeNotCheckOutToday", getEmployeeNotCheckOutToday);
-
 
 attendanceRouter.get("/attendanceEmployee/:month/:year", getAttendanceEmployee);
 attendanceRouter.get("/attendanceByMonthYear", getAttendanceMonthYear);
-attendanceRouter.get("/attendanceWorkTimeADayInMonth/:month/:year/:userId", getWorkTimeADayInMonth);
-
+attendanceRouter.get(
+  "/attendanceWorkTimeADayInMonth/:month/:year/:userId",
+  getWorkTimeADayInMonth
+);
 
 attendanceRouter.post("/auto/:month/:year", generateMockAttendanceData);
 

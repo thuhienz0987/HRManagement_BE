@@ -13,7 +13,7 @@ import {
   differenceInMinutes,
   isAfter,
 } from "date-fns";
-
+import Department from "../models/Department.js";
 import mongoose from "mongoose";
 
 const getAttendances = async (req, res) => {
@@ -70,6 +70,54 @@ const getAttendancesByDate = async (req, res) => {
     }
 
     res.status(200).json(attendances);
+  } catch (err) {
+    throw err;
+  }
+};
+const getPercentAttendancesByMonth = async (req, res) => {
+  const { month, year } = req.params;
+
+  try {
+    const targetDate = new Date(year, month - 1, 1);
+    const endDate = new Date(year, month, 0);
+    let totalAmount = 0;
+    const result = [];
+
+    const departments = await Department.find({ isDeleted: false });
+    await Promise.all(
+      departments.map(async (department) => {
+        const users = await User.find({
+          isEmployee: true,
+          departmentId: department._id,
+        });
+        let departmentAttendances = 0;
+        await Promise.all(
+          users.map(async (user) => {
+            const attendanceAmount = await Attendance.countDocuments({
+              userId: user._id,
+              isDeleted: false,
+              attendanceDate: { $gte: targetDate, $lte: endDate },
+            });
+            departmentAttendances += attendanceAmount;
+          })
+        );
+        totalAmount += departmentAttendances;
+        result.push({
+          departmentName: department.name,
+          departmentAttendances: departmentAttendances,
+          departmentPercent: 0,
+        });
+      })
+    );
+    result.forEach((element) => {
+      element.departmentPercent = element.departmentAttendances / totalAmount;
+    });
+
+    if (result.length === 0) {
+      throw new NotFoundError(`No attendances found for ${month}/${year}`);
+    }
+
+    res.status(200).json({ result: result, totalAmount: totalAmount });
   } catch (err) {
     throw err;
   }
@@ -626,7 +674,7 @@ const generateMockAttendanceData = async (req, res) => {
 
   try {
     // Fetch all users
-    const users = await User.find();
+    const users = await User.find({ isEmployee: true });
     let recordsCreated = 0;
 
     // Loop through each user
@@ -721,6 +769,7 @@ export {
   getEmployeeNotCheckOutToday,
   getAttendanceEmployee,
   getWorkTimeADayInMonth,
+  getPercentAttendancesByMonth,
   postAttendance,
   closeAttendance,
   updateAttendance,
