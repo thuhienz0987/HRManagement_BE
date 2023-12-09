@@ -35,10 +35,10 @@ passwordSchema
   .not()
   .spaces(); // Should not have spaces
 
-const generateUserCode = (positionCode, positionAmount) => {
-  positionAmount++;
-  let formattedAmount = positionAmount.toString().padStart(3, "0");
-  let userCode = positionCode + "_" + formattedAmount;
+const generateUserCode = (employeeAmount, currentDate) => {
+  let year = currentDate.getFullYear().toString().slice(-2);
+  let formattedAmount = employeeAmount.toString().padStart(4, "0");
+  let userCode = year + formattedAmount;
 
   return userCode;
 };
@@ -48,13 +48,13 @@ const handleRoles = (positionCode) => {
     case "CEO":
       rolesArray = [ROLES_LIST.CEO, ROLES_LIST.Employee];
       break;
-    case "HRM":
-      rolesArray = [
-        ROLES_LIST.HRManager,
-        ROLES_LIST.DepartmentManager,
-        ROLES_LIST.Employee,
-      ];
-      break;
+    // case "HRM":
+    //   rolesArray = [
+    //     ROLES_LIST.HRManager,
+    //     ROLES_LIST.DepartmentManager,
+    //     ROLES_LIST.Employee,
+    //   ];
+    //   break;
     case "DEM":
       rolesArray = [ROLES_LIST.DepartmentManager, ROLES_LIST.Employee];
       break;
@@ -99,10 +99,6 @@ const create_user = async (req, res) => {
         .status(410)
         .send(`Position with position _id ${positionId} is deleted`);
     }
-    const positionAmount = await User.countDocuments({
-      positionId: position._id,
-      isEmployee: true,
-    });
 
     // upload result init
     let result;
@@ -125,11 +121,15 @@ const create_user = async (req, res) => {
     if (result) {
       avatarImage = result.url;
     }
+
+    const employeeAmount = await User.countDocuments();
+    const currentDate = new Date();
+
     // new user create
     const pass = "Xyz12345";
     const newUser = new User({
       email,
-      code: generateUserCode(position.code, positionAmount),
+      code: generateUserCode(employeeAmount, currentDate),
       name,
       phoneNumber,
       // password: pass.trim(),

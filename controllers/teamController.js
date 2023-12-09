@@ -30,7 +30,9 @@ const getTeamsByDepartmentId = async (req, res) => {
       const team = await Team.find({
         departmentId: id,
         isDeleted: false,
-      }).populate("managerId");
+      })
+        .populate("managerId")
+        .populate("departmentId");
       if (!team)
         throw new NotFoundError(`Not found Team in department id ${id}`);
 
@@ -70,7 +72,7 @@ const postTeam = async (req, res) => {
   const { managerId, name, departmentId } = req.body;
   try {
     const department = await Department.findOne({
-      id: departmentId,
+      _id: departmentId,
       isDeleted: false,
     });
     if (!department)
@@ -80,7 +82,7 @@ const postTeam = async (req, res) => {
     else if (department.isDeleted === true) {
       res.status(410).send(`Department with id ${departmentId} is deleted`);
     }
-    const manager = await User.findOne({ id: managerId, isEmployee: true });
+    const manager = await User.findOne({ _id: managerId, isEmployee: true });
     const managerPosition = await Position.findOne({
       code: "TEM",
       isDeleted: false,
@@ -113,7 +115,7 @@ const postTeam = async (req, res) => {
         else {
           users.map(async (user) => {
             user.isEmployee = true;
-            user.teamId = newTeam.id;
+            user.teamId = newTeam._id;
             await user.save();
           });
         }

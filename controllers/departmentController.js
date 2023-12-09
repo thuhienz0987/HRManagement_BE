@@ -6,8 +6,7 @@ import Team from "../models/Team.js";
 import Position from "../models/Position.js";
 import Attendance from "../models/Attendance.js";
 import Holiday from "../models/Holiday.js";
-import { eachDayOfInterval, isWeekend, isSameDay } from 'date-fns';
-
+import { eachDayOfInterval, isWeekend, isSameDay } from "date-fns";
 
 const getDepartments = async (req, res) => {
   try {
@@ -53,13 +52,6 @@ const generateTeamCode = (TeamName, DepartmentName) => {
     cleanedTeamName.substring(0, 3);
 
   return TeamCode;
-};
-const generateUserCode = (positionCode, positionAmount) => {
-  positionAmount++;
-  let formattedAmount = positionAmount.toString().padStart(3, "0");
-  let userCode = positionCode + "_" + formattedAmount;
-
-  return userCode;
 };
 const postDepartment = async (req, res) => {
   const { managerId, name } = req.body;
@@ -118,11 +110,6 @@ const postDepartment = async (req, res) => {
       const newDepartment = await department.save();
       manager.departmentId = newDepartment._id;
       manager.positionId = managerPosition._id;
-      const positionAmount = await User.countDocuments({
-        positionId: managerPosition._id,
-        isEmployee: true,
-      });
-      manager.code = generateUserCode(managerPosition.code, positionAmount);
       if (manager.teamId != null) {
         manager.teamId = null;
       }
@@ -171,7 +158,7 @@ const updateDepartment = async (req, res) => {
       await Promise.all(
         teams.map(async (team) => {
           team.code =
-            generateTeamCode(name, updateDepartment.name) || team.code;
+            generateTeamCode(team.name, updateDepartment.name) || team.code;
           await team.save();
         })
       );
@@ -179,11 +166,6 @@ const updateDepartment = async (req, res) => {
 
     manager.departmentId = updateDepartment.id;
     manager.positionId = managerPosition.id;
-    const positionAmount = await User.countDocuments({
-      positionId: managerPosition._id,
-      isEmployee: true,
-    });
-    manager.code = generateUserCode(managerPosition.code, positionAmount);
     if (manager.teamId != null) {
       manager.teamId = null;
     }
@@ -228,7 +210,7 @@ const getDepartmentEmployeeRatio = async (req, res) => {
     console.log(user.length);
 
     for (const department of departments) {
-      const employeesInDepartment =  (
+      const employeesInDepartment = (
         await User.find({ isEmployee: true, departmentId: department._id })
       ).length;
       console.log({ employeesInDepartment });
@@ -264,7 +246,10 @@ const getAbsenteeismRatio = async (req, res) => {
     const departments = await Department.find({ isDeleted: false });
     const absenteeismRatios = [];
 
-    const absenteeismCounts = await getAbsenteeismCountForAllEmployees(year, month);
+    const absenteeismCounts = await getAbsenteeismCountForAllEmployees(
+      year,
+      month
+    );
 
     for (const department of departments) {
       const employeesInDepartment = await User.find({
@@ -275,11 +260,13 @@ const getAbsenteeismRatio = async (req, res) => {
       let absentEmployees = 0;
 
       for (const employee of employeesInDepartment) {
-        absentEmployees = absentEmployees + await getAbsenteeismCountForUser(employee._id,year,month) ;
+        absentEmployees =
+          absentEmployees +
+          (await getAbsenteeismCountForUser(employee._id, year, month));
       }
 
       const absenteeismRatio =
-      absentEmployees > 0 ? (absentEmployees / absenteeismCounts) : 0;
+        absentEmployees > 0 ? absentEmployees / absenteeismCounts : 0;
 
       absenteeismRatios.push({
         departmentName: department.name,
@@ -293,14 +280,17 @@ const getAbsenteeismRatio = async (req, res) => {
   }
 };
 
-
 const getAbsenteeismCountForAllEmployees = async (year, month) => {
   try {
     const users = await User.find({ isEmployee: true });
     let absenteeismCounts = 0;
 
     for (const user of users) {
-      const absenteeismCount = await getAbsenteeismCountForUser(user._id, year, month);
+      const absenteeismCount = await getAbsenteeismCountForUser(
+        user._id,
+        year,
+        month
+      );
       absenteeismCounts = absenteeismCounts + absenteeismCount;
     }
 
@@ -320,8 +310,8 @@ const getAbsenteeismCountForUser = async (userId, year, month) => {
       },
       isDeleted: false,
     });
-    console.log({holidays})
-    
+    console.log({ holidays });
+
     // const holidays = holidaysData.map(holiday => {
     //   const formattedDate = new Date(holiday.day).toISOString().split('T')[0];
     //   return `new Date('${formattedDate}')`;
@@ -333,7 +323,7 @@ const getAbsenteeismCountForUser = async (userId, year, month) => {
       attendanceDate: {
         $gte: new Date(year, month - 1, 1),
         $lte: new Date(year, month, 0),
-        $nin: holidays.day
+        $nin: holidays.day,
       },
       isDeleted: false,
     });
@@ -341,11 +331,12 @@ const getAbsenteeismCountForUser = async (userId, year, month) => {
     // Lọc những ngày chấm công không trùng với ngày lễ, thứ 7 và chủ nhật
     const validAttendances = attendances.filter((attendance) => {
       const attendanceDate = new Date(attendance.attendanceDate);
-      const isWeekend = attendanceDate.getDay() === 0 || attendanceDate.getDay() === 6;
-      return !isWeekend ;
+      const isWeekend =
+        attendanceDate.getDay() === 0 || attendanceDate.getDay() === 6;
+      return !isWeekend;
     });
 
-    const workday = await getWorkingDaysInMonth(year,month,holidays).length
+    const workday = await getWorkingDaysInMonth(year, month, holidays).length;
     // Đếm số lượt nghỉ
     const absenteeismCount = workday - validAttendances.length;
 
@@ -361,21 +352,23 @@ const getWorkingDaysInMonth = (year, month, holidays) => {
 
   const allDaysInMonth = eachDayOfInterval({ start: startDate, end: endDate });
 
-  const workingDays = allDaysInMonth.filter((day) => !isWeekend(day) && !holidays.some((holiday) => isSameDay(day, holiday)));
-  console.log({workingDays})
+  const workingDays = allDaysInMonth.filter(
+    (day) =>
+      !isWeekend(day) && !holidays.some((holiday) => isSameDay(day, holiday))
+  );
+  console.log({ workingDays });
 
   return workingDays;
 };
 
-const getRatioNewEmployeeOfDepartment = async (req,res) =>{
-  const {month,year} = req.params
+const getRatioNewEmployeeOfDepartment = async (req, res) => {
+  const { month, year } = req.params;
   try {
-  
     const departments = await Department.find({ isDeleted: false });
     const employeeRatios = [];
 
     const users = await User.find({ isEmployee: true });
-    const newEmployees = await getNewEmployeesInMonth(users,month,year);
+    const newEmployees = await getNewEmployeesInMonth(users, month, year);
 
     for (const department of departments) {
       const newEmployeesInDepartment = newEmployees.filter(
@@ -383,7 +376,7 @@ const getRatioNewEmployeeOfDepartment = async (req,res) =>{
       );
 
       const employeeRatio =
-        users.length > 0 ? (newEmployeesInDepartment.length ) / users.length : 0;
+        users.length > 0 ? newEmployeesInDepartment.length / users.length : 0;
 
       employeeRatios.push({
         departmentName: department.name,
@@ -406,20 +399,14 @@ const getRatioNewEmployeeOfDepartment = async (req,res) =>{
   } catch (err) {
     throw err;
   }
-}
+};
 
-const getNewEmployeesInMonth = async (users, month,year) => {
+const getNewEmployeesInMonth = async (users, month, year) => {
   try {
-    const endDayOfMonth = new Date(
-      year,month,0
-    );
-    console.log({endDayOfMonth})
-    const firstDayOfMonth = new Date(
-      year,
-      month - 1,
-      1
-    );
-    console.log({firstDayOfMonth})
+    const endDayOfMonth = new Date(year, month, 0);
+    console.log({ endDayOfMonth });
+    const firstDayOfMonth = new Date(year, month - 1, 1);
+    console.log({ firstDayOfMonth });
 
     const newEmployees = await Promise.all(
       users.map(async (user) => {
@@ -440,7 +427,6 @@ const getNewEmployeesInMonth = async (users, month,year) => {
   }
 };
 
-
 export {
   getDepartments,
   getDepartment,
@@ -450,5 +436,4 @@ export {
   getDepartmentEmployeeRatio,
   getAbsenteeismRatio,
   getRatioNewEmployeeOfDepartment,
-
 };
