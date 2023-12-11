@@ -18,31 +18,6 @@ import passwordValidator from "password-validator";
 
 let passwordSchema = new passwordValidator();
 
-// handle errors
-// const handleErrors = (err) => {
-//     console.log(err.message, err.code);
-//     let errors = { email: '', password: '', name: '', phoneNumber: '' };
-
-//     // incorrect email
-//     if (err.message === 'incorrect email') {
-//         errors.email = 'That email is not registered';
-//     }
-
-//     // incorrect password
-//     if (err.message === 'incorrect password') {
-//         errors.password = 'That password is incorrect';
-//     }
-
-//     // validation errors
-//     if (err.message.includes('user validation failed')) {
-//         Object.values(err.errors).forEach(({ properties }) => {
-//         errors[properties.path] = properties.message;
-//         });
-//     }
-
-//     return errors;
-// };
-
 // define max age of JWT
 const maxAgeAccessToken = 60 * 60;
 const maxAgeRefreshToken = 60 * 60 * 24 * 30 * 6;
@@ -51,6 +26,12 @@ const login_post = async (req, res) => {
   const { email, password } = req.body;
 
   try {
+    const validateResult = passwordSchema.validate(password.trim(), {
+      details: true,
+    });
+    if (validateResult.length != 0) {
+      throw new BadRequestError(validateResult);
+    }
     const user = await User.login(email, password);
     // create JWTs for logged in user.
     const accessToken = jwt.sign(
@@ -73,14 +54,6 @@ const login_post = async (req, res) => {
     user.refreshToken = refreshToken;
     const result = await user.save();
     console.log("login success: ", result);
-
-    // Creates Secure Cookie with refresh token
-    // res.cookie("jwt", refreshToken, {
-    //     httpOnly: true,
-    //     secure: false,
-    //     sameSite: "None",
-    //     maxAge: maxAgeRefreshToken * 1000,
-    // });
     // delete refresh token and password from user info
     user.password = undefined;
 
@@ -112,11 +85,9 @@ const logout_post = async (req, res) => {
   res.sendStatus(204);
 };
 
-
 const forget_password = async (req, res) => {
   const { email } = req.body;
   console.log({ email });
-  if (!email) throw new BadRequestError("Please provide a valid email!");
 
   const user = await User.findOne({ email });
   if (!user) throw new NotFoundError("User not found, invalid request");
@@ -152,7 +123,7 @@ passwordSchema
   .is()
   .min(8) // Minimum length 8
   .is()
-  .max(100) // Maximum length 100
+  .max(16) // Maximum length 16
   .has()
   .uppercase() // Must have uppercase letters
   .has()
