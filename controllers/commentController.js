@@ -2,6 +2,7 @@ import BadRequestError from "../errors/badRequestError.js";
 import NotFoundError from "../errors/notFoundError.js";
 import Comment from "../models/Comment.js";
 import User from "../models/User.js";
+import Position from "../models/Position.js";
 
 const getComments = async (req, res) => {
   try {
@@ -93,45 +94,131 @@ const getCommentsByRevieweeId = async (req, res) => {
     throw err;
   }
 };
-const getEmployeeNotCommentByDepartmentIdMonth = async (req, res) => {
+const getLeaderNotCommentByDepartmentIdMonth = async (req, res) => {
   try {
     const { departmentId, month, year } = req.params;
+    const teamLeaderPosition = await Position.findOne({ code: "TEM" });
 
-    const users = await User.find({ departmentId: departmentId })
+    const leaders = await User.find({
+      departmentId: departmentId,
+      positionId: teamLeaderPosition._id,
+    })
       .populate("departmentId")
       .populate("positionId")
       .populate("teamId");
 
-    if (!users || users.length === 0) {
+    if (!leaders || leaders.length === 0) {
       throw new NotFoundError("User not found");
     }
 
-    const usersWithoutPassword = users.map((user) => {
+    const leadersWithoutPassword = leaders.map((user) => {
       user.password = undefined;
       return user;
     });
     const currentDate = new Date(year, month - 1, 1);
     const nextMonthDate = new Date(year, month, 1);
 
-    const commentsOfDepartment = await Comment.find({
+    const comments = await Comment.find({
       createdAt: {
         $gte: currentDate,
         $lt: nextMonthDate,
       },
-      revieweeId: { $in: usersWithoutPassword.map((user) => user._id) },
+      revieweeId: { $in: leadersWithoutPassword.map((user) => user._id) },
     });
-    const usersWithoutComments = usersWithoutPassword.filter((user) => {
-      return !commentsOfDepartment.some(
-        (comment) => comment.revieweeId.toString() === user._id.toString()
+    const leadersWithoutComments = leadersWithoutPassword.filter((leader) => {
+      return !comments.some(
+        (comment) => comment.revieweeId.toString() === leader._id.toString()
       );
     });
 
-    res.status(200).json(usersWithoutComments);
+    res.status(200).json(leadersWithoutComments);
   } catch (err) {
     throw err;
   }
 };
+const getEmployeeNotCommentByTeamIdMonth = async (req, res) => {
+  try {
+    const { teamId, month, year } = req.params;
+    const employeePosition = await Position.findOne({ code: "EMP" });
 
+    const employees = await User.find({
+      teamId: teamId,
+      positionId: employeePosition._id,
+    })
+      .populate("departmentId")
+      .populate("positionId")
+      .populate("teamId");
+
+    if (!employees || employees.length === 0) {
+      throw new NotFoundError("User not found");
+    }
+
+    const employeesWithoutPassword = employees.map((user) => {
+      user.password = undefined;
+      return user;
+    });
+    const currentDate = new Date(year, month - 1, 1);
+    const nextMonthDate = new Date(year, month, 1);
+
+    const comments = await Comment.find({
+      createdAt: {
+        $gte: currentDate,
+        $lt: nextMonthDate,
+      },
+      revieweeId: { $in: employeesWithoutPassword.map((user) => user._id) },
+    });
+    const employeesWithoutComments = employeesWithoutPassword.filter((user) => {
+      return !comments.some(
+        (comment) => comment.revieweeId.toString() === user._id.toString()
+      );
+    });
+
+    res.status(200).json(employeesWithoutComments);
+  } catch (err) {
+    throw err;
+  }
+};
+const getDepManagerNotCommentMonth = async (req, res) => {
+  try {
+    const { month, year } = req.params;
+    const depManagerPosition = await Position.findOne({ code: "DEM" });
+
+    const managers = await User.find({
+      positionId: depManagerPosition._id,
+    })
+      .populate("departmentId")
+      .populate("positionId")
+      .populate("teamId");
+
+    if (!managers || managers.length === 0) {
+      throw new NotFoundError("User not found");
+    }
+
+    const managersWithoutPassword = managers.map((user) => {
+      user.password = undefined;
+      return user;
+    });
+    const currentDate = new Date(year, month - 1, 1);
+    const nextMonthDate = new Date(year, month, 1);
+
+    const comments = await Comment.find({
+      createdAt: {
+        $gte: currentDate,
+        $lt: nextMonthDate,
+      },
+      revieweeId: { $in: managersWithoutPassword.map((user) => user._id) },
+    });
+    const managersWithoutComments = managersWithoutPassword.filter((user) => {
+      return !comments.some(
+        (comment) => comment.revieweeId.toString() === user._id.toString()
+      );
+    });
+
+    res.status(200).json(managersWithoutComments);
+  } catch (err) {
+    throw err;
+  }
+};
 const postComment = async (req, res) => {
   const { rate, comment, reviewerId, revieweeId } = req.body;
   try {
@@ -267,7 +354,9 @@ export {
   getComment,
   getCommentsByReviewerId,
   getCommentsByRevieweeId,
-  getEmployeeNotCommentByDepartmentIdMonth,
+  getLeaderNotCommentByDepartmentIdMonth,
+  getEmployeeNotCommentByTeamIdMonth,
+  getDepManagerNotCommentMonth,
   postComment,
   updateComment,
   additionalComment,
