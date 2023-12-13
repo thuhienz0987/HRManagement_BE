@@ -28,7 +28,7 @@ const userSchema = new mongoose.Schema(
     },
     password: {
       type: String,
-      required: true,
+      required: [true, "Password is required"],
       default: function () {
         const randomPassword = generateRandomPassword(8);
         const saltRounds = 10;
