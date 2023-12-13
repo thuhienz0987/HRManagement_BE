@@ -66,6 +66,10 @@ const postSalary = async (req,res) =>{
                   isDeleted: false,
                 });
 
+                if(!comment){
+                  comment === null
+                }
+
 
                 if (!comment) {
                   return res.status(404).json({ message: 'No comment found for the specified user and date range.' });
@@ -228,11 +232,18 @@ const calculateTotalSalary = async (idPosition, salaryGrade, idAllowances, prese
 
     const baseSalary = position ? position.basicSalary : 0;
 
+    let bonus = 0 ;
+    if(idComment === null){
+      bonus = 0;
+    }    
+    else{
+      const comment = await Comment.findById(idComment);
+      bonus = await calculateBonus(comment.rate);
+    }
 
     // Truy vấn tất cả các bản ghi Bonus cùng lúc
-    const comment = await Comment.findById(idComment);
-
-    const bonus = await calculateBonus(comment.rate);
+    
+    
 
     // Tính tổng phụ cấp từ danh sách các mức phụ cấp của nhân viên
     const allowanceAmount = allowances.reduce((total, allowance) => total + allowance.amount, 0);
