@@ -574,7 +574,7 @@ const closeAttendance = async (req, res) => {
   const { id } = req.params;
   // Kiểm tra xem bảng chấm công có tồn tại không
   try {
-    const attendance = await Attendance.findById(id);
+    const attendance = await Attendance.findById({ _id: id });
 
     if (!attendance) {
       throw new NotFoundError("Not found attendance");
@@ -656,7 +656,7 @@ const deleteAttendance = async (req, res) => {
 
   try {
     const attendance = await Attendance.findByIdAndUpdate(
-      id,
+      { _id: id },
       { isDeleted: true },
       { new: true }
     );

@@ -3,6 +3,7 @@ import NotFoundError from "../errors/notFoundError.js";
 import Comment from "../models/Comment.js";
 import User from "../models/User.js";
 import Position from "../models/Position.js";
+import { parse, format } from "date-fns";
 
 const getComments = async (req, res) => {
   try {
@@ -55,7 +56,7 @@ const getCommentsByReviewerIdInMonth = async (req, res) => {
       res.status(410).send("User is deleted");
     } else {
       const comments = await Comment.find({
-        createdAt: {
+        commentMonth: {
           $gte: currentDate,
           $lt: nextMonthDate,
         },
@@ -102,7 +103,7 @@ const getLeaderNotCommentByDepartmentIdMonth = async (req, res) => {
     const nextMonthDate = new Date(year, month, 1);
 
     const comments = await Comment.find({
-      createdAt: {
+      commentMonth: {
         $gte: currentDate,
         $lt: nextMonthDate,
       },
@@ -146,7 +147,7 @@ const getEmployeeNotCommentByTeamIdMonth = async (req, res) => {
     const nextMonthDate = new Date(year, month, 1);
 
     const comments = await Comment.find({
-      createdAt: {
+      commentMonth: {
         $gte: currentDate,
         $lt: nextMonthDate,
       },
@@ -189,7 +190,7 @@ const getDepManagerNotCommentMonth = async (req, res) => {
     const nextMonthDate = new Date(year, month, 1);
 
     const comments = await Comment.find({
-      createdAt: {
+      commentMonth: {
         $gte: currentDate,
         $lt: nextMonthDate,
       },
@@ -210,21 +211,34 @@ const getDepManagerNotCommentMonth = async (req, res) => {
 const postComment = async (req, res) => {
   const { rate, comment, reviewerId, revieweeId, commentMonth } = req.body;
   try {
-    const currentDate = new Date();
-
+    const newCommentMonth = parse(commentMonth, "dd/MM/yyyy", new Date());
+    const formatCommentMonth = format(
+      newCommentMonth,
+      "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"
+    );
+    const saveCommentMonth = new Date(formatCommentMonth);
+    console.log({ saveCommentMonth });
     const existingComment = await Comment.findOne({
       reviewerId,
       revieweeId,
-      createdAt: {
-        $gte: new Date(currentDate.getFullYear(), currentDate.getMonth(), 1),
-        $lt: new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1),
+      commentMonth: {
+        $gte: new Date(
+          saveCommentMonth.getFullYear(),
+          saveCommentMonth.getMonth(),
+          1
+        ),
+        $lt: new Date(
+          saveCommentMonth.getFullYear(),
+          saveCommentMonth.getMonth() + 1,
+          1
+        ),
       },
     });
 
     if (existingComment) {
       const formattedDate = `${
-        existingComment.createdAt.getMonth() + 1
-      }/${existingComment.createdAt.getFullYear()}`;
+        existingComment.commentMonth.getMonth() + 1
+      }/${existingComment.commentMonth.getFullYear()}`;
       throw new BadRequestError(
         `A comment already exists for this pair in ${formattedDate}.`
       );
@@ -235,7 +249,7 @@ const postComment = async (req, res) => {
       comment,
       reviewerId,
       revieweeId,
-      commentMonth,
+      commentMonth: saveCommentMonth,
     });
     await newComment.save();
 
@@ -251,7 +265,11 @@ const postComment = async (req, res) => {
 const updateComment = async (req, res) => {
   const { _id } = req.params;
   const { rate, comment, commentMonth } = req.body;
-
+  const newCommentMonth = parse(commentMonth, "dd/MM/yyyy", new Date());
+  const saveCommentMonth = format(
+    newCommentMonth,
+    "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"
+  );
   try {
     const commentExist = await Comment.findById(_id);
 
@@ -263,7 +281,9 @@ const updateComment = async (req, res) => {
     commentExist.comment =
       comment !== undefined ? comment : commentExist.comment;
     commentExist.commentMonth =
-      commentMonth !== undefined ? commentMonth : commentExist.commentMonth;
+      saveCommentMonth !== undefined
+        ? saveCommentMonth
+        : commentExist.commentMonth;
 
     const updatedComment = await commentExist.save();
 
@@ -274,29 +294,47 @@ const updateComment = async (req, res) => {
 };
 
 const additionalComment = async (req, res) => {
-  const { rate, comment, reviewerId, revieweeId } = req.body;
+  const { rate, comment, reviewerId, revieweeId, commentMonth } = req.body;
   try {
-    const currentDate = new Date();
+    const newCommentMonth = parse(commentMonth, "dd/MM/yyyy", new Date());
+    const saveCommentMonth = format(
+      newCommentMonth,
+      "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"
+    );
 
     const existingComment = await Comment.findOne({
       reviewerId,
       revieweeId,
-      createdAt: {
-        $gte: new Date(currentDate.getFullYear(), currentDate.getMonth(), 1),
-        $lt: new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1),
+      commentMonth: {
+        $gte: new Date(
+          saveCommentMonth.getFullYear(),
+          saveCommentMonth.getMonth(),
+          1
+        ),
+        $lt: new Date(
+          saveCommentMonth.getFullYear(),
+          saveCommentMonth.getMonth() + 1,
+          1
+        ),
       },
     });
 
     if (existingComment) {
       const formattedDate = `${
-        existingComment.createdAt.getMonth() + 1
-      }/${existingComment.createdAt.getFullYear()}`;
+        existingComment.commentMonth.getMonth() + 1
+      }/${existingComment.commentMonth.getFullYear()}`;
       throw new BadRequestError(
         `A comment already exists for this pair in ${formattedDate}.`
       );
     }
 
-    const newComment = new Comment({ rate, comment, reviewerId, revieweeId });
+    const newComment = new Comment({
+      rate,
+      comment,
+      reviewerId,
+      revieweeId,
+      commentMonth: saveCommentMonth,
+    });
     await newComment.save();
 
     res.status(200).json({

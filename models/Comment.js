@@ -29,6 +29,10 @@ const commentSchema = new mongoose.Schema(
       required: true,
       default: false,
     },
+    commentMonth: {
+      type: Date,
+      required: true,
+    },
     history: [
       {
         rate: {
@@ -58,6 +62,7 @@ commentSchema.pre("save", function (next) {
   this.history.push({
     rate: this.rate,
     comment: this.comment,
+    commentMonth: this.commentMonth,
   });
   next();
 });
