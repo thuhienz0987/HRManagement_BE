@@ -5,8 +5,7 @@ import {
   postComment,
   updateComment,
   deleteComment,
-  getCommentsByReviewerId,
-  getCommentsByRevieweeId,
+  getCommentsByReviewerIdInMonth,
   additionalComment,
   getEmployeeNotCommentByTeamIdMonth,
   getDepManagerNotCommentMonth,
@@ -19,8 +18,10 @@ const commentRouter = Router();
 
 commentRouter.get("/comments", getComments);
 commentRouter.get("/comment/:id", getComment);
-commentRouter.get("/comments/:reviewerId", getCommentsByReviewerId);
-commentRouter.get("/comments/:revieweeId", getCommentsByRevieweeId);
+commentRouter.get(
+  "/comments-by-reviewerId/:reviewerId/:month/:year",
+  getCommentsByReviewerIdInMonth
+);
 commentRouter.get(
   "/employees-without-comments/:teamId/:month/:year",
   getEmployeeNotCommentByTeamIdMonth
@@ -35,7 +36,7 @@ commentRouter.get(
 );
 commentRouter.post("/comment", postComment);
 commentRouter.post("/additionalComment", additionalComment);
-commentRouter.put("/comment/:id", updateComment);
-commentRouter.delete("/comment/:id", deleteComment);
+commentRouter.put("/comment/:_id", updateComment);
+commentRouter.delete("/comment/:_id", deleteComment);
 
 export default commentRouter;

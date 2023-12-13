@@ -41,24 +41,32 @@ const getComment = async (req, res) => {
   }
 };
 
-const getCommentsByReviewerId = async (req, res) => {
+const getCommentsByReviewerIdInMonth = async (req, res) => {
   try {
-    const { id } = req.params;
-    const user = await User.findById(id);
-
+    const { reviewerId, month, year } = req.params;
+    const user = await User.findById({ _id: reviewerId });
+    const currentDate = new Date(year, month - 1, 1);
+    const nextMonthDate = new Date(year, month, 1);
     if (!user) {
-      throw new NotFoundError(`Reviewer with id ${id} does not exist`);
+      throw new NotFoundError(`Reviewer with id ${reviewerId} does not exist`);
     }
 
     if (user.isDeleted) {
       res.status(410).send("User is deleted");
     } else {
-      const comments = await Comment.find({ reviewerId: id, isDeleted: false })
+      const comments = await Comment.find({
+        createdAt: {
+          $gte: currentDate,
+          $lt: nextMonthDate,
+        },
+        reviewerId: reviewerId,
+        isDeleted: false,
+      })
         .populate("reviewerId")
         .populate("revieweeId");
 
       if (comments.length === 0) {
-        throw new NotFoundError(`Not found comments for user id ${id}`);
+        throw new NotFoundError(`Not found comments for user id ${reviewerId}`);
       }
 
       res.status(200).json(comments);
@@ -68,32 +76,6 @@ const getCommentsByReviewerId = async (req, res) => {
   }
 };
 
-const getCommentsByRevieweeId = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const user = await User.findById(id);
-
-    if (!user) {
-      throw new NotFoundError(`Reviewee with id ${id} does not exist`);
-    }
-
-    if (user.isDeleted) {
-      res.status(410).send("User is deleted");
-    } else {
-      const comments = await Comment.find({ revieweeId: id, isDeleted: false })
-        .populate("reviewerId")
-        .populate("revieweeId");
-
-      if (comments.length === 0) {
-        throw new NotFoundError(`Not found comments for user id ${id}`);
-      }
-
-      res.status(200).json(comments);
-    }
-  } catch (err) {
-    throw err;
-  }
-};
 const getLeaderNotCommentByDepartmentIdMonth = async (req, res) => {
   try {
     const { departmentId, month, year } = req.params;
@@ -102,6 +84,7 @@ const getLeaderNotCommentByDepartmentIdMonth = async (req, res) => {
     const leaders = await User.find({
       departmentId: departmentId,
       positionId: teamLeaderPosition._id,
+      isEmployee: true,
     })
       .populate("departmentId")
       .populate("positionId")
@@ -123,6 +106,7 @@ const getLeaderNotCommentByDepartmentIdMonth = async (req, res) => {
         $gte: currentDate,
         $lt: nextMonthDate,
       },
+      isDeleted: false,
       revieweeId: { $in: leadersWithoutPassword.map((user) => user._id) },
     });
     const leadersWithoutComments = leadersWithoutPassword.filter((leader) => {
@@ -144,6 +128,7 @@ const getEmployeeNotCommentByTeamIdMonth = async (req, res) => {
     const employees = await User.find({
       teamId: teamId,
       positionId: employeePosition._id,
+      isEmployee: true,
     })
       .populate("departmentId")
       .populate("positionId")
@@ -165,6 +150,7 @@ const getEmployeeNotCommentByTeamIdMonth = async (req, res) => {
         $gte: currentDate,
         $lt: nextMonthDate,
       },
+      isDeleted: false,
       revieweeId: { $in: employeesWithoutPassword.map((user) => user._id) },
     });
     const employeesWithoutComments = employeesWithoutPassword.filter((user) => {
@@ -185,6 +171,7 @@ const getDepManagerNotCommentMonth = async (req, res) => {
 
     const managers = await User.find({
       positionId: depManagerPosition._id,
+      isEmployee: true,
     })
       .populate("departmentId")
       .populate("positionId")
@@ -206,6 +193,7 @@ const getDepManagerNotCommentMonth = async (req, res) => {
         $gte: currentDate,
         $lt: nextMonthDate,
       },
+      isDeleted: false,
       revieweeId: { $in: managersWithoutPassword.map((user) => user._id) },
     });
     const managersWithoutComments = managersWithoutPassword.filter((user) => {
@@ -224,12 +212,6 @@ const postComment = async (req, res) => {
   try {
     const currentDate = new Date();
 
-    // Kiểm tra xem ngày hiện tại có phải là ngày mùng 2 hay không
-    if (currentDate.getDate() !== 2) {
-      throw new BadRequestError(
-        "Comments can only be posted on the 2nd day of each month."
-      );
-    }
     const existingComment = await Comment.findOne({
       reviewerId,
       revieweeId,
@@ -261,22 +243,14 @@ const postComment = async (req, res) => {
 };
 
 const updateComment = async (req, res) => {
-  const { id } = req.params;
+  const { _id } = req.params;
   const { rate, comment } = req.body;
 
   try {
-    const commentExist = await Comment.findById(id);
+    const commentExist = await Comment.findById(_id);
 
     if (!commentExist) {
       throw new NotFoundError("Comment not found");
-    }
-
-    // Kiểm tra xem đã qua 2 ngày từ khi tạo comment chưa
-    const twoDaysAgo = new Date();
-    twoDaysAgo.setDate(twoDaysAgo.getDate() - 1);
-
-    if (commentExist.createdAt < twoDaysAgo) {
-      throw new ForbiddenError("Updating is not allowed after 1 days");
     }
 
     commentExist.rate = rate !== undefined ? rate : commentExist.rate;
@@ -296,12 +270,6 @@ const additionalComment = async (req, res) => {
   try {
     const currentDate = new Date();
 
-    // Kiểm tra xem ngày hiện tại có phải là ngày mùng 3 hay không
-    if (currentDate.getDate() !== 3) {
-      throw new BadRequestError(
-        "Comments can only be posted on the 2nd day of each month."
-      );
-    }
     const existingComment = await Comment.findOne({
       reviewerId,
       revieweeId,
@@ -333,10 +301,10 @@ const additionalComment = async (req, res) => {
 };
 
 const deleteComment = async (req, res) => {
-  const { id } = req.params;
+  const { _id } = req.params;
   try {
     const commentExist = await Comment.findByIdAndUpdate(
-      id,
+      _id,
       { isDeleted: true },
       { new: true }
     );
@@ -352,8 +320,7 @@ const deleteComment = async (req, res) => {
 export {
   getComments,
   getComment,
-  getCommentsByReviewerId,
-  getCommentsByRevieweeId,
+  getCommentsByReviewerIdInMonth,
   getLeaderNotCommentByDepartmentIdMonth,
   getEmployeeNotCommentByTeamIdMonth,
   getDepManagerNotCommentMonth,
