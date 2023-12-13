@@ -60,20 +60,13 @@ const postSalary = async (req, res) => {
     const comment = await Comment.findOne({
       revieweeId: new mongoose.Types.ObjectId(userId),
       commentMonth: {
-        $gte: new Date(today.getFullYear(), today.getMonth(), 1),
-        $lte: new Date(today.getFullYear(), today.getMonth() + 1, 0),
+        $gte: new Date(today.getFullYear(), today.getMonth()-1, 1),
+        $lte: new Date(today.getFullYear(), today.getMonth() , 0),
       },
       isDeleted: false,
     });
 
-    if (!comment) {
-      return res
-        .status(404)
-        .json({
-          message: "No comment found for the specified user and date range.",
-        });
-    }
-    const idComment = comment._id;
+    const idComment = comment === undefined ? null : comment._id;
 
     const holidays = await Holiday.find({
       day: {
@@ -90,63 +83,110 @@ const postSalary = async (req, res) => {
       },
       isDeleted: false,
     });
-    const overTimeDay = await Attendance.countDocuments({
-      userId: userId,
+
+const overTimeDayResult = await Attendance.aggregate([
+  {
+    $match: {
+      userId: new mongoose.Types.ObjectId(userId),
       attendanceDate: {
         $gte: firstDayOfMonth,
         $lte: lastDayOfMonth,
-        $in: holidays,
       },
       isDeleted: false,
-    });
+    },
+  },
+  {
+    $addFields: {
+      isWeekendOrHoliday: {
+        $cond: {
+          if: {
+            $or: [
+              { $eq: [{ $dayOfWeek: "$attendanceDate" }, 0] }, // Chủ nhật
+              { $eq: [{ $dayOfWeek: "$attendanceDate" }, 6] }, // Thứ 7
+              { $in: ["$attendanceDate", holidays] }, // Ngày lễ
+            ],
+          },
+          then: true,
+          else: false,
+        },
+      },
+    },
+  },
+  {
+    $match: {
+      isWeekendOrHoliday: true,
+    },
+  },
+  {
+    $group: {
+      _id: "$userId",
+      totalOvertimeDays: { $sum: 1 }, // Đếm số lượng ngày tăng ca
+    },
+  },
+  {
+    $project: {
+      _id: 0,
+      userId: "$_id",
+      totalOvertimeDays: 1,
+    },
+  },
+]);
 
-    const overTimeData = await Attendance.aggregate([
-      {
-        $match: {
-          ////Sử dụng $match để lọc các bản ghi theo điều kiện nhất định.
-          userId: userId,
-          attendanceDate: {
-            $gte: firstDayOfMonth,
-            $lte: lastDayOfMonth,
-            $nin: holidays,
+// overTimeData sẽ chứa số lượng ngày tăng ca, bao gồm cả ngày lễ, thứ 7 và chủ nhật.
+const overTimeDays = overTimeDayResult.map((entry) => entry.totalOvertimeDays);
+
+// Sum up the total overtime days for the month
+const overTimeDay = overTimeDays.reduce((sum, days) => sum + days, 0);
+
+const overTimeData = await Attendance.aggregate([
+  {
+    $match: {
+      userId: new mongoose.Types.ObjectId(userId),
+      attendanceDate: {
+        $gte: firstDayOfMonth,
+        $lte: lastDayOfMonth,
+        $nin: holidays,
+      },
+      isDeleted: false,
+    },
+  },
+  {
+    $addFields: {
+      isWeekendOrHoliday: {
+        $cond: {
+          if: {
+            $or: [
+              { $eq: [{ $dayOfWeek: "$attendanceDate" }, 0] }, // Chủ nhật
+              { $eq: [{ $dayOfWeek: "$attendanceDate" }, 6] }, // Thứ 7
+              { $in: ["$attendanceDate", holidays] }, // Ngày lễ
+              
+            ],
           },
-          isDeleted: false,
+          then: true,
+          else: false,
         },
       },
-      {
-        $project: {
-          //Sử dụng $project để chỉ trích các trường cần thiết.
-          attendanceDate: 1,
-          checkOutTime: {
-            $dateToString: {
-              format: "%H:%M:%S",
-              date: "$attendanceTime.checkOutTime",
-            },
-          },
-        },
-      },
-      {
-        $match: {
-          //Sử dụng $match thêm lần nữa để lọc bản ghi dựa trên thời gian checkOutTime.
-          checkOutTime: { $gte: "17:00:00" },
-        },
-      },
-      {
-        $group: {
-          //Sử dụng $group để nhóm và tính tổng số giờ làm thêm cho mỗi ngày.
-          _id: "$attendanceDate",
-          totalOvertime: { $sum: 1 },
-        },
-      },
-      {
-        $project: {
-          //Sử dụng $project cuối cùng để tái định dạng kết quả.
-          _id: 0,
-          date: "$_id",
-          totalOvertime: 1,
-        },
-      },
-    ]);
+    },
+  },
+  {
+    $match: {
+      isWeekendOrHoliday: false,
+    },
+  },
+  {
+    $group: {
+      _id: "$userId",
+      totalOvertime: { $sum: "$overTime" },
+    },
+  },
+  {
+    $project: {
+      _id: 0,
+      userId: "$_id",
+      totalOvertime: 1,
+    },
+  },
+]);
 
     // Extract the total overtime hours for each day
     const dailyOvertimeHours = overTimeData.map((entry) => entry.totalOvertime);
@@ -165,7 +205,7 @@ const postSalary = async (req, res) => {
     );
 
     const totalSalary = calculate.totalSalary;
-    const incomeTax = calculate.incomeTax;
+    const incomeTax = calculate.taxRate;
     const totalIncome = calculate.totalIncome;
     const incomeTaxAmount = calculate.incomeTaxAmount;
     const bonus = calculate.bonus;
@@ -297,10 +337,14 @@ const calculateTotalSalary = async (
 
   const baseSalary = position ? position.basicSalary : 0;
 
-  // Truy vấn tất cả các bản ghi Bonus cùng lúc
-  const comment = await Comment.findById(idComment);
+  let bonus = 0;
+  if (idComment === null) {
+    bonus = 0;
+  } else {
+    const comment = await Comment.findById(idComment);
+    bonus = await calculateBonus(comment.rate);
+  }
 
-  const bonus = await calculateBonus(comment.rate);
 
   // Tính tổng phụ cấp từ danh sách các mức phụ cấp của nhân viên
   const allowanceAmount = allowances.reduce(
@@ -308,16 +352,17 @@ const calculateTotalSalary = async (
     0
   );
 
+
   const total =
-    ((baseSalary * salaryGrade) / 26) * (presentDate + overTimeDay) +
+    ((baseSalary * salaryGrade) / 22) * (presentDate + overTimeDay) +
     allowanceAmount +
-    (overTime * ((baseSalary * salaryGrade + allowanceAmount) / 26)) / 8;
+    (overTime * ((baseSalary * salaryGrade + allowanceAmount) / 22)) / 8;
   const totalIncome = total * bonus + total;
 
   // Tính toán thuế thu nhập cá nhân dựa trên tổng thu nhập
-  const incomeTaxAmount = calculateIncomeTax(totalIncome).incomeTaxAmount;
+  const incomeTaxAmount = (await calculateIncomeTax(totalIncome)).incomeTaxAmount;
 
-  const taxRate = calculateIncomeTax(totalIncome).taxRate;
+  const taxRate = (await calculateIncomeTax(totalIncome)).taxRate;
 
   console.log({ totalIncome });
   console.log({ incomeTaxAmount });
@@ -335,7 +380,8 @@ const calculateTotalSalary = async (
 };
 
 // Hàm tính thuế thu nhập cá nhân dựa trên thu nhập và thuế suất
-function calculateIncomeTax(income) {
+const  calculateIncomeTax = async (income) => {
+  console.log({income})
   let taxRate = 5;
   if (income <= 5000000) {
     taxRate = 5;
@@ -350,10 +396,12 @@ function calculateIncomeTax(income) {
   } else if (income < 80000000) {
     taxRate = 30;
   } else taxRate = 35;
+
   const incomeTaxAmount = income * (taxRate / 100);
+
   return {
-    incomeTaxAmount,
-    taxRate,
+    incomeTaxAmount: incomeTaxAmount,
+    taxRate: taxRate,
   };
 }
 
