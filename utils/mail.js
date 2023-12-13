@@ -48,11 +48,6 @@ const UserPassword = (password) => {
                 <tbody>
                 <tr>
                     <td style="padding: 40px 0px 0px;">
-                    // <div style="text-align: left;">
-                    //     <div style="padding-bottom: 20px;"><img
-                    //         src="https://firebasestorage.googleapis.com/v0/b/fooddeliveryapp-ef427.appspot.com/o/logo.png?alt=media&amp;token=b8aacd2d-977c-4cf0-8f75-413e1e92dd94"
-                    //         alt="FashionApp5" style="width: 114px;"></div>
-                    // </div>
                     <div style="padding: 20px; background-color: rgb(255, 255, 255);">
                         <div style="color: rgb(0, 0, 0); text-align: center;">
                         <h1 style="margin: 1rem 0">Your password</h1>
@@ -102,11 +97,6 @@ const OtpTemplate = (OTP) => {
                 <tbody>
                 <tr>
                     <td style="padding: 40px 0px 0px;">
-                    // <div style="text-align: left;">
-                    //     <div style="padding-bottom: 20px;"><img
-                    //         src="https://firebasestorage.googleapis.com/v0/b/fooddeliveryapp-ef427.appspot.com/o/logo.png?alt=media&amp;token=b8aacd2d-977c-4cf0-8f75-413e1e92dd94"
-                    //         alt="FashionApp5" style="width: 114px;"></div>
-                    // </div>
                     <div style="padding: 20px; background-color: rgb(255, 255, 255);">
                         <div style="color: rgb(0, 0, 0); text-align: center;">
                         <h1 style="margin: 1rem 0">Email verification</h1>
@@ -157,11 +147,6 @@ const verifiedTemplate = () => {
                 <tbody>
                 <tr>
                     <td style="padding: 40px 0px 0px;">
-                    // <div style="text-align: right;">
-                    //     <div style="padding-bottom: 20px;"><img
-                    //         src="https://firebasestorage.googleapis.com/v0/b/fooddeliveryapp-ef427.appspot.com/o/logo.png?alt=media&amp;token=b8aacd2d-977c-4cf0-8f75-413e1e92dd94"
-                    //         alt="FashionApp5" style="width: 141px;"></div>
-                    // </div>
                     <div style="padding: 20px; background-color: rgb(255, 255, 255);">
                         <div style="color: rgb(0, 0, 0); text-align: center;">
                         <h1 style="margin: 1rem 0">Verified Successfully</h1>
@@ -208,11 +193,6 @@ const forgetPasswordTemplate = (url) => {
                 <tbody>
                 <tr>
                     <td style="padding: 40px 0px 0px;">
-                    // <div style="text-align: left;">
-                    //     <div style="padding-bottom: 20px;"><img
-                    //         src="https://firebasestorage.googleapis.com/v0/b/fooddeliveryapp-ef427.appspot.com/o/logo.png?alt=media&amp;token=b8aacd2d-977c-4cf0-8f75-413e1e92dd94"
-                    //         alt="HRManagement" style="width: 56px;"></div>
-                    // </div>
                     <div style="padding: 20px; background-color: rgb(255, 255, 255);">
                         <div style="color: rgb(0, 0, 0); text-align: center;">
                         <h1 style="margin: 1rem 0">Trouble signing in?</h1>
@@ -263,11 +243,6 @@ const passwordResetTemplate = () => {
                 <tbody>
                 <tr>
                     <td style="padding: 40px 0px 0px;">
-                    // <div style="text-align: right;">
-                    //     <div style="padding-bottom: 20px;"><img
-                    //         src="https://firebasestorage.googleapis.com/v0/b/fooddeliveryapp-ef427.appspot.com/o/logo.png?alt=media&amp;token=b8aacd2d-977c-4cf0-8f75-413e1e92dd94"
-                    //         alt="FashionApp5" style="width: 141px;"></div>
-                    // </div>
                     <div style="padding: 20px; background-color: rgb(255, 255, 255);">
                         <div style="color: rgb(0, 0, 0); text-align: center;">
                         <h1 style="margin: 1rem 0">Reset Password Successfully</h1>
