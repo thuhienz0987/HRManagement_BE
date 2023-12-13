@@ -5,6 +5,7 @@ import {
   postComment,
   updateComment,
   deleteComment,
+  getCommentsByRevieweeId,
   getCommentsByReviewerIdInMonth,
   additionalComment,
   getEmployeeNotCommentByTeamIdMonth,
@@ -18,6 +19,10 @@ const commentRouter = Router();
 
 commentRouter.get("/comments", getComments);
 commentRouter.get("/comment/:id", getComment);
+commentRouter.get(
+  "/comments-by-revieweeId/:revieweeId",
+  getCommentsByRevieweeId
+);
 commentRouter.get(
   "/comments-by-reviewerId/:reviewerId/:month/:year",
   getCommentsByReviewerIdInMonth

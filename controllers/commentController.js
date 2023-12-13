@@ -41,7 +41,34 @@ const getComment = async (req, res) => {
     throw err;
   }
 };
+const getCommentsByRevieweeId = async (req, res) => {
+  try {
+    const { revieweeId } = req.params;
+    const user = await User.findById({ _id: revieweeId });
+    if (!user) {
+      throw new NotFoundError(`Reviewer with id ${revieweeId} does not exist`);
+    }
 
+    if (user.isDeleted) {
+      res.status(410).send("User is deleted");
+    } else {
+      const comments = await Comment.find({
+        revieweeId: revieweeId,
+        isDeleted: false,
+      })
+        .populate("reviewerId")
+        .populate("revieweeId");
+
+      if (comments.length === 0) {
+        throw new NotFoundError(`Not found comments for user id ${revieweeId}`);
+      }
+
+      res.status(200).json(comments);
+    }
+  } catch (err) {
+    throw err;
+  }
+};
 const getCommentsByReviewerIdInMonth = async (req, res) => {
   try {
     const { reviewerId, month, year } = req.params;
@@ -367,6 +394,7 @@ export {
   getComments,
   getComment,
   getCommentsByReviewerIdInMonth,
+  getCommentsByRevieweeId,
   getLeaderNotCommentByDepartmentIdMonth,
   getEmployeeNotCommentByTeamIdMonth,
   getDepManagerNotCommentMonth,
