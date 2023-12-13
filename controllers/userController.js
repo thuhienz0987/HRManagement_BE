@@ -26,7 +26,7 @@ passwordSchema
   .is()
   .min(8) // Minimum length 8
   .is()
-  .max(100) // Maximum length 100
+  .max(16) // Maximum length 16
   .has()
   .uppercase() // Must have uppercase letters
   .has()
@@ -427,6 +427,35 @@ const get_user_by_departmentId = async (req, res) => {
     throw err;
   }
 };
+const get_leader_by_departmentId = async (req, res) => {
+  try {
+    const departmentId = req.params.departmentId;
+
+    const users = await User.find({ departmentId: departmentId })
+      .populate("departmentId")
+      .populate("positionId")
+      .populate("teamId");
+
+    if (!users || users.length === 0) {
+      throw new NotFoundError("User not found");
+    }
+
+    const usersWithoutPassword = users.map((user) => {
+      user.password = undefined;
+      return user;
+    });
+
+    const teamLeaderPosition = await Position.findOne({ code: "TEM" });
+
+    const leaders = usersWithoutPassword.filter((leader) =>
+      leader.positionId.equals(teamLeaderPosition._id)
+    );
+
+    res.status(200).json(leaders);
+  } catch (err) {
+    throw err;
+  }
+};
 const get_user_by_createdAtMonth = async (req, res) => {
   try {
     const { month, year } = req.params;
@@ -484,6 +513,7 @@ export {
   get_user_by_id,
   get_user_by_teamId,
   get_user_by_departmentId,
+  get_leader_by_departmentId,
   get_user_by_createdAtMonth,
   deleteUser,
 };

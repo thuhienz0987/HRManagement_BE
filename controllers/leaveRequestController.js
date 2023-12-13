@@ -138,7 +138,7 @@ const postLeaveRequest = async (req, res) => {
     const newLeaveRequest = new LeaveRequest({
       reason,
       userId,
-      approverId: approver.id,
+      approverId: approver._id,
       startDate: newStartDate,
       endDate: newEndDate,
     });
