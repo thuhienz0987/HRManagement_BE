@@ -208,7 +208,7 @@ const getDepManagerNotCommentMonth = async (req, res) => {
   }
 };
 const postComment = async (req, res) => {
-  const { rate, comment, reviewerId, revieweeId } = req.body;
+  const { rate, comment, reviewerId, revieweeId, commentMonth } = req.body;
   try {
     const currentDate = new Date();
 
@@ -230,7 +230,13 @@ const postComment = async (req, res) => {
       );
     }
 
-    const newComment = new Comment({ rate, comment, reviewerId, revieweeId });
+    const newComment = new Comment({
+      rate,
+      comment,
+      reviewerId,
+      revieweeId,
+      commentMonth,
+    });
     await newComment.save();
 
     res.status(200).json({
@@ -244,7 +250,7 @@ const postComment = async (req, res) => {
 
 const updateComment = async (req, res) => {
   const { _id } = req.params;
-  const { rate, comment } = req.body;
+  const { rate, comment, commentMonth } = req.body;
 
   try {
     const commentExist = await Comment.findById(_id);
@@ -256,6 +262,8 @@ const updateComment = async (req, res) => {
     commentExist.rate = rate !== undefined ? rate : commentExist.rate;
     commentExist.comment =
       comment !== undefined ? comment : commentExist.comment;
+    commentExist.commentMonth =
+      commentMonth !== undefined ? commentMonth : commentExist.commentMonth;
 
     const updatedComment = await commentExist.save();
 
