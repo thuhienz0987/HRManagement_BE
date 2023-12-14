@@ -92,7 +92,7 @@ const forget_password = async (req, res) => {
   const user = await User.findOne({ email });
   if (!user) throw new NotFoundError("User not found, invalid request");
 
-  const token = await ResetToken.findOne({ owner: user.id });
+  const token = await ResetToken.findOne({ owner: user._id });
   if (token)
     throw new ForbiddenError(
       "Only after one hour you can request for another token!"
@@ -140,8 +140,8 @@ const reset_password = async (req, res) => {
     const user = await User.findById(req.params.id);
     if (!user) throw new NotFoundError("User not found!");
 
-    const token = await ResetToken.findOne({ owner: user.id });
-    if (!token) throw new NotFoundError("User not found!");
+    const token = await ResetToken.findOne({ owner: user._id });
+    if (!token) throw new NotFoundError("OTP is wrong!");
     const isMatched = await token.compareToken(otp);
     if (!isMatched) throw new BadRequestError("Please provide a valid OTP!");
 
@@ -161,7 +161,7 @@ const reset_password = async (req, res) => {
 
     user.password = password.trim();
     await user.save();
-    await ResetToken.findOneAndDelete({ owner: user.id });
+    await ResetToken.findOneAndDelete({ owner: user._id });
 
     mailTransport().sendMail({
       from: "HRManagement2003@gmail.com",
