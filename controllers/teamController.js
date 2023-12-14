@@ -142,7 +142,7 @@ const postTeam = async (req, res) => {
           team: newTeam,
         });
       } else {
-        throw new BadRequestError(`Team with name ${teamExist.name} exist`);
+        throw new BadRequestError(`Team with code ${teamExist.code} exist`);
       }
     }
   } catch (err) {

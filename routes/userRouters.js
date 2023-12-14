@@ -12,6 +12,8 @@ import {
   get_user_by_createdAtMonth,
   deleteUser,
   get_leader_by_departmentId,
+  get_CEO,
+  get_HRManager,
 } from "../controllers/userController.js";
 import uploads from "../middlewares/image.js";
 import verifyRoles from "../middlewares/verifyRoles.js";
@@ -40,6 +42,8 @@ router.get(
   get_all_user
 );
 router.get("/user/:_id", get_user_by_id);
+router.get("/ceo", get_CEO);
+router.get("/hr-manager", get_HRManager);
 router.get("/team-member/:teamId", get_user_by_teamId);
 router.get("/department-member/:departmentId", get_user_by_departmentId);
 router.get("/leaders/:departmentId", get_leader_by_departmentId);

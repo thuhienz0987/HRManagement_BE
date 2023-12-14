@@ -115,14 +115,14 @@ const postLeaveRequest = async (req, res) => {
       isDeleted: false,
       $or: [
         {
-          startDate: { $gte: newStartDate, $lt: newEndDate },
+          startDate: { $gte: startDate, $lt: endDate },
         },
         {
-          endDate: { $gt: newStartDate, $lte: newEndDate },
+          endDate: { $gt: startDate, $lte: endDate },
         },
         {
-          startDate: { $lte: newStartDate },
-          endDate: { $gte: newEndDate },
+          startDate: { $lte: startDate },
+          endDate: { $gte: endDate },
         },
       ],
     });
@@ -139,8 +139,8 @@ const postLeaveRequest = async (req, res) => {
       reason,
       userId,
       approverId: approver._id,
-      startDate: newStartDate,
-      endDate: newEndDate,
+      startDate: startDate,
+      endDate: endDate,
     });
 
     await newLeaveRequest.save();
