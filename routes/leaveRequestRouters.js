@@ -8,6 +8,7 @@ import {
   updateLeaveRequest,
   deleteLeaveRequest,
   ChangeStatus,
+  getLeaveRequestsOfMonthByUserId,
 } from "../controllers/leaveRequestController.js";
 import verifyRoles from "../middlewares/verifyRoles.js";
 import ROLES_LIST from "../config/roles_list.js";
@@ -21,10 +22,13 @@ leaveRequestRouter.get(
 );
 leaveRequestRouter.get("/leaveRequest/:id", getLeaveRequest);
 leaveRequestRouter.get("/leaveRequests/:userId", getLeaveRequestsByUserId);
+leaveRequestRouter.get("/leaveRequestsOfMonth/:userId", getLeaveRequestsOfMonthByUserId);
+
 leaveRequestRouter.get(
   "/remainingLeaveRequestDays/:userId",
   getRemainingLeaveRequestDaysByUserId
 );
+
 leaveRequestRouter.post("/leaveRequest", postLeaveRequest);
 leaveRequestRouter.put("/leaveRequest/:id", updateLeaveRequest);
 leaveRequestRouter.put("/approverLeaveRequest/:id", ChangeStatus);

@@ -7,7 +7,8 @@ import Holiday from "../models/Holiday.js";
 import User from "../models/User.js";
 import mongoose from "mongoose";
 import Comment from "../models/Comment.js";
-import { getRemainingLeaveRequestDaysByUserId } from "./leaveRequestController.js";
+import { getLeaveRequestsOfMonthByUserId, getRemainingLeaveRequestDaysByUserId } from "./leaveRequestController.js";
+import { isFirstDayOfMonth } from "date-fns";
 
 const getSalaries = async (req, res) => {
   try {
@@ -86,10 +87,11 @@ const postSalary = async (req, res) => {
     });
 
 
-    const dayLeaves = await getRemainingLeaveRequestDaysByUserId(userId);
-    if(dayLeaves !== 0){
-      
-    }
+    // const dayLeaves = await getRemainingLeaveRequestDaysByUserId(userId);
+    // if(dayLeaves !== 0){
+    //   const leaveDaysInMonth = await getLeaveRequestsOfMonthByUserId(userId);
+    //   if()
+    // }
 
 const overTimeDayResult = await Attendance.aggregate([
   {

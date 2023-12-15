@@ -3,7 +3,7 @@ import BadRequestError from "../errors/badRequestError.js";
 import NotFoundError from "../errors/notFoundError.js";
 import LeaveRequest from "../models/LeaveRequest.js";
 import User from "../models/User.js";
-import { parse, format } from "date-fns";
+import { parse, format, differenceInDays, isWithinInterval , subMonths,startOfMonth, endOfMonth } from "date-fns";
 
 const getLeaveRequests = async (req, res) => {
   try {
@@ -85,6 +85,66 @@ const getLeaveRequestsByUserId = async (req, res) => {
     throw err;
   }
 };
+
+
+
+const getLeaveRequestsOfMonthByUserId = async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    const user = await User.findOne({ _id: userId });
+
+    if (!user) {
+      throw new NotFoundError(`User with id ${userId} does not exist`);
+    } else if (user && user.isEmployee === false) {
+      res.status(410).send("User is deleted");
+    } else {
+      // Xác định thời gian từ đầu đến cuối của tháng trước
+      const currentDate = new Date();
+      const startOfLastMonth = startOfMonth(subMonths(currentDate, 1));
+      const endOfLastMonth = endOfMonth(subMonths(currentDate, 1));
+
+      const leaveRequests = await LeaveRequest.find({
+        userId: userId,
+        isDeleted: false,
+        startDate: { $gte: startOfLastMonth, $lte: endOfLastMonth },
+      }).populate("userId");
+  
+      if (!leaveRequests || leaveRequests.length === 0) {
+        throw new NotFoundError(`No leave requests found for user id ${userId}`);
+      }
+  
+      // Tính tổng số ngày nghỉ trong tháng
+      const totalLeaveDaysInMonth = leaveRequests.reduce((totalDays, leaveRequest) => {
+        const daysInMonth = calculateLeaveDaysInMonth(leaveRequest.startDate, leaveRequest.endDate, startOfLastMonth);
+        return totalDays + daysInMonth;
+      }, 0);
+  
+      res.status(200).json({ leaveRequests, totalLeaveDaysInMonth });
+    }} catch (err) {
+      console.error(err);
+      res.status(500).send("Internal Server Error");
+    }
+  };
+
+const calculateLeaveDaysInMonth = (startDate, endDate, month) => {
+  const startOfMonthDate = startOfMonth(month);
+  const endOfMonthDate = endOfMonth(month);
+
+  // Chỉ xem xét các ngày trong tháng
+  const startDateInMonth = isWithinInterval(startDate, { start: startOfMonthDate, end: endOfMonthDate })
+    ? startDate
+    : startOfMonthDate;
+
+  const endDateInMonth = isWithinInterval(endDate, { start: startOfMonthDate, end: endOfMonthDate })
+    ? endDate
+    : endOfMonthDate;
+
+  // Tính số ngày giữa ngày bắt đầu và kết thúc
+  const daysInMonth = differenceInDays(endDateInMonth, startDateInMonth) + 1;
+
+  return daysInMonth;
+};
+
 
 const postLeaveRequest = async (req, res) => {
   const { reason, userId, startDate, endDate } = req.body;
@@ -289,4 +349,5 @@ export {
   updateLeaveRequest,
   ChangeStatus,
   deleteLeaveRequest,
+  getLeaveRequestsOfMonthByUserId,
 };
