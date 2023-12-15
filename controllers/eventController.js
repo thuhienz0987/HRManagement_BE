@@ -90,6 +90,8 @@ const postEvent = async (req, res) => {
       dateTime: dateTime,
       isDeleted: false,
     });
+    
+//new mongoose.Types.ObjectId(user._id)
 
     // Lọc ra các người tham gia bắt buộc từ các sự kiện trong cùng khung giờ
     const commonMandatoryUsers = eventsInSameTime

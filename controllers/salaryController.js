@@ -7,6 +7,7 @@ import Holiday from "../models/Holiday.js";
 import User from "../models/User.js";
 import mongoose from "mongoose";
 import Comment from "../models/Comment.js";
+import { getRemainingLeaveRequestDaysByUserId } from "./leaveRequestController.js";
 
 const getSalaries = async (req, res) => {
   try {
@@ -83,6 +84,12 @@ const postSalary = async (req, res) => {
       },
       isDeleted: false,
     });
+
+
+    const dayLeaves = await getRemainingLeaveRequestDaysByUserId(userId);
+    if(dayLeaves !== 0){
+      
+    }
 
 const overTimeDayResult = await Attendance.aggregate([
   {
@@ -356,7 +363,7 @@ const calculateTotalSalary = async (
   const total =
     ((baseSalary * salaryGrade) / 22) * (presentDate + overTimeDay) +
     allowanceAmount +
-    (overTime * ((baseSalary * salaryGrade + allowanceAmount) / 22)) / 8;
+    (overTime * ((baseSalary * salaryGrade) / 22)) / 8;
   const totalIncome = total * bonus + total;
 
   // Tính toán thuế thu nhập cá nhân dựa trên tổng thu nhập
