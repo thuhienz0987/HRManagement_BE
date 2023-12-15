@@ -63,18 +63,21 @@ const getRemainingLeaveRequestDaysByUserId = async (req, res) => {
 };
 const getLeaveRequestsByUserId = async (req, res) => {
   try {
-    const id = req.params.id;
-    const user = await User.findById(id);
-    if (!user) throw new NotFoundError(`User with id ${id} does not exists`);
-    else if (user && user.isEmployee === true) {
+    const userId = req.params.userId;
+    const user = await User.findOne({ _id: userId });
+    if (!user)
+      throw new NotFoundError(`User with id ${userId} does not exists`);
+    else if (user && user.isEmployee === false) {
       res.status(410).send("User is deleted");
     } else {
       const leaveRequests = await LeaveRequest.find({
-        userId: id,
+        userId: userId,
         isDeleted: false,
-      });
+      }).populate("userId");
       if (!leaveRequests || leaveRequests.length === 0)
-        throw new NotFoundError(`Not found leave requests in user id ${id}`);
+        throw new NotFoundError(
+          `Not found leave requests in user id ${userId}`
+        );
 
       res.status(200).json(leaveRequests);
     }
@@ -115,14 +118,14 @@ const postLeaveRequest = async (req, res) => {
       isDeleted: false,
       $or: [
         {
-          startDate: { $gte: newStartDate, $lt: newEndDate },
+          startDate: { $gte: startDate, $lt: endDate },
         },
         {
-          endDate: { $gt: newStartDate, $lte: newEndDate },
+          endDate: { $gt: startDate, $lte: endDate },
         },
         {
-          startDate: { $lte: newStartDate },
-          endDate: { $gte: newEndDate },
+          startDate: { $lte: startDate },
+          endDate: { $gte: endDate },
         },
       ],
     });
@@ -139,8 +142,8 @@ const postLeaveRequest = async (req, res) => {
       reason,
       userId,
       approverId: approver._id,
-      startDate: newStartDate,
-      endDate: newEndDate,
+      startDate: startDate,
+      endDate: endDate,
     });
 
     await newLeaveRequest.save();

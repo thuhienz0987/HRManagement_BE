@@ -21,7 +21,38 @@
 // }
 
 // dropUniqueIndex();
-function getRandomInt(min, max) {
-  return Math.floor(Math.random() * (max - min) + min);
-}
-console.log(getRandomInt(7,8))
+import crypto from "crypto";
+import passwordValidator from "password-validator";
+
+const generateRandomPassword = (length) => {
+  const characters =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  const password = [];
+
+  for (let i = 0; i < length; i++) {
+    const randomIndex = crypto.randomInt(0, characters.length);
+    password.push(characters.charAt(randomIndex));
+  }
+
+  return password.join("");
+};
+
+const passwordSchema = new passwordValidator();
+passwordSchema
+  .is()
+  .min(8) // Minimum length 8
+  .is()
+  .max(16) // Maximum length 16
+  .has()
+  .uppercase() // Must have uppercase letters
+  .has()
+  .lowercase() // Must have lowercase letters
+  .has()
+  .not()
+  .spaces(); // Should not have spaces
+
+const generatedPassword = generateRandomPassword(8);
+const isPasswordValid = passwordSchema.validate(generatedPassword);
+
+console.log("Generated Password:", generatedPassword);
+console.log("Is Password Valid:", isPasswordValid);

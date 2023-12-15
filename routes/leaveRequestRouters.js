@@ -19,25 +19,15 @@ leaveRequestRouter.get(
   verifyRoles(ROLES_LIST.HRManager, ROLES_LIST.CEO),
   getLeaveRequests
 );
-leaveRequestRouter.get(
-  "/leaveRequest/:id",
-  verifyRoles(ROLES_LIST.HRManager, ROLES_LIST.CEO),
-  getLeaveRequest
-);
+leaveRequestRouter.get("/leaveRequest/:id", getLeaveRequest);
 leaveRequestRouter.get("/leaveRequests/:userId", getLeaveRequestsByUserId);
 leaveRequestRouter.get(
   "/remainingLeaveRequestDays/:userId",
   getRemainingLeaveRequestDaysByUserId
 );
 leaveRequestRouter.post("/leaveRequest", postLeaveRequest);
-leaveRequestRouter.put(
-  "/leaveRequest/:id",
-  updateLeaveRequest
-);
+leaveRequestRouter.put("/leaveRequest/:id", updateLeaveRequest);
 leaveRequestRouter.put("/approverLeaveRequest/:id", ChangeStatus);
-leaveRequestRouter.delete(
-  "/leaveRequest/:id",
-  deleteLeaveRequest
-);
+leaveRequestRouter.delete("/leaveRequest/:id", deleteLeaveRequest);
 
 export default leaveRequestRouter;

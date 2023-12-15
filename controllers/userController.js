@@ -14,7 +14,7 @@ import {
   passwordResetTemplate,
 } from "../utils/mail.js";
 import ResetToken from "../models/ResetToken.js";
-import Team from "../models/Team.js";
+import Department from "../models/Department.js";
 import { parse, format } from "date-fns";
 import Position from "../models/Position.js";
 
@@ -387,6 +387,38 @@ const get_user_by_id = async (req, res) => {
     throw err;
   }
 };
+const get_CEO = async (req, res) => {
+  try {
+    const CEOPosition = await Position.findOne({ code: "CEO" });
+    const CEO = await User.findOne({ positionId: CEOPosition._id })
+      .populate("departmentId")
+      .populate("positionId")
+      .populate("teamId");
+    if (!CEO) throw new NotFoundError("CEO not found");
+    CEO.password = undefined;
+    res.status(200).json(CEO);
+  } catch (err) {
+    throw err;
+  }
+};
+const get_HRManager = async (req, res) => {
+  try {
+    const HRManagerPosition = await Position.findOne({ code: "DEM" });
+    const HRManagerDepartment = await Department.findOne({ code: "OFF" });
+    const HRManager = await User.findOne({
+      positionId: HRManagerPosition._id,
+      departmentId: HRManagerDepartment._id,
+    })
+      .populate("departmentId")
+      .populate("positionId")
+      .populate("teamId");
+    if (!HRManager) throw new NotFoundError("HRManager not found");
+    HRManager.password = undefined;
+    res.status(200).json(HRManager);
+  } catch (err) {
+    throw err;
+  }
+};
 const get_user_by_teamId = async (req, res) => {
   try {
     const teamId = req.params.teamId;
@@ -511,6 +543,8 @@ export {
   edit_user_profile,
   get_all_user,
   get_user_by_id,
+  get_CEO,
+  get_HRManager,
   get_user_by_teamId,
   get_user_by_departmentId,
   get_leader_by_departmentId,
