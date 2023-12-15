@@ -35,6 +35,11 @@ const LeaveRequestSchema = new mongoose.Schema(
       // required: true,
       ref: "User",
     },
+    paidLeaveDays: {
+      type: Number,
+      require: true,
+      default: 0,
+    },
     history: [
       {
         reason: String,

@@ -46,12 +46,21 @@ const getRemainingLeaveRequestDaysByUserId = async (req, res) => {
       const currentYear = new Date().getFullYear();
       const startDate = new Date(currentYear, 0, 1); // January 1st of the current year
       const endDate = new Date(currentYear, 11, 31);
-      const leaveRequestsDays = await LeaveRequest.countDocuments({
+      let leaveRequestsDays = 0;
+      const leaveRequests = await LeaveRequest.find({
         userId: userId,
         status: "approved",
         isDeleted: false,
         startDate: { $gte: startDate },
         endDate: { $lte: endDate },
+      });
+
+      leaveRequests.forEach((leaveRequest) => {
+        const start = new Date(leaveRequest.startDate);
+        const end = new Date(leaveRequest.endDate);
+        const timeDifference = Math.abs(end.getTime() - start.getTime());
+        const leaveDays = Math.ceil(timeDifference / (1000 * 60 * 60 * 24)) + 1; // Adding 1 to include both start and end dates
+        leaveRequestsDays += leaveDays;
       });
       let remainingLeaveRequestDays = 12 - leaveRequestsDays;
 
@@ -136,11 +145,40 @@ const postLeaveRequest = async (req, res) => {
         `The user already has overlapping leave requests for the specified time.`
       );
     }
+    const currentYear = new Date().getFullYear();
+    const startYearDate = new Date(currentYear, 0, 1); // January 1st of the current year
+    const endYearDate = new Date(currentYear, 11, 31);
+    let leaveRequestsDays = 0;
+    const leaveRequests = await LeaveRequest.find({
+      userId: userId,
+      status: "approved",
+      isDeleted: false,
+      startDate: { $gte: startYearDate },
+      endDate: { $lte: endYearDate },
+    });
 
+    leaveRequests.forEach((leaveRequest) => {
+      const start = new Date(leaveRequest.startDate);
+      const end = new Date(leaveRequest.endDate);
+      const timeDifference = Math.abs(end.getTime() - start.getTime());
+      const leaveDays = Math.ceil(timeDifference / (1000 * 60 * 60 * 24)) + 1; // Adding 1 to include both start and end dates
+      leaveRequestsDays += leaveDays;
+    });
+    const startPost = new Date(startDate);
+    const endPost = new Date(endDate);
+    const timeDifferencePost = Math.abs(
+      endPost.getTime() - startPost.getTime()
+    );
+    const leaveDaysPost =
+      Math.ceil(timeDifferencePost / (1000 * 60 * 60 * 24)) + 1;
+    let paidLeaveDays = leaveDaysPost;
+    if (leaveDaysPost > 12 - leaveRequestsDays)
+      paidLeaveDays = 12 - leaveRequestsDays;
     // Create a new leave request
     const newLeaveRequest = new LeaveRequest({
       reason,
       userId,
+      paidLeaveDays,
       approverId: approver._id,
       startDate: startDate,
       endDate: endDate,
@@ -218,7 +256,36 @@ const updateLeaveRequest = async (req, res) => {
       reason !== undefined ? reason : leaveRequestExist.reason;
     leaveRequestExist.startDate = newStartDate;
     leaveRequestExist.endDate = newEndDate;
+    const currentYear = new Date().getFullYear();
+    const startYearDate = new Date(currentYear, 0, 1); // January 1st of the current year
+    const endYearDate = new Date(currentYear, 11, 31);
+    let leaveRequestsDays = 0;
+    const leaveRequests = await LeaveRequest.find({
+      userId: leaveRequestExist.userId,
+      status: "approved",
+      isDeleted: false,
+      startDate: { $gte: startYearDate },
+      endDate: { $lte: endYearDate },
+    });
 
+    leaveRequests.forEach((leaveRequest) => {
+      const start = new Date(leaveRequest.startDate);
+      const end = new Date(leaveRequest.endDate);
+      const timeDifference = Math.abs(end.getTime() - start.getTime());
+      const leaveDays = Math.ceil(timeDifference / (1000 * 60 * 60 * 24)) + 1; // Adding 1 to include both start and end dates
+      leaveRequestsDays += leaveDays;
+    });
+    const startPost = new Date(newStartDate);
+    const endPost = new Date(newEndDate);
+    const timeDifferencePost = Math.abs(
+      endPost.getTime() - startPost.getTime()
+    );
+    const leaveDaysPost =
+      Math.ceil(timeDifferencePost / (1000 * 60 * 60 * 24)) + 1;
+    let paidLeaveDays = leaveDaysPost;
+    if (leaveDaysPost > 12 - leaveRequestsDays)
+      paidLeaveDays = 12 - leaveRequestsDays;
+    leaveRequestExist.paidLeaveDays = paidLeaveDays;
     const updatedLeaveRequest = await leaveRequestExist.save();
     res.status(200).json(updatedLeaveRequest);
   } catch (err) {
