@@ -63,18 +63,21 @@ const getRemainingLeaveRequestDaysByUserId = async (req, res) => {
 };
 const getLeaveRequestsByUserId = async (req, res) => {
   try {
-    const id = req.params.id;
-    const user = await User.findById(id);
-    if (!user) throw new NotFoundError(`User with id ${id} does not exists`);
-    else if (user && user.isEmployee === true) {
+    const userId = req.params.userId;
+    const user = await User.findOne({ _id: userId });
+    if (!user)
+      throw new NotFoundError(`User with id ${userId} does not exists`);
+    else if (user && user.isEmployee === false) {
       res.status(410).send("User is deleted");
     } else {
       const leaveRequests = await LeaveRequest.find({
-        userId: id,
+        userId: userId,
         isDeleted: false,
-      });
+      }).populate("userId");
       if (!leaveRequests || leaveRequests.length === 0)
-        throw new NotFoundError(`Not found leave requests in user id ${id}`);
+        throw new NotFoundError(
+          `Not found leave requests in user id ${userId}`
+        );
 
       res.status(200).json(leaveRequests);
     }
