@@ -9,7 +9,7 @@ const salarySchema = mongoose.Schema({
     idComment:{
         type:  mongoose.Types.ObjectId,
         ref:'Comment',
-        required:[true,'A salary must link a id of comment']
+        // required:[true,'A salary must link a id of comment']
     },
     idPosition:{
         type:  mongoose.Types.ObjectId,
@@ -35,36 +35,71 @@ const salarySchema = mongoose.Schema({
     payDay:{
         type: Date,
     },
-    presentDate:{
+    presentDate:{ //ngay co mat
         type: Number,
         default: 0,
         required: true,
     },
-    totalSalary:{
+    totalSalary:{ // tong luong sau khi - thue
         type: Number,
         default: 0,
         required: true
     },
-    totalIncome:{
+    totalIncome:{ // tong luong ban dau 
         type: Number,
         default: 0,
         required: true
     },
-    incomeTaxAmount:{
+    incomeTaxAmount:{ // tien thue
         type: Number,
         default: 0,
         required: true
     },
-    overTimeDay:{
+    overTimeDay:{ // ngay tang ca
         type: Number,
         default: 0,
         required: true
     },
-    overTime:{
+    overTime:{ // gio tang ca
         type: Number,
         default: 0,
         required: true
-    }
+    },
+    paidLeaveDays:{ // ngay nghi co luong
+        type: Number,
+        default: 0,
+        required: true
+    },
+    totalLeaveRequest:{// tong ngay nghi trong thang
+        type: Number,
+        default: 0,
+        required: true
+    },
+    overTimeMoney:{ // tien tang ca theo gio
+        type: Number,
+        default: 0,
+        required: true
+    },
+    overTimeDayMoney:{ // tien tang ca theo ngay
+        type: Number,
+        default: 0,
+        required: true
+    },
+    dayMoney:{ // tien dua theo ngay di lam
+        type: Number,
+        default: 0,
+        required: true
+    },
+    bonusMoney:{ // tien thuong
+        type: Number,
+        default: 0,
+        required: true
+    },
+    allowanceAmount:{ // tong phu cap
+        type: Number,
+        default: 0,
+        required: true
+    },
 },
 { timestamps: true },
 )

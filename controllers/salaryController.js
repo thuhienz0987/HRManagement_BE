@@ -68,7 +68,7 @@ const postSalary = async (req, res) => {
       isDeleted: false,
     });
 
-    const idComment = comment === undefined ? null : comment._id;
+    const idComment = !comment ? null : comment._id;
 
     const holidays = await Holiday.find({
       day: {
@@ -87,11 +87,9 @@ const postSalary = async (req, res) => {
     });
 
 
-    // const dayLeaves = await getRemainingLeaveRequestDaysByUserId(userId);
-    // if(dayLeaves !== 0){
-    //   const leaveDaysInMonth = await getLeaveRequestsOfMonthByUserId(userId);
-    //   if()
-    // }
+    const dayLeaves = await getLeaveRequestsOfMonthByUserId(userId);
+    const paidLeaveDays = dayLeaves.paidLeaveDays;
+    const totalLeaveRequest = dayLeaves.totalLeaveDaysInMonth;
 
 const overTimeDayResult = await Attendance.aggregate([
   {
@@ -210,13 +208,20 @@ const overTimeData = await Attendance.aggregate([
       presentDate,
       overTimeDay,
       overTime,
-      idComment
+      idComment,
+      paidLeaveDays
     );
 
-    const totalSalary = calculate.totalSalary;
-    const incomeTax = calculate.taxRate;
-    const totalIncome = calculate.totalIncome;
-    const incomeTaxAmount = calculate.incomeTaxAmount;
+    const overTimeMoney = calculate.overTimeMoney; // tang ca gio
+    const overTimeDayMoney = calculate.overTimeDayMoney; // tang ca ngay
+    const allowanceAmount = calculate.allowanceAmount; // phu cap
+    const dayMoney = calculate.dayMoney; // theo ngay (tru ngay le)
+    const bonusMoney = calculate.bonusMoney; // thuong
+
+    const totalSalary = calculate.totalSalary; // trc thue
+    const incomeTax = calculate.taxRate; // thue
+    const totalIncome = calculate.totalIncome; // sau thue
+    const incomeTaxAmount = calculate.incomeTaxAmount; // tien thue
     const bonus = calculate.bonus;
 
     const newSalary = new Salary({
@@ -234,6 +239,13 @@ const overTimeData = await Attendance.aggregate([
       overTimeDay,
       overTime,
       bonus,
+      paidLeaveDays,
+      totalLeaveRequest,
+      overTimeDayMoney,
+      overTimeMoney,
+      dayMoney,
+      bonusMoney,
+      allowanceAmount,
     });
 
     await newSalary.save();
@@ -254,61 +266,29 @@ const updateSalary = async (req, res) => {
     if (!salary) {
       throw new NotFoundError("Not found salary");
     }
-    salary.totalSalary = (
-      await calculateTotalSalary(
-        salary.idPosition,
-        salary.salaryGrade,
-        idAllowance,
-        salary.presentDate,
-        salary.overTimeDay,
-        salary.overTime,
-        salary.idComment
-      )
-    ).totalSalary;
-    salary.incomeTax = (
-      await calculateTotalSalary(
-        salary.idPosition,
-        salary.salaryGrade,
-        idAllowance,
-        salary.presentDate,
-        salary.overTimeDay,
-        salary.overTime,
-        salary.idComment
-      )
-    ).taxRate;
-    salary.totalIncome = (
-      await calculateTotalSalary(
-        salary.idPosition,
-        salary.salaryGrade,
-        idAllowance,
-        salary.presentDate,
-        salary.overTimeDay,
-        salary.overTime,
-        salary.idComment
-      )
-    ).totalIncome;
-    salary.incomeTaxAmount = (
-      await calculateTotalSalary(
-        salary.idPosition,
-        salary.salaryGrade,
-        idAllowance,
-        salary.presentDate,
-        salary.overTimeDay,
-        salary.overTime,
-        salary.idComment
-      )
-    ).incomeTaxAmount;
-    salary.bonus = (
-      await calculateTotalSalary(
-        salary.idPosition,
-        salary.salaryGrade,
-        idAllowance,
-        salary.presentDate,
-        salary.overTimeDay,
-        salary.overTime,
-        salary.idComment
-      )
-    ).bonus;
+    const calculate =await calculateTotalSalary(
+      salary.idPosition,
+      salary.salaryGrade,
+      idAllowance,
+      salary.presentDate,
+      salary.overTimeDay,
+      salary.overTime,
+      salary.idComment,
+      salary.paidLeaveDays,
+    )
+    
+    salary.overTimeMoney = calculate.overTimeMoney; // tang ca gio
+    salary.overTimeDayMoney = calculate.overTimeDayMoney; // tang ca ngay
+    salary.allowanceAmount = calculate.allowanceAmount; // phu cap
+    salary.dayMoney = calculate.dayMoney; // theo ngay (tru ngay le)
+    salary.bonusMoney = calculate.bonusMoney; // thuong
+
+    salary.totalSalary = calculate.totalSalary; // trc thue
+    salary.incomeTax = calculate.taxRate; // thue
+    salary.totalIncome = calculate.totalIncome; // sau thue
+    salary.incomeTaxAmount = calculate.incomeTaxAmount; // tien thue
+    salary.bonus = calculate.bonus;
+
     const updateSalary = await salary.save();
     res.status(200).json(updateSalary);
   } catch (err) {
@@ -339,7 +319,7 @@ const calculateTotalSalary = async (
   presentDate,
   overTimeDay,
   overTime,
-  idComment
+  idComment,paidLeaveDays
 ) => {
   const position = await Position.findById(idPosition);
   const allowances = await Allowance.find({ _id: { $in: idAllowances } });
@@ -354,6 +334,12 @@ const calculateTotalSalary = async (
     bonus = await calculateBonus(comment.rate);
   }
 
+  const salaryADay = await ((baseSalary * salaryGrade) / 22);
+
+  const overTimeMoney = await ((overTime * salaryADay) / 8);
+  const overTimeDayMoney = await overTimeDay*2*salaryADay;
+const dayMoney = await salaryADay*(presentDate-overTimeDay);
+const paidLeaveDaysMoney =await paidLeaveDays*salaryADay;
 
   // Tính tổng phụ cấp từ danh sách các mức phụ cấp của nhân viên
   const allowanceAmount = allowances.reduce(
@@ -362,24 +348,26 @@ const calculateTotalSalary = async (
   );
 
 
-  const total =
-    ((baseSalary * salaryGrade) / 22) * (presentDate + overTimeDay) +
-    allowanceAmount +
-    (overTime * ((baseSalary * salaryGrade) / 22)) / 8;
-  const totalIncome = total * bonus + total;
+
+  const total = await (dayMoney+ overTimeMoney+overTimeDayMoney+ allowanceAmount + paidLeaveDaysMoney);
+ const bonusMoney = await total*bonus;
+  const totalIncome = bonusMoney + total; // trc thue
 
   // Tính toán thuế thu nhập cá nhân dựa trên tổng thu nhập
   const incomeTaxAmount = (await calculateIncomeTax(totalIncome)).incomeTaxAmount;
 
   const taxRate = (await calculateIncomeTax(totalIncome)).taxRate;
 
-  console.log({ totalIncome });
-  console.log({ incomeTaxAmount });
   // Tính mức lương cuối cùng sau khi trừ thuế
   const totalSalary = totalIncome - incomeTaxAmount;
 
   // Trả về tổng thu nhập và mức lương
   return {
+    overTimeMoney,
+    overTimeDayMoney,
+    dayMoney,
+    allowanceAmount,
+    bonusMoney,
     totalIncome,
     taxRate,
     incomeTaxAmount,
