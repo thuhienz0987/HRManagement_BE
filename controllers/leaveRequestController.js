@@ -3,7 +3,7 @@ import BadRequestError from "../errors/badRequestError.js";
 import NotFoundError from "../errors/notFoundError.js";
 import LeaveRequest from "../models/LeaveRequest.js";
 import User from "../models/User.js";
-import { parse, format } from "date-fns";
+import { parse, format, differenceInDays, isWithinInterval, max, min , subMonths,startOfMonth, endOfMonth } from "date-fns";
 
 const getLeaveRequests = async (req, res) => {
   try {
@@ -94,6 +94,74 @@ const getLeaveRequestsByUserId = async (req, res) => {
     throw err;
   }
 };
+
+
+
+const getLeaveRequestsOfMonthByUserId = async (userId) => {
+  try {
+    const user = await User.findOne({ _id: userId });
+
+    if (!user) {
+      throw new NotFoundError(`User with id ${userId} does not exist`);
+    } else if (user && user.isEmployee === false) {
+      res.status(410).send("User is deleted");
+    } else {
+      // Xác định thời gian từ đầu đến cuối của tháng trước
+      const currentDate = new Date();
+      const startOfLastMonth = startOfMonth(subMonths(currentDate, 1));
+      const endOfLastMonth = endOfMonth(subMonths(currentDate, 1));
+
+      let paidLeaveDays = 0
+
+      const leaveRequests = await LeaveRequest.find({
+        userId: userId,
+        isDeleted: false,
+        startDate: { $gte: startOfLastMonth, $lte: endOfLastMonth },
+      }).populate("userId");
+  
+      if (!leaveRequests || leaveRequests.length === 0) {
+        // throw new NotFoundError(`No leave requests found for user id ${userId}`);
+        return {
+          leaveRequests: [],
+          totalLeaveDaysInMonth: 0,
+          paidLeaveDays: 0,
+        };
+      }
+  
+      // Tính tổng số ngày nghỉ trong tháng
+      const totalLeaveDaysInMonth = leaveRequests.reduce((totalDays, leaveRequest) => {
+        const daysInMonth = calculateLeaveDaysInMonth(leaveRequest.startDate, leaveRequest.endDate, startOfLastMonth);
+        if(leaveRequest.paidLeaveDays > daysInMonth){
+          paidLeaveDays = paidLeaveDays + daysInMonth
+        }else{
+          paidLeaveDays = paidLeaveDays + leaveRequest.paidLeaveDays
+        }
+        return totalDays + daysInMonth;
+      }, 0);
+  
+      return {leaveRequests,totalLeaveDaysInMonth,paidLeaveDays}
+      // res.status(200).json({ leaveRequests, totalLeaveDaysInMonth, paidLeaveDays });
+    }} catch (err) {
+      throw err
+    }
+  };
+
+const calculateLeaveDaysInMonth = (startDate, endDate, month) => {
+  const startOfMonthDate = startOfMonth(month);
+  const endOfMonthDate = endOfMonth(month);
+
+  // Clip the start date to the first day of the month
+  const clippedStartDate = max([startDate, startOfMonthDate]);
+
+  // Clip the end date to the last day of the month
+  const clippedEndDate = min([endDate, endOfMonthDate]);
+
+  // Calculate the days in the month
+  const daysInMonth = differenceInDays(clippedEndDate, clippedStartDate) + 1;
+
+  return daysInMonth;
+};
+
 
 const postLeaveRequest = async (req, res) => {
   const { reason, userId, startDate, endDate } = req.body;
@@ -356,4 +424,5 @@ export {
   updateLeaveRequest,
   ChangeStatus,
   deleteLeaveRequest,
+  getLeaveRequestsOfMonthByUserId,
 };
