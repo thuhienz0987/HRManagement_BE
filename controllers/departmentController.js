@@ -88,9 +88,7 @@ const postDepartment = async (req, res) => {
         isDeleted: false,
       });
       if (teams.length === 0)
-        throw new NotFoundError(
-          `Not found Team in Department id ${departmentExist.id}`
-        );
+        {}
       else {
         teams.map(async (team) => {
           team.departmentId = newDepartment.id;

@@ -135,7 +135,10 @@ const postEvent = async (req, res) => {
     await newEvent.save();
 
     // Trả về thành công hoặc thông tin về sự kiện đã tạo
-    res.status(201).json(newEvent);
+    res.status(201).json({
+      message: "Create event successfully",
+      newEvent: newEvent,
+    });
   } catch (err) {
     throw err;
   }
