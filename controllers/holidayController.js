@@ -1,6 +1,7 @@
 import NotFoundError from "../errors/notFoundError.js";
 import Holiday from "../models/Holiday.js";
 import { parse, format } from "date-fns";
+import BadRequetsError from "../errors/badRequestError.js"
 
 const getHolidays = async (req, res) => {
   try {
@@ -46,7 +47,11 @@ const postHoliday = async (req, res) => {
         message: "restore holiday successfully",
         holiday: newHoliday,
       });
-    } else if (!holidayExist) {
+    } else 
+    if (holidayExist && holidayExist.isDeleted === false){
+      throw new BadRequetsError(`Holiday with day ${holidayExist.day} exist`)
+    }
+    else if (!holidayExist) {
       const holiday = new Holiday({ day: isoDateStr, name });
       const newHoliday = await holiday.save();
       res.status(200).json({
