@@ -289,27 +289,27 @@ const updateLeaveRequest = async (req, res) => {
     const overlappingRequests = await LeaveRequest.find({
       userId: leaveRequestExist.userId,
       isDeleted: false,
-      id: { $ne: id }, // Exclude the current leave request
+      _id: { $ne: id }, // Exclude the current leave request
       $or: [
         {
-          startDate: { $lt: newEndDate, $gte: newStartDate },
+          startDate: { $gte: startDate, $lt: endDate },
         },
         {
-          endDate: { $gt: newStartDate, $lte: newEndDate },
+          endDate: { $gt: startDate, $lte: endDate },
         },
         {
-          startDate: { $lte: newStartDate },
-          endDate: { $gte: newEndDate },
+          startDate: { $lte: startDate },
+          endDate: { $gte: endDate },
         },
       ],
     });
 
     // Check if there are any overlapping requests
-    // if (overlappingRequests.length > 0) {
-    //   throw new BadRequestError(
-    //     "The user already has overlapping leave requests for the specified time."
-    //   );
-    // }
+    if (overlappingRequests.length > 0) {
+      throw new BadRequestError(
+        "The user already has overlapping leave requests for the specified time."
+      );
+    }
 
     // Check if the start date is in the future or is the same as the current date
     const currentDate = new Date();
@@ -322,8 +322,8 @@ const updateLeaveRequest = async (req, res) => {
     // Update leave request fields only if the new values are provided
     leaveRequestExist.reason =
       reason !== undefined ? reason : leaveRequestExist.reason;
-    leaveRequestExist.startDate = newStartDate;
-    leaveRequestExist.endDate = newEndDate;
+    leaveRequestExist.startDate = startDate;
+    leaveRequestExist.endDate = endDate;
     const currentYear = new Date().getFullYear();
     const startYearDate = new Date(currentYear, 0, 1); // January 1st of the current year
     const endYearDate = new Date(currentYear, 11, 31);
@@ -343,8 +343,8 @@ const updateLeaveRequest = async (req, res) => {
       const leaveDays = Math.ceil(timeDifference / (1000 * 60 * 60 * 24)) + 1; // Adding 1 to include both start and end dates
       leaveRequestsDays += leaveDays;
     });
-    const startPost = new Date(newStartDate);
-    const endPost = new Date(newEndDate);
+    const startPost = new Date(startDate);
+    const endPost = new Date(endDate);
     const timeDifferencePost = Math.abs(
       endPost.getTime() - startPost.getTime()
     );
