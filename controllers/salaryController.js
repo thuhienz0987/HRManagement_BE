@@ -241,6 +241,7 @@ const postSalary = async (req, res) => {
     const totalIncome = calculate.totalIncome; // sau thue
     const incomeTaxAmount = calculate.incomeTaxAmount; // tien thue
     const bonus = calculate.bonus;
+    const paidLeaveDaysMoney = calculate.paidLeaveDaysMoney;
 
     const newSalary = new Salary({
       userId,
@@ -264,6 +265,7 @@ const postSalary = async (req, res) => {
       dayMoney,
       bonusMoney,
       allowanceAmount,
+      paidLeaveDaysMoney,
     });
 
     await newSalary.save();
@@ -300,6 +302,8 @@ const updateSalary = async (req, res) => {
     salary.allowanceAmount = calculate.allowanceAmount; // phu cap
     salary.dayMoney = calculate.dayMoney; // theo ngay (tru ngay le)
     salary.bonusMoney = calculate.bonusMoney; // thuong
+    salary.paidLeaveDaysMoney = calculate.paidLeaveDaysMoney; // thuong
+
 
     salary.totalSalary = calculate.totalSalary; // trc thue
     salary.incomeTax = calculate.taxRate; // thue
@@ -395,6 +399,7 @@ const calculateTotalSalary = async (
     incomeTaxAmount,
     totalSalary,
     bonus,
+    paidLeaveDaysMoney,
   };
 };
 

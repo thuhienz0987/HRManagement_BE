@@ -100,6 +100,11 @@ const salarySchema = mongoose.Schema({
         default: 0,
         required: true
     },
+    paidLeaveDaysMoney:{ // tong luong ngay nghi co luong
+        type: Number,
+        default: 0,
+        required: true
+    },
 },
 { timestamps: true },
 )
