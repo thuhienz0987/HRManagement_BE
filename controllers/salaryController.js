@@ -13,6 +13,7 @@ import {
 } from "./leaveRequestController.js";
 import { isFirstDayOfMonth } from "date-fns";
 import Department from "../models/Department.js";
+import BadRequestError from "../errors/badRequestError.js";
 
 const getSalaries = async (req, res) => {
   try {
@@ -66,10 +67,27 @@ const getSalary = async (req, res) => {
 const postSalary = async (req, res) => {
   const { userId, idAllowance } = req.body;
   try {
+    const today = new Date();
+    const existingSalary = await Salary.findOne({
+      userId,
+      createdAt: {
+        $gte: new Date(today.getFullYear(), today.getMonth(), 1),
+        $lte: new Date(today.getFullYear(), today.getMonth() + 1, 1),
+      },
+    });
+
+    if (existingSalary) {
+      throw new BadRequestError("Salary already calculated for this month.");
+    }
+
+    if (!idAllowance) {
+      idAllowance = [];
+    }
     const user = await User.findById(userId).populate("positionId");
+
     const idPosition = user.positionId;
     const salaryGrade = user.salaryGrade;
-    const today = new Date();
+
     const firstDayOfMonth = new Date(
       today.getFullYear(),
       today.getMonth() - 1,
@@ -303,7 +321,6 @@ const updateSalary = async (req, res) => {
     salary.dayMoney = calculate.dayMoney; // theo ngay (tru ngay le)
     salary.bonusMoney = calculate.bonusMoney; // thuong
     salary.paidLeaveDaysMoney = calculate.paidLeaveDaysMoney; // thuong
-
 
     salary.totalSalary = calculate.totalSalary; // trc thue
     salary.incomeTax = calculate.taxRate; // thue
