@@ -296,9 +296,13 @@ const updateSalary = async (req, res) => {
     if (!salary) {
       throw new NotFoundError("Not found salary");
     }
+
+    const user = await User.findById(salary.userId)
+    const salaryGrade = user.salaryGrade;
+    console.log({salary})
     const calculate =await calculateTotalSalary(
       salary.idPosition,
-      salary.salaryGrade,
+      salaryGrade,
       idAllowance,
       salary.presentDate,
       salary.overTimeDay,
@@ -306,6 +310,8 @@ const updateSalary = async (req, res) => {
       salary.idComment,
       salary.paidLeaveDays,
     )
+
+    console.log({calculate})
     
     salary.overTimeMoney = calculate.overTimeMoney; // tang ca gio
     salary.overTimeDayMoney = calculate.overTimeDayMoney; // tang ca ngay
