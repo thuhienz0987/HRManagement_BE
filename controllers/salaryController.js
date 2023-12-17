@@ -9,6 +9,7 @@ import mongoose from "mongoose";
 import Comment from "../models/Comment.js";
 import { getLeaveRequestsOfMonthByUserId, getRemainingLeaveRequestDaysByUserId } from "./leaveRequestController.js";
 import { isFirstDayOfMonth } from "date-fns";
+import BadRequestError from "../errors/badRequestError.js";
 
 const getSalaries = async (req, res) => {
   try {
@@ -48,10 +49,37 @@ const getSalary = async (req, res) => {
 const postSalary = async (req, res) => {
   const { userId, idAllowance } = req.body;
   try {
+
+    const today = new Date();
+    const existingSalary = await Salary.findOne({
+      userId,
+      createdAt: {
+        $gte: new Date(
+          today.getFullYear(),
+          today.getMonth() ,
+          1
+        ),
+        $lte: new Date(
+          today.getFullYear(),
+          today.getMonth()+1,
+          1
+        ),
+      },
+    });
+    
+    if (existingSalary) {
+      throw new BadRequestError('Salary already calculated for this month.');
+    }
+
+    if(!idAllowance)
+    {
+      idAllowance= []
+    }
     const user = await User.findById(userId).populate("positionId");
+
     const idPosition = user.positionId;
     const salaryGrade = user.salaryGrade;
-    const today = new Date();
+    
     const firstDayOfMonth = new Date(
       today.getFullYear(),
       today.getMonth() - 1,
