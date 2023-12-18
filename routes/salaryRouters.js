@@ -5,6 +5,8 @@ const salaryRouter = Router()
 
 salaryRouter.get('/salaries', getSalaries);
 salaryRouter.get('/salary/:id', getSalary);
+salaryRouter.get('/salaryByUserId/:id', getSalary);
+
 salaryRouter.post('/salary',postSalary);
 salaryRouter.put('/salary/:id',updateSalary);
 salaryRouter.put('/confirmSalary/:id',confirmSalary);
