@@ -7,22 +7,33 @@ import Holiday from "../models/Holiday.js";
 import User from "../models/User.js";
 import mongoose from "mongoose";
 import Comment from "../models/Comment.js";
-import { getLeaveRequestsOfMonthByUserId, getRemainingLeaveRequestDaysByUserId } from "./leaveRequestController.js";
+import {
+  getLeaveRequestsOfMonthByUserId,
+  getRemainingLeaveRequestDaysByUserId,
+} from "./leaveRequestController.js";
 import { isFirstDayOfMonth } from "date-fns";
+import Department from "../models/Department.js";
 import BadRequestError from "../errors/badRequestError.js";
 
 const getSalaries = async (req, res) => {
   try {
-    const salary = await Salary.find()
+    const salaries = await Salary.find()
       .populate("userId")
+      .populate({
+        path: "userId",
+        populate: {
+          path: "departmentId",
+          model: "Department",
+        },
+      })
       .populate("idPosition")
       .populate("idAllowance")
       .populate("idComment");
 
-    if (!salary) {
+    if (!salaries) {
       throw new NotFoundError("Not found any salary");
     }
-    res.status(200).json(salary);
+    res.status(200).json(salaries);
   } catch (err) {
     throw err;
   }
@@ -33,6 +44,13 @@ const getSalary = async (req, res) => {
   try {
     const salary = await Salary.findById(id)
       .populate("userId")
+      .populate({
+        path: "userId",
+        populate: {
+          path: "departmentId",
+          model: "Department",
+        },
+      })
       .populate("idPosition")
       .populate("idAllowance")
       .populate("idComment");
@@ -67,37 +85,27 @@ const getSalaryByUserId = async (req, res) => {
 const postSalary = async (req, res) => {
   const { userId, idAllowance } = req.body;
   try {
-
     const today = new Date();
     const existingSalary = await Salary.findOne({
       userId,
       createdAt: {
-        $gte: new Date(
-          today.getFullYear(),
-          today.getMonth() ,
-          1
-        ),
-        $lte: new Date(
-          today.getFullYear(),
-          today.getMonth()+1,
-          1
-        ),
+        $gte: new Date(today.getFullYear(), today.getMonth(), 1),
+        $lte: new Date(today.getFullYear(), today.getMonth() + 1, 1),
       },
     });
-    
+
     if (existingSalary) {
-      throw new BadRequestError('Salary already calculated for this month.');
+      throw new BadRequestError("Salary already calculated for this month.");
     }
 
-    if(!idAllowance)
-    {
-      idAllowance= []
+    if (!idAllowance) {
+      idAllowance = [];
     }
     const user = await User.findById(userId).populate("positionId");
 
     const idPosition = user.positionId;
     const salaryGrade = user.salaryGrade;
-    
+
     const firstDayOfMonth = new Date(
       today.getFullYear(),
       today.getMonth() - 1,
@@ -108,8 +116,8 @@ const postSalary = async (req, res) => {
     const comment = await Comment.findOne({
       revieweeId: new mongoose.Types.ObjectId(userId),
       commentMonth: {
-        $gte: new Date(today.getFullYear(), today.getMonth()-1, 1),
-        $lte: new Date(today.getFullYear(), today.getMonth() , 0),
+        $gte: new Date(today.getFullYear(), today.getMonth() - 1, 1),
+        $lte: new Date(today.getFullYear(), today.getMonth(), 0),
       },
       isDeleted: false,
     });
@@ -132,114 +140,114 @@ const postSalary = async (req, res) => {
       isDeleted: false,
     });
 
-
     const dayLeaves = await getLeaveRequestsOfMonthByUserId(userId);
     const paidLeaveDays = dayLeaves.paidLeaveDays;
     const totalLeaveRequest = dayLeaves.totalLeaveDaysInMonth;
 
-const overTimeDayResult = await Attendance.aggregate([
-  {
-    $match: {
-      userId: new mongoose.Types.ObjectId(userId),
-      attendanceDate: {
-        $gte: firstDayOfMonth,
-        $lte: lastDayOfMonth,
-      },
-      isDeleted: false,
-    },
-  },
-  {
-    $addFields: {
-      isWeekendOrHoliday: {
-        $cond: {
-          if: {
-            $or: [
-              { $eq: [{ $dayOfWeek: "$attendanceDate" }, 0] }, // Chủ nhật
-              { $eq: [{ $dayOfWeek: "$attendanceDate" }, 6] }, // Thứ 7
-              { $in: ["$attendanceDate", holidays] }, // Ngày lễ
-            ],
+    const overTimeDayResult = await Attendance.aggregate([
+      {
+        $match: {
+          userId: new mongoose.Types.ObjectId(userId),
+          attendanceDate: {
+            $gte: firstDayOfMonth,
+            $lte: lastDayOfMonth,
           },
-          then: true,
-          else: false,
+          isDeleted: false,
         },
       },
-    },
-  },
-  {
-    $match: {
-      isWeekendOrHoliday: true,
-    },
-  },
-  {
-    $group: {
-      _id: "$userId",
-      totalOvertimeDays: { $sum: 1 }, // Đếm số lượng ngày tăng ca
-    },
-  },
-  {
-    $project: {
-      _id: 0,
-      userId: "$_id",
-      totalOvertimeDays: 1,
-    },
-  },
-]);
-
-// overTimeData sẽ chứa số lượng ngày tăng ca, bao gồm cả ngày lễ, thứ 7 và chủ nhật.
-const overTimeDays = overTimeDayResult.map((entry) => entry.totalOvertimeDays);
-
-// Sum up the total overtime days for the month
-const overTimeDay = overTimeDays.reduce((sum, days) => sum + days, 0);
-
-const overTimeData = await Attendance.aggregate([
-  {
-    $match: {
-      userId: new mongoose.Types.ObjectId(userId),
-      attendanceDate: {
-        $gte: firstDayOfMonth,
-        $lte: lastDayOfMonth,
-        $nin: holidays,
-      },
-      isDeleted: false,
-    },
-  },
-  {
-    $addFields: {
-      isWeekendOrHoliday: {
-        $cond: {
-          if: {
-            $or: [
-              { $eq: [{ $dayOfWeek: "$attendanceDate" }, 0] }, // Chủ nhật
-              { $eq: [{ $dayOfWeek: "$attendanceDate" }, 6] }, // Thứ 7
-              { $in: ["$attendanceDate", holidays] }, // Ngày lễ
-              
-            ],
+      {
+        $addFields: {
+          isWeekendOrHoliday: {
+            $cond: {
+              if: {
+                $or: [
+                  { $eq: [{ $dayOfWeek: "$attendanceDate" }, 0] }, // Chủ nhật
+                  { $eq: [{ $dayOfWeek: "$attendanceDate" }, 6] }, // Thứ 7
+                  { $in: ["$attendanceDate", holidays] }, // Ngày lễ
+                ],
+              },
+              then: true,
+              else: false,
+            },
           },
-          then: true,
-          else: false,
         },
       },
-    },
-  },
-  {
-    $match: {
-      isWeekendOrHoliday: false,
-    },
-  },
-  {
-    $group: {
-      _id: "$userId",
-      totalOvertime: { $sum: "$overTime" },
-    },
-  },
-  {
-    $project: {
-      _id: 0,
-      userId: "$_id",
-      totalOvertime: 1,
-    },
-  },
-]);
+      {
+        $match: {
+          isWeekendOrHoliday: true,
+        },
+      },
+      {
+        $group: {
+          _id: "$userId",
+          totalOvertimeDays: { $sum: 1 }, // Đếm số lượng ngày tăng ca
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          userId: "$_id",
+          totalOvertimeDays: 1,
+        },
+      },
+    ]);
+
+    // overTimeData sẽ chứa số lượng ngày tăng ca, bao gồm cả ngày lễ, thứ 7 và chủ nhật.
+    const overTimeDays = overTimeDayResult.map(
+      (entry) => entry.totalOvertimeDays
+    );
+
+    // Sum up the total overtime days for the month
+    const overTimeDay = overTimeDays.reduce((sum, days) => sum + days, 0);
+
+    const overTimeData = await Attendance.aggregate([
+      {
+        $match: {
+          userId: new mongoose.Types.ObjectId(userId),
+          attendanceDate: {
+            $gte: firstDayOfMonth,
+            $lte: lastDayOfMonth,
+            $nin: holidays,
+          },
+          isDeleted: false,
+        },
+      },
+      {
+        $addFields: {
+          isWeekendOrHoliday: {
+            $cond: {
+              if: {
+                $or: [
+                  { $eq: [{ $dayOfWeek: "$attendanceDate" }, 0] }, // Chủ nhật
+                  { $eq: [{ $dayOfWeek: "$attendanceDate" }, 6] }, // Thứ 7
+                  { $in: ["$attendanceDate", holidays] }, // Ngày lễ
+                ],
+              },
+              then: true,
+              else: false,
+            },
+          },
+        },
+      },
+      {
+        $match: {
+          isWeekendOrHoliday: false,
+        },
+      },
+      {
+        $group: {
+          _id: "$userId",
+          totalOvertime: { $sum: "$overTime" },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          userId: "$_id",
+          totalOvertime: 1,
+        },
+      },
+    ]);
 
     // Extract the total overtime hours for each day
     const dailyOvertimeHours = overTimeData.map((entry) => entry.totalOvertime);
@@ -315,10 +323,10 @@ const updateSalary = async (req, res) => {
       throw new NotFoundError("Not found salary");
     }
 
-    const user = await User.findById(salary.userId)
+    const user = await User.findById(salary.userId);
     const salaryGrade = user.salaryGrade;
-    console.log({salary})
-    const calculate =await calculateTotalSalary(
+    console.log({ salary });
+    const calculate = await calculateTotalSalary(
       salary.idPosition,
       salaryGrade,
       idAllowance,
@@ -326,18 +334,17 @@ const updateSalary = async (req, res) => {
       salary.overTimeDay,
       salary.overTime,
       salary.idComment,
-      salary.paidLeaveDays,
-    )
+      salary.paidLeaveDays
+    );
 
-    console.log({calculate})
-    
+    console.log({ calculate });
+    salary.idAllowance = idAllowance;
     salary.overTimeMoney = calculate.overTimeMoney; // tang ca gio
     salary.overTimeDayMoney = calculate.overTimeDayMoney; // tang ca ngay
     salary.allowanceAmount = calculate.allowanceAmount; // phu cap
     salary.dayMoney = calculate.dayMoney; // theo ngay (tru ngay le)
     salary.bonusMoney = calculate.bonusMoney; // thuong
     salary.paidLeaveDaysMoney = calculate.paidLeaveDaysMoney; // thuong
-
 
     salary.totalSalary = calculate.totalSalary; // trc thue
     salary.incomeTax = calculate.taxRate; // thue
@@ -375,7 +382,8 @@ const calculateTotalSalary = async (
   presentDate,
   overTimeDay,
   overTime,
-  idComment,paidLeaveDays
+  idComment,
+  paidLeaveDays
 ) => {
   const position = await Position.findById(idPosition);
   const allowances = await Allowance.find({ _id: { $in: idAllowances } });
@@ -393,9 +401,9 @@ const calculateTotalSalary = async (
   const salaryADay = await ((baseSalary * salaryGrade) / 22);
 
   const overTimeMoney = await ((overTime * salaryADay) / 8);
-  const overTimeDayMoney = await overTimeDay*2*salaryADay;
-const dayMoney = await salaryADay*(presentDate-overTimeDay);
-const paidLeaveDaysMoney =await paidLeaveDays*salaryADay;
+  const overTimeDayMoney = (await overTimeDay) * 2 * salaryADay;
+  const dayMoney = (await salaryADay) * (presentDate - overTimeDay);
+  const paidLeaveDaysMoney = (await paidLeaveDays) * salaryADay;
 
   // Tính tổng phụ cấp từ danh sách các mức phụ cấp của nhân viên
   const allowanceAmount = allowances.reduce(
@@ -403,14 +411,17 @@ const paidLeaveDaysMoney =await paidLeaveDays*salaryADay;
     0
   );
 
-
-
-  const total = await (dayMoney+ overTimeMoney+overTimeDayMoney+ allowanceAmount + paidLeaveDaysMoney);
- const bonusMoney = await total*bonus;
+  const total = await (dayMoney +
+    overTimeMoney +
+    overTimeDayMoney +
+    allowanceAmount +
+    paidLeaveDaysMoney);
+  const bonusMoney = (await total) * bonus;
   const totalIncome = bonusMoney + total; // trc thue
 
   // Tính toán thuế thu nhập cá nhân dựa trên tổng thu nhập
-  const incomeTaxAmount = (await calculateIncomeTax(totalIncome)).incomeTaxAmount;
+  const incomeTaxAmount = (await calculateIncomeTax(totalIncome))
+    .incomeTaxAmount;
 
   const taxRate = (await calculateIncomeTax(totalIncome)).taxRate;
 
@@ -434,8 +445,8 @@ const paidLeaveDaysMoney =await paidLeaveDays*salaryADay;
 };
 
 // Hàm tính thuế thu nhập cá nhân dựa trên thu nhập và thuế suất
-const  calculateIncomeTax = async (income) => {
-  console.log({income})
+const calculateIncomeTax = async (income) => {
+  console.log({ income });
   let taxRate = 5;
   if (income <= 5000000) {
     taxRate = 5;
@@ -457,7 +468,7 @@ const  calculateIncomeTax = async (income) => {
     incomeTaxAmount: incomeTaxAmount,
     taxRate: taxRate,
   };
-}
+};
 
 const calculateBonus = async (rate) => {
   let bonus = 0;
