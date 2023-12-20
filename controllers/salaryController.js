@@ -67,7 +67,7 @@ const getSalary = async (req, res) => {
 const getSalaryByUserId = async (req, res) => {
   const { id } = req.params;
   try {
-    const salary = await Salary.find({userId:id})
+    const salary = await Salary.find({ userId: id })
       .populate("userId")
       .populate("idPosition")
       .populate("idAllowance")
@@ -75,7 +75,7 @@ const getSalaryByUserId = async (req, res) => {
     if (salary) {
       res.status(200).json(salary);
     } else {
-      throw new NotFoundError("salary  not found");
+      throw new NotFoundError("Salary not found");
     }
   } catch (err) {
     throw err;
@@ -496,5 +496,5 @@ export {
   confirmSalary,
   calculateBonus,
   calculateIncomeTax,
-  getSalaryByUserId
+  getSalaryByUserId,
 };
