@@ -18,6 +18,7 @@ import {
   getPercentAttendancesByMonth,
   postAttendance,
   updateAttendance,
+  getRatioForEmployee,
 } from "../controllers/attendanceController.js";
 import ROLES_LIST from "../config/roles_list.js";
 import verifyRoles from "../middlewares/verifyRoles.js";
@@ -65,6 +66,8 @@ attendanceRouter.get(
   "/attendanceWorkTimeADayInMonth/:month/:year/:userId",
   getWorkTimeADayInMonth
 );
+
+attendanceRouter.get('/attendanceRatioForEmployee/:userId',getRatioForEmployee)
 
 attendanceRouter.post("/auto/:month/:year", generateMockAttendanceData);
 

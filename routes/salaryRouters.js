@@ -1,11 +1,11 @@
 import Router from "express";
-import { confirmSalary, getSalaries, getSalary, postSalary, updateSalary } from "../controllers/salaryController.js";
+import { confirmSalary, getSalaries, getSalary, getSalaryByUserId, postSalary, updateSalary } from "../controllers/salaryController.js";
 
 const salaryRouter = Router()
 
 salaryRouter.get('/salaries', getSalaries);
 salaryRouter.get('/salary/:id', getSalary);
-salaryRouter.get('/salaryByUserId/:id', getSalary);
+salaryRouter.get('/salaryByUserId/:id', getSalaryByUserId);
 
 salaryRouter.post('/salary',postSalary);
 salaryRouter.put('/salary/:id',updateSalary);
