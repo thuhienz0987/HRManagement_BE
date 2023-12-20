@@ -12,6 +12,7 @@ import {
   startOfMonth,
   differenceInMinutes,
   isAfter,
+  differenceInDays
 } from "date-fns";
 import Department from "../models/Department.js";
 import mongoose from "mongoose";
@@ -308,6 +309,51 @@ const getAttendanceEmployeeToday = async (req, res) => {
   }
 };
 
+const getRatioForEmployee = async (req, res) => {
+  const { userId } = req.params;
+  try {
+    const user = await User.findById(userId);
+
+    const currentDate = new Date(); // Ngày hiện tại
+
+    const userAttendance = await Attendance.find({ userId, isDeleted: false });
+    const totalWorkingDays = userAttendance.length;
+    const totalDaysAsEmployee = differenceInDays(
+      addDays(currentDate, 1),
+      user.createdAt
+    );
+    console.log({ totalDaysAsEmployee });
+
+    const totalWorkingDayRate = totalWorkingDays / totalDaysAsEmployee;
+
+
+
+    const startOfCurrentMonth = startOfMonth(currentDate); // Đầu tháng hiện tại
+    const daysInMonth = differenceInDays(
+      addDays(currentDate, 1),
+      startOfCurrentMonth
+    ); // Số ngày trong tháng thoi diem hien tai
+
+    // const startOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+    const monthlyAttendance = await Attendance.find({
+      userId,
+      isDeleted: false,
+      attendanceDate: { $gte: startOfCurrentMonth, $lte: currentDate },
+    });
+    const totalMonthlyWorkingDays = monthlyAttendance.length;
+
+    const monthlyAttendanceRate = totalMonthlyWorkingDays / daysInMonth;
+
+    const absentDays = daysInMonth - totalMonthlyWorkingDays;
+    const absentDaysRate = absentDays/daysInMonth;
+
+    const result = [totalWorkingDays,totalWorkingDayRate,totalMonthlyWorkingDays,monthlyAttendanceRate,absentDays, absentDaysRate]
+
+    res.status(200).json({result});
+  } catch (err) {
+    throw err;
+  }
+};
 // Helper function to calculate percentage change
 const calculatePercentageChange = (previousValue, currentValue) => {
   if (previousValue === 0) {
@@ -767,6 +813,7 @@ export {
   getAttendanceEmployeeToday,
   getEmployeeNotAttendanceToday,
   getEmployeeNotCheckOutToday,
+  getRatioForEmployee,
   getAttendanceEmployee,
   getWorkTimeADayInMonth,
   getPercentAttendancesByMonth,
