@@ -87,9 +87,7 @@ const postDepartment = async (req, res) => {
         departmentId: departmentExist.id,
         isDeleted: false,
       });
-      if (teams.length === 0)
-        {}
-      else {
+      if (teams.length !== 0) {
         teams.map(async (team) => {
           team.departmentId = newDepartment.id;
           await team.save();
