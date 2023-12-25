@@ -1,6 +1,6 @@
-import { postAllowance } from "../controllers/allowanceController";
-import Allowance from "../models/Allowance";
-import BadRequestError from "../errors/badRequestError";
+import { postAllowance } from "../../controllers/allowanceController";
+import Allowance from "../../models/Allowance";
+import BadRequestError from "../../errors/badRequestError";
 
 describe("postAllowance", () => {
   it("should create a new allowance when it does not exist", async () => {

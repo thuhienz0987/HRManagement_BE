@@ -1,6 +1,6 @@
-import { postAttendance } from "../controllers/attendanceController";
-import Attendance from "../models/Attendance";
-import BadRequestError from "../errors/badRequestError";
+import { postAttendance } from "../../controllers/attendanceController";
+import Attendance from "../../models/Attendance";
+import BadRequestError from "../../errors/badRequestError";
 
 jest.mock("../models/Attendance");
 

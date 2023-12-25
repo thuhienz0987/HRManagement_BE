@@ -1,6 +1,6 @@
-import { postComment } from "../controllers/commentController";
-import Comment from "../models/Comment";
-import BadRequestError from "../errors/badRequestError";
+import { postComment } from "../../controllers/commentController";
+import Comment from "../../models/Comment";
+import BadRequestError from "../../errors/badRequestError";
 
 jest.mock("../models/Comment");
 

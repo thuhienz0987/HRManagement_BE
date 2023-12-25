@@ -1,10 +1,10 @@
-import { create_user } from "../controllers/userController";
-import User from "../models/User";
-import Position from "../models/Position";
-import NotFoundError from "../errors/notFoundError";
-import BadRequestError from "../errors/badRequestError";
-import InternalServerError from "../errors/internalServerError";
-import cloudinary from "../helper/imageUpload";
+import { create_user } from "../../controllers/userController";
+import User from "../../models/User";
+import Position from "../../models/Position";
+import NotFoundError from "../../errors/notFoundError";
+import BadRequestError from "../../errors/badRequestError";
+import InternalServerError from "../../errors/internalServerError";
+import cloudinary from "../../helper/imageUpload";
 
 // Mock user data for the request body
 const req = {
