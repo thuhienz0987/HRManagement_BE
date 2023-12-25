@@ -278,11 +278,11 @@ const postComment = async (req, res) => {
       revieweeId,
       commentMonth: saveCommentMonth,
     });
-    await newComment.save();
+    const savedComment = await newComment.save();
 
     res.status(200).json({
       message: "Create Comment successfully",
-      comment: newComment,
+      comment: savedComment,
     });
   } catch (err) {
     throw err;

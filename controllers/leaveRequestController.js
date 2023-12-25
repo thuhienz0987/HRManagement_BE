@@ -3,7 +3,17 @@ import BadRequestError from "../errors/badRequestError.js";
 import NotFoundError from "../errors/notFoundError.js";
 import LeaveRequest from "../models/LeaveRequest.js";
 import User from "../models/User.js";
-import { parse, format, differenceInDays, isWithinInterval, max, min , subMonths,startOfMonth, endOfMonth } from "date-fns";
+import {
+  parse,
+  format,
+  differenceInDays,
+  isWithinInterval,
+  max,
+  min,
+  subMonths,
+  startOfMonth,
+  endOfMonth,
+} from "date-fns";
 
 const getLeaveRequests = async (req, res) => {
   try {
@@ -95,8 +105,6 @@ const getLeaveRequestsByUserId = async (req, res) => {
   }
 };
 
-
-
 const getLeaveRequestsOfMonthByUserId = async (userId) => {
   try {
     const user = await User.findOne({ _id: userId });
@@ -111,14 +119,14 @@ const getLeaveRequestsOfMonthByUserId = async (userId) => {
       const startOfLastMonth = startOfMonth(subMonths(currentDate, 1));
       const endOfLastMonth = endOfMonth(subMonths(currentDate, 1));
 
-      let paidLeaveDays = 0
+      let paidLeaveDays = 0;
 
       const leaveRequests = await LeaveRequest.find({
         userId: userId,
         isDeleted: false,
         startDate: { $gte: startOfLastMonth, $lte: endOfLastMonth },
       }).populate("userId");
-  
+
       if (!leaveRequests || leaveRequests.length === 0) {
         // throw new NotFoundError(`No leave requests found for user id ${userId}`);
         return {
@@ -127,24 +135,32 @@ const getLeaveRequestsOfMonthByUserId = async (userId) => {
           paidLeaveDays: 0,
         };
       }
-  
+
       // Tính tổng số ngày nghỉ trong tháng
-      const totalLeaveDaysInMonth = leaveRequests.reduce((totalDays, leaveRequest) => {
-        const daysInMonth = calculateLeaveDaysInMonth(leaveRequest.startDate, leaveRequest.endDate, startOfLastMonth);
-        if(leaveRequest.paidLeaveDays > daysInMonth){
-          paidLeaveDays = paidLeaveDays + daysInMonth
-        }else{
-          paidLeaveDays = paidLeaveDays + leaveRequest.paidLeaveDays
-        }
-        return totalDays + daysInMonth;
-      }, 0);
-  
-      return {leaveRequests,totalLeaveDaysInMonth,paidLeaveDays}
+      const totalLeaveDaysInMonth = leaveRequests.reduce(
+        (totalDays, leaveRequest) => {
+          const daysInMonth = calculateLeaveDaysInMonth(
+            leaveRequest.startDate,
+            leaveRequest.endDate,
+            startOfLastMonth
+          );
+          if (leaveRequest.paidLeaveDays > daysInMonth) {
+            paidLeaveDays = paidLeaveDays + daysInMonth;
+          } else {
+            paidLeaveDays = paidLeaveDays + leaveRequest.paidLeaveDays;
+          }
+          return totalDays + daysInMonth;
+        },
+        0
+      );
+
+      return { leaveRequests, totalLeaveDaysInMonth, paidLeaveDays };
       // res.status(200).json({ leaveRequests, totalLeaveDaysInMonth, paidLeaveDays });
-    }} catch (err) {
-      throw err
     }
-  };
+  } catch (err) {
+    throw err;
+  }
+};
 
 const calculateLeaveDaysInMonth = (startDate, endDate, month) => {
   const startOfMonthDate = startOfMonth(month);
@@ -162,7 +178,6 @@ const calculateLeaveDaysInMonth = (startDate, endDate, month) => {
   return daysInMonth;
 };
 
-
 const postLeaveRequest = async (req, res) => {
   const { reason, userId, startDate, endDate } = req.body;
 
@@ -177,18 +192,17 @@ const postLeaveRequest = async (req, res) => {
     });
 
     // Check if the start date is greater than the current date
-    if (newStartDate < currentDate) {
-      throw new BadRequestError(
-        `The start date must be later than the current date.`
-      );
-    }
+    // if (newStartDate < currentDate) {
+    //   throw new BadRequestError(
+    //     `The start date must be later than the current date.`
+    //   );
+    // }
     // Check if the start date is greater than the end date
     if (newStartDate > newEndDate) {
       throw new BadRequestError(
         "The start date must be earlier than the end date."
       );
     }
-
     // Check for overlapping leave requests for the specified user
     const overlappingRequests = await LeaveRequest.find({
       userId,
@@ -206,7 +220,6 @@ const postLeaveRequest = async (req, res) => {
         },
       ],
     });
-
     // Check if there are any overlapping requests
     if (overlappingRequests.length > 0) {
       throw new BadRequestError(
@@ -224,7 +237,6 @@ const postLeaveRequest = async (req, res) => {
       startDate: { $gte: startYearDate },
       endDate: { $lte: endYearDate },
     });
-
     leaveRequests.forEach((leaveRequest) => {
       const start = new Date(leaveRequest.startDate);
       const end = new Date(leaveRequest.endDate);
@@ -251,9 +263,7 @@ const postLeaveRequest = async (req, res) => {
       startDate: startDate,
       endDate: endDate,
     });
-
     await newLeaveRequest.save();
-
     res.status(200).json({
       message: "Create Leave Request successfully",
       leaveRequest: newLeaveRequest,

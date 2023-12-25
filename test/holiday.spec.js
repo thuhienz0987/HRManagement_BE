@@ -118,4 +118,19 @@ describe("postHoliday", () => {
       );
     }
   });
+  it("should handle other errors by throwing them", async () => {
+    const req = {
+      body: {
+        day: "01/01/2023",
+        name: "New Year",
+      },
+    };
+    const throwMock = jest.fn();
+    const res = { throw: throwMock };
+
+    const errorMessage = "Something went wrong";
+    Holiday.findOne.mockRejectedValue(new Error(errorMessage));
+
+    await expect(postHoliday(req, res)).rejects.toThrow(errorMessage);
+  });
 });

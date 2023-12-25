@@ -12,7 +12,7 @@ import {
   startOfMonth,
   differenceInMinutes,
   isAfter,
-  differenceInDays
+  differenceInDays,
 } from "date-fns";
 import Department from "../models/Department.js";
 import mongoose from "mongoose";
@@ -326,8 +326,6 @@ const getRatioForEmployee = async (req, res) => {
 
     const totalWorkingDayRate = totalWorkingDays / totalDaysAsEmployee;
 
-
-
     const startOfCurrentMonth = startOfMonth(currentDate); // Đầu tháng hiện tại
     const daysInMonth = differenceInDays(
       addDays(currentDate, 1),
@@ -345,11 +343,18 @@ const getRatioForEmployee = async (req, res) => {
     const monthlyAttendanceRate = totalMonthlyWorkingDays / daysInMonth;
 
     const absentDays = daysInMonth - totalMonthlyWorkingDays;
-    const absentDaysRate = absentDays/daysInMonth;
+    const absentDaysRate = absentDays / daysInMonth;
 
-    const result = [totalWorkingDays,totalWorkingDayRate,totalMonthlyWorkingDays,monthlyAttendanceRate,absentDays, absentDaysRate]
+    const result = [
+      totalWorkingDays,
+      totalWorkingDayRate,
+      totalMonthlyWorkingDays,
+      monthlyAttendanceRate,
+      absentDays,
+      absentDaysRate,
+    ];
 
-    res.status(200).json({result});
+    res.status(200).json({ result });
   } catch (err) {
     throw err;
   }
@@ -604,12 +609,15 @@ const postAttendance = async (req, res) => {
     // Nếu chưa có bảng chấm công cho userId trong ngày hôm nay, tạo bảng chấm công mới
     const newAttendance = new Attendance({
       userId: userId,
+      attendanceDate: new Date().setHours(0, 0, 0, 0), // Set the attendance date
+      checkInTime: new Date(), // Set the check-in time
     });
 
-    await newAttendance.save();
+    const saveAttendance = await newAttendance.save();
+    console.log({ saveAttendance });
     res.status(200).json({
       message: "Attendance was successful.",
-      attendance: newAttendance,
+      attendance: saveAttendance,
     });
   } catch (err) {
     throw err;
