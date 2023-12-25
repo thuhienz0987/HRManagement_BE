@@ -1,7 +1,7 @@
 import jwt from "jsonwebtoken";
-import login_post from "../controllers/authController";
-import User from "../models/User";
-import BadRequestError from "../errors/badRequestError";
+import login_post from "../../controllers/authController";
+import User from "../../models/User";
+import BadRequestError from "../../errors/badRequestError";
 import passwordValidator from "password-validator";
 
 jest.mock("../models/User");

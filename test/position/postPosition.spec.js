@@ -1,6 +1,6 @@
-import { postPosition } from "../controllers/positionController";
-import Position from "../models/Position";
-import BadRequestError from "../errors/badRequestError";
+import { postPosition } from "../../controllers/positionController";
+import Position from "../../models/Position";
+import BadRequestError from "../../errors/badRequestError";
 
 describe("postPosition", () => {
   it("should create a new Position when it does not exist", async () => {

@@ -1,7 +1,7 @@
-import { postLeaveRequest } from "../controllers/leaveRequestController";
-import LeaveRequest from "../models/LeaveRequest";
-import User from "../models/User";
-import BadRequestError from "../errors/badRequestError";
+import { postLeaveRequest } from "../../controllers/leaveRequestController";
+import LeaveRequest from "../../models/LeaveRequest";
+import User from "../../models/User";
+import BadRequestError from "../../errors/badRequestError";
 
 jest.mock("../models/LeaveRequest");
 jest.mock("../models/User");
@@ -19,7 +19,7 @@ const mockResponse = () => {
 
 describe("Post Leave Request Controller", () => {
   it("should create a new leave request successfully", async () => {
-    const req = mockRequest("Vacation", "user123", "2023-08-15", "2023-08-20");
+    const req = mockRequest("Vacation", "user123", "15/08/2023", "20/08/2023");
     const res = mockResponse();
 
     const saveMock = jest.fn().mockResolvedValue({

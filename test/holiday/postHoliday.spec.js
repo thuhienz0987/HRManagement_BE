@@ -1,6 +1,6 @@
-import { postHoliday } from "../controllers/holidayController";
-import Holiday from "../models/Holiday";
-import BadRequestError from "../errors/badRequestError";
+import { postHoliday } from "../../controllers/holidayController";
+import Holiday from "../../models/Holiday";
+import BadRequestError from "../../errors/badRequestError";
 
 describe("postHoliday", () => {
   it("should create a new holiday when it does not exist", async () => {
