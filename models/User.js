@@ -7,6 +7,7 @@ const { isEmail } = pkg;
 import { generateRandomPassword } from "../utils/helper.js";
 import { mailTransport, UserPassword } from "../utils/mail.js";
 import UnauthorizedError from "../errors/unauthorizedError.js";
+import BadRequestError from "../errors/badRequestError.js";
 
 const userSchema = new mongoose.Schema(
   {
@@ -131,7 +132,7 @@ const userSchema = new mongoose.Schema(
 // static method to login user
 userSchema.statics.login = async function (email, password) {
   if (!validator.isEmail(email)) {
-    throw new UnauthorizedError("Invalid email");
+    throw new BadRequestError("Invalid email");
   }
   const user = await this.findOne({ email })
     .populate("positionId")
