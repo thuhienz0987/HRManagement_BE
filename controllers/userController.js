@@ -90,16 +90,27 @@ const create_user = async (req, res) => {
       _id: positionId,
       isDeleted: false,
     });
-    if (!position)
+    
+    if (!position) {
       throw new NotFoundError(
-        `The position with position _id ${positionId} does not exists`
+        `The position with position _id ${positionId} does not exist`
       );
-    else if (position.isDeleted === true) {
-      res
-        .status(410)
-        .send(`Position with position _id ${positionId} is deleted`);
+    } else if (position.isDeleted === true) {
+      res.status(410).send(`Position with position _id ${positionId} is deleted`);
     }
 
+    const userExists = await User.findOne({
+      email: email,
+      isEmployee: true,
+    });
+    
+    if (userExists) {
+      throw new BadRequestError(`User with email registered`)
+    }
+
+    // Tạo một instance của User để lấy _id
+    const user = new User();
+    
     // upload result init
     let result;
     if (req.file) {
@@ -116,23 +127,25 @@ const create_user = async (req, res) => {
         );
       }
     }
-    let avatarImage;
-    // check if image upload or not
-    if (result) {
-      avatarImage = result.url;
-    }
+
 
     const employeeAmount = await User.countDocuments();
     const currentDate = new Date();
 
     // new user create
     const pass = "Xyz12345";
+
+    let avatarImage;
+    // check if image upload or not
+if (result) {
+  avatarImage = result.url;
+} 
+
     const newUser = new User({
       email,
-      code: generateUserCode(employeeAmount, currentDate),
+      code: generateUserCode(employeeAmount, currentDate, user),
       name,
       phoneNumber,
-      // password: pass.trim(),
       birthday: isoBirthDayStr,
       address,
       gender,
@@ -146,19 +159,28 @@ const create_user = async (req, res) => {
       roles: handleRoles(position.code),
     });
 
-    const user = await newUser.save();
+    const createdUser = await newUser.save();
 
-    res
-      .status(201)
-      .json({ success: true, message: `New user ${user} created!` });
+    res.status(201).json({
+      success: true,
+      message: 'New user created!',
+      createdUser
+    });
   } catch (err) {
-    if (err.code === 11000)
-      throw new BadRequestError({
-        message: "This email has already been registered",
-      });
-    throw err;
+    if (err.code === 11000 || err.code === 11001) {
+      throw new BadRequestError("This email has already been registered");
+    } else {
+      // console.error(err);
+      // throw new InternalServerError({
+      //   message: "An unexpected error occurred",
+      // });
+
+      throw err
+    }
   }
 };
+
+
 
 const request_change_password = async (req, res) => {
   const user = await User.findById(req.params._id);

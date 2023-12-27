@@ -5,8 +5,9 @@ const errorHandler = (err, req, res, next) => {
     console.log("Body: ", req.body);
     console.log("Query: ", req.query);
     console.log("Error:", err);
-    console.log("Error stack: ", err.stack);
-    console.log("--------------------------------------------------------------------");
+    // console.log("Error stack: ", err.stack);
+    // console.log("--------------------------------------------------------------------");
+    
     const messageError = err.messageObject || err.message;
     // format error
     const error = {

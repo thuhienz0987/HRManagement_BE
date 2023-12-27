@@ -32,8 +32,9 @@ const getHoliday = async (req, res) => {
 };
 
 const postHoliday = async (req, res) => {
+  const { day, name } = req.body;
+  console.log(day,name);
   try {
-    const { day, name } = req.body;
     const dateObj = parse(day, "dd/MM/yyyy", new Date());
     const isoDateStr = format(dateObj, "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
     let holidayExist = await Holiday.findOne({ day: isoDateStr });
@@ -51,7 +52,7 @@ const postHoliday = async (req, res) => {
     } else {
       const newHoliday = new Holiday({ day: isoDateStr, name });
       const savedHoliday = await newHoliday.save();
-      res.status(200).json({
+      res.status(201).json({
         message: "Create holiday successfully",
         holiday: savedHoliday,
       });
