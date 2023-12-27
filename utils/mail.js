@@ -17,7 +17,7 @@ const generateOTP = () => {
 const mailTransport = () =>
   nodemailer.createTransport({
     host: "smtp.gmail.com",
-    port: 587,
+    port: 465,
     secure: false,
     // service: "gmail",
     auth: {

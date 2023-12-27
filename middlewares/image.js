@@ -1,4 +1,5 @@
 import multer from 'multer';
+import cloudinary from '../helper/imageUpload.js';
 
 const storage = multer.diskStorage({});
 
@@ -17,3 +18,4 @@ const fileFilter = (req, file, cb) => {
 
 const uploads = multer({ storage, fileFilter: fileFilter });
 export default uploads;
+
