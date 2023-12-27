@@ -56,7 +56,7 @@ describe("Post Leave Request Controller", () => {
 
     await postLeaveRequest(req, res);
 
-    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.status).toHaveBeenCalledWith(201);
     expect(res.json).toHaveBeenCalledWith(
       expect.objectContaining({ message: "Create Leave Request successfully" })
     );

@@ -82,12 +82,12 @@ describe("Get Salary By UserId Controller", () => {
   });
 
   it("should handle salary not found and throw NotFoundError", async () => {
+    mockRequest.params.id = "userId1";
     Salary.find = jest.fn().mockResolvedValue(null);
 
     await expect(getSalaryByUserId(mockRequest, mockResponse)).rejects.toThrow(
       NotFoundError
     );
-    // expect(mockResponse.json).toHaveBeenCalledWith({ message: 'User not found' });
   });
 
   it("should handle other errors and propagate them to the error handling middleware", async () => {

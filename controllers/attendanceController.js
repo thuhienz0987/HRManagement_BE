@@ -615,7 +615,7 @@ const postAttendance = async (req, res) => {
 
     const saveAttendance = await newAttendance.save();
     console.log({ saveAttendance });
-    res.status(200).json({
+    res.status(201).json({
       message: "Attendance was successful.",
       attendance: saveAttendance,
     });

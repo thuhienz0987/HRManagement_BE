@@ -86,10 +86,6 @@ describe("Login Post Controller", () => {
     User.prototype.save = jest.fn().mockResolvedValue(fakeUser);
 
     await login_post(req, res);
-
-    // expect(passwordSchema.validate).toHaveBeenCalledWith("Sontung01062003", {
-    //   details: true,
-    // });
     expect(User.login).toHaveBeenCalledWith(
       "sontung01062003@gmail.com",
       "Sontung01062003"
@@ -219,7 +215,7 @@ describe("Login Post Controller", () => {
   });
 
   it("should handle user not found and throw incorrect email", async () => {
-    const req = mockRequest("sontung01062003@gmail.com", "Sontung01062003");
+    const req = mockRequest("abc@gmail.com", "Sontung01062003");
     const res = mockResponse();
     User.login = jest.fn().mockResolvedValue(null);
 
@@ -228,8 +224,8 @@ describe("Login Post Controller", () => {
       new Error("incorrect email")
     );
   });
-  it("should handle user not found and throw incorrect email", async () => {
-    const req = mockRequest("sontung01062003@gmail.com", "Sontung01062003");
+  it("should handle user not found and throw incorrect password", async () => {
+    const req = mockRequest("sontung01062003@gmail.com", "Abc01062003");
     const res = mockResponse();
     User.login = jest.fn().mockResolvedValue(null);
 

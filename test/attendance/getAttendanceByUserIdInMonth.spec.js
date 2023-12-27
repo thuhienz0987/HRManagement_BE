@@ -133,12 +133,13 @@ describe("Get Attendance By UserId In Month Controller", () => {
   });
 
   it("should handle attendances by user id in month not found and throw NotFoundError", async () => {
+    mockRequest.params.month = "01";
+    mockRequest.params.month = "2024";
     Attendance.find = jest.fn().mockResolvedValue([]);
 
     await expect(
       getAttendanceByMonth(mockRequest, mockResponse)
     ).rejects.toThrow(NotFoundError);
-    // expect(mockResponse.json).toHaveBeenCalledWith({ message: 'User not found' });
   });
 
   it("should handle other errors and propagate them to the error handling middleware", async () => {

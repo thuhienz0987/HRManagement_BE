@@ -44,7 +44,7 @@ describe("Delete Comment Controller", () => {
     );
   });
   it("should throw error if comment cannot be deleted", async () => {
-    const errorMessage = "Something went wrong";
+    const errorMessage = "Comment have been deleted";
     Comment.findByIdAndUpdate.mockRejectedValue(new Error(errorMessage));
 
     await expect(deleteComment(mockRequest, mockResponse)).rejects.toThrow(

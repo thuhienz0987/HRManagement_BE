@@ -30,7 +30,7 @@ describe("Update salary grade controller", () => {
     const res = mockResponse();
 
     const mockedUser = {
-      _id: "123abc",
+      _id: "userId",
       code: "230001",
       email: "testuser@example.com",
       name: "Test User Name",
@@ -46,31 +46,12 @@ describe("Update salary grade controller", () => {
       roles: [ROLES_LIST.Employee],
       avatarImage:
         "https://res.cloudinary.com/dux8aqzzz/image/upload/v1685547037/xd0gen7b4z5wgwuqfvpz.png",
-      teamId: {
-        _id: "65733f0d0546751e7dfeebc1",
-        code: "ITD_HAR",
-        name: "Hardware Team",
-        managerId: "656f40567d961f88773c4416",
-        departmentId: "65684e5930d1e81f36e6be47",
-        isDeleted: false,
-      },
-      departmentId: {
-        _id: "65684e5930d1e81f36e6be47",
-        code: "ITD",
-        name: "IT Department",
-        managerId: "65733cab007e4c890aff20ee",
-        isDeleted: false,
-      },
-      positionId: {
-        _id: "6528dcc793566d823f7213c2",
-        code: "EMP",
-        name: "Employee",
-        basicSalary: 15000000,
-        isDeleted: false,
-      },
+      teamId: "65733f0d0546751e7dfeebc1",
+      departmentId: "65684e5930d1e81f36e6be47",
+      positionId: "6528dcc793566d823f7213c2",
     };
     const saveMock = jest.fn().mockResolvedValue({
-      _id: "123abc",
+      _id: "userId",
       code: "230001",
       email: "testuser@example.com",
       name: "Test User Name",
@@ -86,28 +67,9 @@ describe("Update salary grade controller", () => {
       roles: [ROLES_LIST.Employee],
       avatarImage:
         "https://res.cloudinary.com/dux8aqzzz/image/upload/v1685547037/xd0gen7b4z5wgwuqfvpz.png",
-      teamId: {
-        _id: "65733f0d0546751e7dfeebc1",
-        code: "ITD_HAR",
-        name: "Hardware Team",
-        managerId: "656f40567d961f88773c4416",
-        departmentId: "65684e5930d1e81f36e6be47",
-        isDeleted: false,
-      },
-      departmentId: {
-        _id: "65684e5930d1e81f36e6be47",
-        code: "ITD",
-        name: "IT Department",
-        managerId: "65733cab007e4c890aff20ee",
-        isDeleted: false,
-      },
-      positionId: {
-        _id: "6528dcc793566d823f7213c2",
-        code: "EMP",
-        name: "Employee",
-        basicSalary: 15000000,
-        isDeleted: false,
-      },
+      teamId: "65733f0d0546751e7dfeebc1",
+      departmentId: "65684e5930d1e81f36e6be47",
+      positionId: "6528dcc793566d823f7213c2",
     });
     mockedUser.save = saveMock;
 
@@ -123,7 +85,7 @@ describe("Update salary grade controller", () => {
       Status: "Success",
       message: "Update salary grade successfully",
       user: {
-        _id: "123abc",
+        _id: "userId",
         code: "230001",
         email: "testuser@example.com",
         name: "Test User Name",
@@ -139,41 +101,22 @@ describe("Update salary grade controller", () => {
         roles: [ROLES_LIST.Employee],
         avatarImage:
           "https://res.cloudinary.com/dux8aqzzz/image/upload/v1685547037/xd0gen7b4z5wgwuqfvpz.png",
-        teamId: {
-          _id: "65733f0d0546751e7dfeebc1",
-          code: "ITD_HAR",
-          name: "Hardware Team",
-          managerId: "656f40567d961f88773c4416",
-          departmentId: "65684e5930d1e81f36e6be47",
-          isDeleted: false,
-        },
-        departmentId: {
-          _id: "65684e5930d1e81f36e6be47",
-          code: "ITD",
-          name: "IT Department",
-          managerId: "65733cab007e4c890aff20ee",
-          isDeleted: false,
-        },
-        positionId: {
-          _id: "6528dcc793566d823f7213c2",
-          code: "EMP",
-          name: "Employee",
-          basicSalary: 15000000,
-          isDeleted: false,
-        },
+        teamId: "65733f0d0546751e7dfeebc1",
+        departmentId: "65684e5930d1e81f36e6be47",
+        positionId: "6528dcc793566d823f7213c2",
       },
     });
   });
 
   it("should handle user not found error", async () => {
-    const req = mockRequest("userId", 1.5);
+    const req = mockRequest("userId1", 1.5);
     const res = mockResponse();
 
     User.findById.mockResolvedValue(null);
 
     await expect(update_salary_grade(req, res)).rejects.toThrow(NotFoundError);
 
-    expect(User.findById).toHaveBeenCalledWith({ _id: "userId" });
+    expect(User.findById).toHaveBeenCalledWith({ _id: "userId1" });
   });
 
   it("should handle error and re-throw", async () => {

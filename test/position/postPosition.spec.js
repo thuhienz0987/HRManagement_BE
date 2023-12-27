@@ -34,7 +34,7 @@ describe("postPosition", () => {
       code: "SEC",
     });
     expect(saveMock).toHaveBeenCalledWith();
-    expect(statusMock).toHaveBeenCalledWith(200);
+    expect(statusMock).toHaveBeenCalledWith(201);
     expect(jsonMock).toHaveBeenCalledWith({
       message: "Create Position successfully",
       position: {

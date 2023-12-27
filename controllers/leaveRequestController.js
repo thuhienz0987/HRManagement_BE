@@ -264,7 +264,7 @@ const postLeaveRequest = async (req, res) => {
       endDate: endDate,
     });
     const postLeaveRequest = await newLeaveRequest.save();
-    res.status(200).json({
+    res.status(201).json({
       message: "Create Leave Request successfully",
       leaveRequest: postLeaveRequest,
     });

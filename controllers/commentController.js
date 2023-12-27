@@ -280,7 +280,7 @@ const postComment = async (req, res) => {
     });
     const savedComment = await newComment.save();
 
-    res.status(200).json({
+    res.status(201).json({
       message: "Create Comment successfully",
       comment: savedComment,
     });

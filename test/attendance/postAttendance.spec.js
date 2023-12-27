@@ -35,7 +35,7 @@ describe("Post Attendance Controller", () => {
 
     await postAttendance(req, res);
 
-    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.status).toHaveBeenCalledWith(201);
     expect(res.json).toHaveBeenCalledWith(
       expect.objectContaining({ message: "Attendance was successful." })
     );

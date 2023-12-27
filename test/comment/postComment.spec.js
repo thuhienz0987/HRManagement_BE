@@ -48,7 +48,7 @@ describe("Post Comment Controller", () => {
 
     await postComment(req, res);
 
-    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.status).toHaveBeenCalledWith(201);
     expect(res.json).toHaveBeenCalledWith(
       expect.objectContaining({ message: "Create Comment successfully" })
     );

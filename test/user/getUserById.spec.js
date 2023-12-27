@@ -10,7 +10,7 @@ describe("Get User By Id Controller", () => {
   let mockResponse;
 
   beforeEach(() => {
-    mockRequest = { params: { _id: "123abc" } };
+    mockRequest = { params: { _id: "userId" } };
     mockResponse = {
       status: jest.fn().mockReturnThis(),
       json: jest.fn().mockReturnThis(),
@@ -19,7 +19,7 @@ describe("Get User By Id Controller", () => {
 
   it("should get user by id successfully and return user info", async () => {
     const fakeUser = {
-      _id: "123abc",
+      _id: "userId",
       code: "230001",
       email: "testuser@example.com",
       name: "Test User Name",
@@ -44,10 +44,10 @@ describe("Get User By Id Controller", () => {
 
     await get_user_by_id(mockRequest, mockResponse);
 
-    expect(User.findById).toHaveBeenCalledWith("123abc");
+    expect(User.findById).toHaveBeenCalledWith("userId");
     expect(mockResponse.status).toHaveBeenCalledWith(200);
     expect(mockResponse.json).toHaveBeenCalledWith({
-      _id: "123abc",
+      _id: "userId",
       code: "230001",
       email: "testuser@example.com",
       name: "Test User Name",
@@ -71,6 +71,7 @@ describe("Get User By Id Controller", () => {
   });
 
   it("should handle user not found and throw NotFoundError", async () => {
+    mockRequest.params._id = "userId1";
     User.findById = jest.fn().mockResolvedValue(null);
 
     await expect(get_user_by_id(mockRequest, mockResponse)).rejects.toThrow(

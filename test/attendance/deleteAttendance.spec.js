@@ -44,7 +44,7 @@ describe("Delete Attendance Controller", () => {
     );
   });
   it("should throw error if attendance cannot be deleted", async () => {
-    const errorMessage = "Something went wrong";
+    const errorMessage = "Attendance have been deleted";
     Attendance.findByIdAndUpdate.mockRejectedValue(new Error(errorMessage));
 
     await expect(deleteAttendance(mockRequest, mockResponse)).rejects.toThrow(
