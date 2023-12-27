@@ -90,8 +90,8 @@ const postEvent = async (req, res) => {
       dateTime: dateTime,
       isDeleted: false,
     });
-    
-//new mongoose.Types.ObjectId(user._id)
+
+    //new mongoose.Types.ObjectId(user._id)
 
     // Lọc ra các người tham gia bắt buộc từ các sự kiện trong cùng khung giờ
     const commonMandatoryUsers = eventsInSameTime
@@ -132,12 +132,12 @@ const postEvent = async (req, res) => {
     });
 
     // Lưu sự kiện vào cơ sở dữ liệu
-    await newEvent.save();
+    const postEvent = await newEvent.save();
 
     // Trả về thành công hoặc thông tin về sự kiện đã tạo
     res.status(201).json({
       message: "Create event successfully",
-      newEvent: newEvent,
+      event: postEvent,
     });
   } catch (err) {
     throw err;

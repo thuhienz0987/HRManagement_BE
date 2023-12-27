@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const LeaveRequestSchema = new mongoose.Schema(
+const leaveRequestSchema = new mongoose.Schema(
   {
     reason: {
       type: String,
@@ -57,7 +57,7 @@ const LeaveRequestSchema = new mongoose.Schema(
   }
 );
 
-LeaveRequestSchema.pre("save", function (next) {
+leaveRequestSchema.pre("save", function (next) {
   // Before saving, push the current values to the history array
   this.history.push({
     reason: this.reason,
@@ -72,6 +72,6 @@ LeaveRequestSchema.pre("save", function (next) {
   next();
 });
 
-const LeaveRequest = mongoose.model("LeaveRequest", LeaveRequestSchema);
+const LeaveRequest = mongoose.model("LeaveRequest", leaveRequestSchema);
 
 export default LeaveRequest;

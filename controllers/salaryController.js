@@ -67,11 +67,11 @@ const getSalary = async (req, res) => {
 const getSalaryByUserId = async (req, res) => {
   const { id } = req.params;
   try {
-    const salary = await Salary.find({ userId: id })
-      .populate("userId")
-      .populate("idPosition")
-      .populate("idAllowance")
-      .populate("idComment");
+    const salary = await Salary.find({ userId: id });
+    // .populate("userId")
+    // .populate("idPosition")
+    // .populate("idAllowance")
+    // .populate("idComment");
     if (salary) {
       res.status(200).json(salary);
     } else {
@@ -304,11 +304,11 @@ const postSalary = async (req, res) => {
       paidLeaveDaysMoney,
     });
 
-    await newSalary.save();
+    const postSalary = await newSalary.save();
 
     res
       .status(201)
-      .json({ message: "Salary created successfully", salary: newSalary });
+      .json({ message: "Salary created successfully", salary: postSalary });
   } catch (err) {
     throw err;
   }

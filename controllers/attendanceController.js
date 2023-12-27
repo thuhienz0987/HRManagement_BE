@@ -32,7 +32,7 @@ const getAttendances = async (req, res) => {
 const getAttendance = async (req, res) => {
   const { id } = req.params;
   try {
-    const attendance = await Attendance.findById(id);
+    const attendance = await Attendance.findById({ _id: id });
     if (attendance && attendance.isDeleted === false) {
       res.status(200).json(attendance);
     } else if (attendance && attendance.isDeleted === true) {
@@ -205,7 +205,7 @@ const getAttendanceByMonth = async (req, res) => {
 
     const attendances = await Attendance.find({
       isDeleted: false,
-      userId: new mongoose.Types.ObjectId(userId),
+      userId: userId,
       attendanceDate: { $gte: targetDate, $lte: endDate },
     });
 
@@ -615,7 +615,7 @@ const postAttendance = async (req, res) => {
 
     const saveAttendance = await newAttendance.save();
     console.log({ saveAttendance });
-    res.status(200).json({
+    res.status(201).json({
       message: "Attendance was successful.",
       attendance: saveAttendance,
     });
@@ -652,11 +652,11 @@ const closeAttendance = async (req, res) => {
     // Thêm đối tượng lịch sử cập nhật vào mảng updateHistory
     attendance.updateHistory.push(updateRecord);
 
-    await attendance.save();
+    const closeAttendance = await attendance.save();
 
     res.status(200).json({
       message: "Closed the attendance successfully.",
-      attendance: attendance,
+      attendance: closeAttendance,
     });
   } catch (err) {
     throw err;
@@ -668,7 +668,7 @@ const updateAttendance = async (req, res) => {
   const { checkInTime, checkOutTime, attendanceDate } = req.body; // Các thông tin mới cần cập nhật
   try {
     // Tìm bảng chấm công dựa trên id
-    const attendance = await Attendance.findById(id);
+    const attendance = await Attendance.findById({ _id: id });
 
     if (!attendance) {
       throw new NotFoundError("Not found attendance");

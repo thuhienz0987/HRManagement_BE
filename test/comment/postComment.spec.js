@@ -2,7 +2,7 @@ import { postComment } from "../../controllers/commentController";
 import Comment from "../../models/Comment";
 import BadRequestError from "../../errors/badRequestError";
 
-jest.mock("../models/Comment");
+jest.mock("../../models/Comment");
 
 const mockRequest = (rate, comment, reviewerId, revieweeId, commentMonth) => ({
   body: {
@@ -48,7 +48,7 @@ describe("Post Comment Controller", () => {
 
     await postComment(req, res);
 
-    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.status).toHaveBeenCalledWith(201);
     expect(res.json).toHaveBeenCalledWith(
       expect.objectContaining({ message: "Create Comment successfully" })
     );
