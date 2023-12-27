@@ -17,7 +17,18 @@ import {
 import passwordValidator from "password-validator";
 
 let passwordSchema = new passwordValidator();
-
+passwordSchema
+  .is()
+  .min(8) // Minimum length 8
+  .is()
+  .max(16) // Maximum length 16
+  .has()
+  .uppercase() // Must have uppercase letters
+  .has()
+  .lowercase() // Must have lowercase letters
+  .has()
+  .not()
+  .spaces();
 // define max age of JWT
 const maxAgeAccessToken = 60 * 60;
 const maxAgeRefreshToken = 60 * 60 * 24 * 30 * 6;
@@ -29,6 +40,7 @@ const login_post = async (req, res) => {
     const validateResult = passwordSchema.validate(password.trim(), {
       details: true,
     });
+    console.log({ validateResult });
     if (validateResult.length != 0) {
       throw new BadRequestError(validateResult);
     }
@@ -58,7 +70,7 @@ const login_post = async (req, res) => {
     user.password = undefined;
 
     // Send authorization roles and access token to user
-    res.json({ accessToken, user });
+    res.status(200).json({ accessToken, user });
   } catch (err) {
     throw err;
   }
@@ -119,24 +131,17 @@ const forget_password = async (req, res) => {
   res.status(200).json(result);
 };
 
-passwordSchema
-  .is()
-  .min(8) // Minimum length 8
-  .is()
-  .max(16) // Maximum length 16
-  .has()
-  .uppercase() // Must have uppercase letters
-  .has()
-  .lowercase() // Must have lowercase letters
-  .has()
-  .not()
-  .spaces();
-
 const reset_password = async (req, res) => {
   try {
     const { password, otp } = req.body;
     if (!password || !otp.trim()) throw new BadRequestError("Invalid request!");
-
+    // validate password
+    const validateResult = passwordSchema.validate(password.trim(), {
+      details: true,
+    });
+    if (validateResult.length != 0) {
+      throw new BadRequestError(validateResult);
+    }
     const user = await User.findById(req.params.id);
     if (!user) throw new NotFoundError("User not found!");
 
@@ -150,14 +155,6 @@ const reset_password = async (req, res) => {
       throw new BadRequestError(
         "New password must be different from the old one!"
       );
-
-    // validate password
-    const validateResult = passwordSchema.validate(password.trim(), {
-      details: true,
-    });
-    if (validateResult.length != 0) {
-      throw new BadRequestError(validateResult);
-    }
 
     user.password = password.trim();
     await user.save();

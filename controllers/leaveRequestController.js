@@ -192,11 +192,11 @@ const postLeaveRequest = async (req, res) => {
     });
 
     // Check if the start date is greater than the current date
-    // if (newStartDate < currentDate) {
-    //   throw new BadRequestError(
-    //     `The start date must be later than the current date.`
-    //   );
-    // }
+    if (newStartDate < currentDate) {
+      throw new BadRequestError(
+        `The start date must be later than the current date.`
+      );
+    }
     // Check if the start date is greater than the end date
     if (newStartDate > newEndDate) {
       throw new BadRequestError(
@@ -263,10 +263,10 @@ const postLeaveRequest = async (req, res) => {
       startDate: startDate,
       endDate: endDate,
     });
-    await newLeaveRequest.save();
+    const postLeaveRequest = await newLeaveRequest.save();
     res.status(200).json({
       message: "Create Leave Request successfully",
-      leaveRequest: newLeaveRequest,
+      leaveRequest: postLeaveRequest,
     });
   } catch (err) {
     throw err;

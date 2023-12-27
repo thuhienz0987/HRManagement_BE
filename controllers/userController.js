@@ -247,7 +247,7 @@ const update_salary_grade = async (req, res) => {
     const { salaryGrade } = req.body;
     const userId = req.params.userId;
     // find user by id
-    const user = await User.findById(userId);
+    const user = await User.findById({ _id: userId });
 
     // check if user found
     if (!user) throw new NotFoundError("User not found!");
@@ -255,13 +255,13 @@ const update_salary_grade = async (req, res) => {
     user.salaryGrade = salaryGrade;
 
     // save the user
-    await user.save();
+    const updateUser = await user.save();
 
     // send success message to front end
     res.status(200).json({
       Status: "Success",
-      message: `Update ${user.firstName}'s salary garde successfully`,
-      user: user,
+      message: `Update salary grade successfully`,
+      user: updateUser,
     });
   } catch (err) {
     throw err;
@@ -376,10 +376,10 @@ const get_all_user = async (req, res) => {
 const get_user_by_id = async (req, res) => {
   try {
     const id = req.params._id;
-    const user = await User.findById(id)
-      .populate("departmentId")
-      .populate("positionId")
-      .populate("teamId");
+    const user = await User.findById(id);
+    // .populate("departmentId")
+    // .populate("positionId")
+    // .populate("teamId");
     if (!user) throw new NotFoundError("User not found");
     user.password = undefined;
     res.status(200).json(user);

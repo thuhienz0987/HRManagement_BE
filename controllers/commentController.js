@@ -46,21 +46,21 @@ const getCommentsByRevieweeId = async (req, res) => {
     const { revieweeId } = req.params;
     const user = await User.findById({ _id: revieweeId });
     if (!user) {
-      throw new NotFoundError(`Reviewer with id ${revieweeId} does not exist`);
+      throw new NotFoundError(`Reviewee with id ${revieweeId} does not exist`);
     }
 
-    if (user.isDeleted) {
-      res.status(410).send("User is deleted");
+    if (user.isEmployee === false) {
+      res.status(410).json("Reviewee is deleted");
     } else {
       const comments = await Comment.find({
         revieweeId: revieweeId,
         isDeleted: false,
-      })
-        .populate("reviewerId")
-        .populate("revieweeId");
+      });
+      // .populate("reviewerId")
+      // .populate("revieweeId");
 
       if (comments.length === 0) {
-        throw new NotFoundError(`Not found comments for user id ${revieweeId}`);
+        throw new NotFoundError("Not found comments for reviewee id");
       }
 
       res.status(200).json(comments);
