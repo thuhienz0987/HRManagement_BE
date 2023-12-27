@@ -1,39 +1,29 @@
 import { ObjectId } from "mongodb";
 
-const gameValid = {
-  host: new ObjectId("657bb88103adc5835c989d27"),
-  quiz: new ObjectId("6482f73f4887f9afcfb547c6"),
-  pin: "6789",
-  isLive: true,
-  playerList: [],
-  playerResultList: [],
+const commentValid = {
+  rate: 9,
+  comment: "Great performance",
+  reviewerId: new ObjectId("651fc8ea7c42156f148974ab"),
+  revieweeId: new ObjectId("65541e5b92fb6c12b844f5a4"),
+  commentMonth: "01/12/2023",
 };
 
-const gameHostInValid = {
-  host: null,
-  quiz: new ObjectId("6482f73f4887f9afcfb547c6"),
-  pin: "6789",
-  isLive: true,
-  playerList: [],
-  playerResultList: [],
+const commentInValid = {
+  rate: 9,
+  comment: "Great performance",
+  reviewerId: new ObjectId("651fc8ea7c42156f148974ab"),
+  revieweeId: new ObjectId("65541e5b92fb6c12b844f5a4"),
+  commentMonth: "01/11/2023",
 };
 
-const gameQuizInValid = {
-  host: new ObjectId("657bb88103adc5835c989d27"),
-  quiz: null,
-  pin: "6789",
-  isLive: true,
-  playerList: [],
-  playerResultList: [],
+const commentUpdate = {
+  _id: "657974832fc86a9e92adb6c8",
+  rate: 9,
+  comment: "Great!!",
+  reviewerId: new ObjectId("651fc8ea7c42156f148974ab"),
+  revieweeId: new ObjectId("65541e5b92fb6c12b844f5a4"),
+  commentMonth: "01/11/2023",
+  isDeleted: false,
 };
 
-const gamePinInValid = {
-  host: new ObjectId("657bb88103adc5835c989d27"),
-  quiz: new ObjectId("6482f73f4887f9afcfb547c6"),
-  pin: null,
-  isLive: true,
-  playerList: [],
-  playerResultList: [],
-};
-
-export { gameValid, gameHostInValid, gameQuizInValid, gamePinInValid };
+export { commentValid, commentInValid, commentUpdate };

@@ -67,11 +67,11 @@ const getSalary = async (req, res) => {
 const getSalaryByUserId = async (req, res) => {
   const { id } = req.params;
   try {
-    const salary = await Salary.find({ userId: id });
-    // .populate("userId")
-    // .populate("idPosition")
-    // .populate("idAllowance")
-    // .populate("idComment");
+    const salary = await Salary.find({ userId: id })
+      .populate("userId")
+      .populate("idPosition")
+      .populate("idAllowance")
+      .populate("idComment");
     if (salary) {
       res.status(200).json(salary);
     } else {
@@ -100,8 +100,20 @@ const postSalary = async (req, res) => {
 
     if (!idAllowance) {
       idAllowance = [];
+    } else if (idAllowance || idAllowance.length != 0) {
+      await Promise.all(
+        idAllowance.map(async (id) => {
+          const allowance = await Allowance.findById(id);
+          if (!allowance) {
+            throw new NotFoundError("Allowance not found");
+          }
+        })
+      );
     }
     const user = await User.findById(userId).populate("positionId");
+    if (!user) {
+      throw new NotFoundError("User not found");
+    }
 
     const idPosition = user.positionId;
     const salaryGrade = user.salaryGrade;
@@ -310,7 +322,9 @@ const postSalary = async (req, res) => {
       .status(201)
       .json({ message: "Salary created successfully", salary: postSalary });
   } catch (err) {
-    throw err;
+    res.status(err.status || 400).json({
+      message: err.messageObject || err.message,
+    });
   }
 };
 
@@ -322,7 +336,18 @@ const updateSalary = async (req, res) => {
     if (!salary) {
       throw new NotFoundError("Not found salary");
     }
-
+    if (!idAllowance) {
+      idAllowance = [];
+    } else if (idAllowance && idAllowance.length != 0) {
+      await Promise.all(
+        idAllowance.map(async (id) => {
+          const allowance = await Allowance.findById(id);
+          if (!allowance) {
+            throw new NotFoundError("Allowance not found");
+          }
+        })
+      );
+    }
     const user = await User.findById(salary.userId);
     const salaryGrade = user.salaryGrade;
     console.log({ salary });
@@ -353,9 +378,13 @@ const updateSalary = async (req, res) => {
     salary.bonus = calculate.bonus;
 
     const updateSalary = await salary.save();
-    res.status(200).json(updateSalary);
+    res
+      .status(200)
+      .json({ message: "Update salary successfully", salary: updateSalary });
   } catch (err) {
-    throw err;
+    res.status(err.status || 400).json({
+      message: err.messageObject || err.message,
+    });
   }
 };
 
@@ -369,7 +398,9 @@ const confirmSalary = async (req, res) => {
     }
     salary.payDay = payDay ? payDay : salary.payDay;
     const updateSalary = await salary.save();
-    res.status(200).json(updateSalary);
+    res
+      .status(200)
+      .json({ message: "Update salary successfully", salary: updateSalary });
   } catch (err) {
     throw err;
   }

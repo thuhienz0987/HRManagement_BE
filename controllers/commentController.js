@@ -285,7 +285,9 @@ const postComment = async (req, res) => {
       comment: savedComment,
     });
   } catch (err) {
-    throw err;
+    res.status(err.status || 400).json({
+      message: err.messageObject || err.message,
+    });
   }
 };
 
@@ -316,7 +318,9 @@ const updateComment = async (req, res) => {
 
     res.status(200).json(updatedComment);
   } catch (err) {
-    throw err;
+    res.status(err.status || 400).json({
+      message: err.messageObject || err.message,
+    });
   }
 };
 
@@ -381,12 +385,17 @@ const deleteComment = async (req, res) => {
       { isDeleted: true },
       { new: true }
     );
+    if (!commentExist) {
+      throw new NotFoundError("Comment not found");
+    }
     res.status(200).json({
       message: "Deleted Comment successfully",
       comment: commentExist,
     });
   } catch (err) {
-    throw err;
+    res.status(err.status || 400).json({
+      message: err.messageObject || err.message,
+    });
   }
 };
 
