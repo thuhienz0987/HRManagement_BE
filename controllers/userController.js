@@ -90,27 +90,29 @@ const create_user = async (req, res) => {
       _id: positionId,
       isDeleted: false,
     });
-    
+
     if (!position) {
       throw new NotFoundError(
         `The position with position _id ${positionId} does not exist`
       );
     } else if (position.isDeleted === true) {
-      res.status(410).send(`Position with position _id ${positionId} is deleted`);
+      res
+        .status(410)
+        .send(`Position with position _id ${positionId} is deleted`);
     }
 
     const userExists = await User.findOne({
       email: email,
       isEmployee: true,
     });
-    
+
     if (userExists) {
-      throw new BadRequestError(`User with email registered`)
+      throw new BadRequestError(`User with email registered`);
     }
 
     // Tạo một instance của User để lấy _id
     const user = new User();
-    
+
     // upload result init
     let result;
     if (req.file) {
@@ -128,7 +130,6 @@ const create_user = async (req, res) => {
       }
     }
 
-
     const employeeAmount = await User.countDocuments();
     const currentDate = new Date();
 
@@ -137,9 +138,9 @@ const create_user = async (req, res) => {
 
     let avatarImage;
     // check if image upload or not
-if (result) {
-  avatarImage = result.url;
-} 
+    if (result) {
+      avatarImage = result.url;
+    }
 
     const newUser = new User({
       email,
@@ -163,8 +164,8 @@ if (result) {
 
     res.status(201).json({
       success: true,
-      message: 'New user created!',
-      createdUser
+      message: "New user created!",
+      createdUser,
     });
   } catch (err) {
     if (err.code === 11000 || err.code === 11001) {
@@ -175,12 +176,10 @@ if (result) {
       //   message: "An unexpected error occurred",
       // });
 
-      throw err
+      throw err;
     }
   }
 };
-
-
 
 const request_change_password = async (req, res) => {
   const user = await User.findById(req.params._id);
@@ -406,7 +405,9 @@ const get_user_by_id = async (req, res) => {
     user.password = undefined;
     res.status(200).json(user);
   } catch (err) {
-    throw err;
+    res.status(err.status || 404).json({
+      message: err.messageObject || err.message,
+    });
   }
 };
 const get_CEO = async (req, res) => {

@@ -66,7 +66,9 @@ const getCommentsByRevieweeId = async (req, res) => {
       res.status(200).json(comments);
     }
   } catch (err) {
-    throw err;
+    res.status(err.status || 404).json({
+      message: err.messageObject || err.message,
+    });
   }
 };
 const getCommentsByReviewerIdInMonth = async (req, res) => {

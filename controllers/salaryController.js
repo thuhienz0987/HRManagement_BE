@@ -78,7 +78,9 @@ const getSalaryByUserId = async (req, res) => {
       throw new NotFoundError("Salary not found");
     }
   } catch (err) {
-    throw err;
+    res.status(err.status || 404).json({
+      message: err.messageObject || err.message,
+    });
   }
 };
 
