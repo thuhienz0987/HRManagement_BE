@@ -60,7 +60,7 @@ describe("Login", () => {
         password: validPassword,
       });
 
-      expect(res.statusCode).toBe(401);
+      expect(res.statusCode).toBe(400);
       expect(res.body.message).toBe("Invalid email");
       expect(res.body.accessToken).toBeUndefined();
       expect(res.body.user).toBeUndefined();
@@ -83,7 +83,7 @@ describe("Login", () => {
       });
 
       console.log(res.body.message);
-      expect(res.statusCode).toBe(401);
+      expect(res.statusCode).toBe(400);
       expect(res.body.message[0].message).toBe(validateResult[0].message);
       expect(res.body.accessToken).toBeUndefined();
       expect(res.body.user).toBeUndefined();
@@ -106,7 +106,7 @@ describe("Login", () => {
       });
 
       console.log(res.body.message);
-      expect(res.statusCode).toBe(401);
+      expect(res.statusCode).toBe(400);
       expect(res.body.message[0].message).toBe(validateResult[0].message);
       expect(res.body.accessToken).toBeUndefined();
       expect(res.body.user).toBeUndefined();
@@ -128,7 +128,7 @@ describe("Login", () => {
       });
 
       console.log(res.body.message);
-      expect(res.statusCode).toBe(401);
+      expect(res.statusCode).toBe(400);
       expect(res.body.message[0].message).toBe(validateResult[0].message);
       expect(res.body.accessToken).toBeUndefined();
       expect(res.body.user).toBeUndefined();
@@ -150,7 +150,7 @@ describe("Login", () => {
       });
 
       console.log(res.body.message);
-      expect(res.statusCode).toBe(401);
+      expect(res.statusCode).toBe(400);
       expect(res.body.message[0].message).toBe(validateResult[0].message);
       expect(res.body.accessToken).toBeUndefined();
       expect(res.body.user).toBeUndefined();
@@ -173,7 +173,7 @@ describe("Login", () => {
       });
 
       console.log(res.body.message);
-      expect(res.statusCode).toBe(401);
+      expect(res.statusCode).toBe(400);
       expect(res.body.message[0].message).toBe(validateResult[0].message);
       expect(res.body.accessToken).toBeUndefined();
       expect(res.body.user).toBeUndefined();

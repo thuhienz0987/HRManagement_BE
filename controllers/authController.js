@@ -43,7 +43,7 @@ const login_post = async (req, res) => {
     });
     console.log({ validateResult });
     if (validateResult.length != 0) {
-      throw new UnauthorizedError(validateResult);
+      throw new BadRequestError(validateResult);
     }
     const user = await User.login(email, password);
     // create JWTs for logged in user.
