@@ -1,22 +1,22 @@
-import express from 'express';
-import 'dotenv/config'
-import mongoose from 'mongoose';
-import connectDB from './config/connectDB.js';
-import cors from 'cors';
-import bodyParser from 'body-parser';
-import cookieParser from 'cookie-parser';
-import credentials from './middlewares/credentials.js';
-import corsOptions from './config/corsOptions.js';
-import 'express-async-errors';
+import express from "express";
+import "dotenv/config";
+import mongoose from "mongoose";
+import connectDB from "./config/connectDB.js";
+import cors from "cors";
+import bodyParser from "body-parser";
+import cookieParser from "cookie-parser";
+import credentials from "./middlewares/credentials.js";
+import corsOptions from "./config/corsOptions.js";
+import "express-async-errors";
 
-import router from './routes/index.js';
+import router from "./routes/index.js";
 
 connectDB();
 const Port = process.env.PORT || 3001;
 
 mongoose.set("strictQuery", false);
 // connectDB();
-mongoose.connection.once('open', () => {
+mongoose.connection.once("open", () => {
   app.listen(Port);
 });
 
@@ -39,18 +39,13 @@ app.use(bodyParser.json());
 app.use(cookieParser());
 
 // view engine
-app.set('view engine', 'ejs');
+app.set("view engine", "ejs");
 
 // serve static files
-app.use(express.static('public'));
-
-
-
-
-
+app.use(express.static("public"));
 
 // app.use((req, res, next) => {
 //   return res.status(404).json({ error: 'API not found' });
 // });
 
-app.use(router)
+app.use(router);

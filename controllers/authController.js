@@ -15,6 +15,7 @@ import {
   passwordResetTemplate,
 } from "../utils/mail.js";
 import passwordValidator from "password-validator";
+import UnauthorizedError from "../errors/unauthorizedError.js";
 
 let passwordSchema = new passwordValidator();
 passwordSchema
@@ -42,7 +43,7 @@ const login_post = async (req, res) => {
     });
     console.log({ validateResult });
     if (validateResult.length != 0) {
-      throw new BadRequestError(validateResult);
+      throw new UnauthorizedError(validateResult);
     }
     const user = await User.login(email, password);
     // create JWTs for logged in user.
@@ -70,9 +71,15 @@ const login_post = async (req, res) => {
     user.password = undefined;
 
     // Send authorization roles and access token to user
-    res.status(200).json({ accessToken, user });
+    res.status(200).json({
+      message: "Login successfully",
+      accessToken: accessToken,
+      user: user,
+    });
   } catch (err) {
-    throw err;
+    res.status(err.status || 401).json({
+      message: err.messageObject || err.message,
+    });
   }
 };
 
