@@ -23,7 +23,7 @@
   resolved "https://registry.npmjs.org/@babel/compat-data/-/compat-data-7.23.5.tgz"
   integrity sha512-uU27kfDRlhfKl+w1U6vp16IuvSLtjAxdArVXPa9BvLkrr7CYIsxH5adpHObeAGY/41+syctUWOZ140a2Rvkgjw==
 
-"@babel/core@^7.1.0", "@babel/core@^7.11.6", "@babel/core@^7.12.17", "@babel/core@^7.12.3":
+"@babel/core@^7.0.0", "@babel/core@^7.0.0-0", "@babel/core@^7.1.0", "@babel/core@^7.11.6", "@babel/core@^7.12.17", "@babel/core@^7.12.3", "@babel/core@^7.8.0":
   version "7.23.6"
   resolved "https://registry.npmjs.org/@babel/core/-/core-7.23.6.tgz"
   integrity sha512-FxpRyGjrMJXh7X3wGLGhNDCRiwpWEF74sKjTLDJSG5Kyvow3QZaG0Adbqzi9ZrVjTWpsX+2cxWXD71NMg93kdw==
@@ -1113,7 +1113,7 @@ braces@^3.0.2, braces@~3.0.2:
   dependencies:
     fill-range "^7.0.1"
 
-browserslist@^4.22.2:
+browserslist@^4.22.2, "browserslist@>= 4.21.0":
   version "4.22.2"
   resolved "https://registry.npmjs.org/browserslist/-/browserslist-4.22.2.tgz"
   integrity sha512-0UgcrvQmBDvZHFGdYUehrCNIazki7/lUP3kkoi/r3YB2amZbFM9J43ZRkJTXBUZK4gmx56+Sqk9+Vs9mwZx9+A==
@@ -1700,7 +1700,7 @@ esbuild-jest@^0.5.0:
     "@babel/plugin-transform-modules-commonjs" "^7.12.13"
     babel-jest "^26.6.3"
 
-esbuild@^0.19.10:
+esbuild@^0.19.10, esbuild@>=0.8.50:
   version "0.19.10"
   resolved "https://registry.npmjs.org/esbuild/-/esbuild-0.19.10.tgz"
   integrity sha512-S1Y27QGt/snkNYrRcswgRFqZjaTG5a5xM3EQo97uNBnH505pdzSNe/HLBq1v0RO7iK/ngdbhJB6mDAp0OK+iUA==
@@ -1826,7 +1826,7 @@ express-async-errors@^3.1.1:
   resolved "https://registry.npmjs.org/express-async-errors/-/express-async-errors-3.1.1.tgz"
   integrity sha512-h6aK1da4tpqWSbyCa3FxB/V6Ehd4EEB15zyQq9qe75OZBp0krinNKuH4rAY+S/U/2I36vdLAUFSjQJ+TFmODng==
 
-express@^4.18.2:
+express@^4.16.2, express@^4.18.2:
   version "4.18.2"
   resolved "https://registry.npmjs.org/express/-/express-4.18.2.tgz"
   integrity sha512-5/PsL6iGPdfQ/lKM1UuielYgv3BUoJfz1aUwU9vHZ+J7gyvwdQXFEBIEIaxeGf0GIcreATNyBExtalisDbuMqQ==
@@ -2616,7 +2616,7 @@ jest-each@^29.7.0:
     jest-util "^29.7.0"
     pretty-format "^29.7.0"
 
-jest-environment-node@^29.7.0:
+jest-environment-node@^29.7.0, "jest-environment-node@27.x.x || 28.x || 29.x":
   version "29.7.0"
   resolved "https://registry.npmjs.org/jest-environment-node/-/jest-environment-node-29.7.0.tgz"
   integrity sha512-DOSwCRqXirTOyheM+4d5YZOrWcdu0LNZ87ewUoywbcb2XR4wKgqiG8vNeYwhjFMbEkfju7wx2GYH0P2gevGvFw==
@@ -2738,7 +2738,7 @@ jest-resolve-dependencies@^29.7.0:
     jest-regex-util "^29.6.3"
     jest-snapshot "^29.7.0"
 
-jest-resolve@^29.7.0:
+jest-resolve@*, jest-resolve@^29.7.0:
   version "29.7.0"
   resolved "https://registry.npmjs.org/jest-resolve/-/jest-resolve-29.7.0.tgz"
   integrity sha512-IOVhZSrg+UvVAshDSDtHyFCCBUl/Q3AAJv8iZ6ZjnZ74xzvwuzLXid9IIIPgTnY62SJjfuupMKZsZQRsCvxEgA==
@@ -3077,7 +3077,7 @@ lodash.once@^4.0.0:
   resolved "https://registry.npmjs.org/lodash.once/-/lodash.once-4.1.1.tgz"
   integrity sha512-Sb487aTOCr9drQVL8pIxOzVhafOjZN9UU54hiN8PU3uAiSV7lx1yYNpbNmex2PK6dSJoNTSJUUswT651yww3Mg==
 
-lodash@^4.17.21:
+lodash@^4.17.21, lodash@>=4.0:
   version "4.17.21"
   resolved "https://registry.npmjs.org/lodash/-/lodash-4.17.21.tgz"
   integrity sha512-v2kDEe57lecTulaDIuNTPy3Ry4gLGJ6Z1O3vE1krgXZNrsQ+LFTGHVxVjcXPs17LhbZVGedAJv8XZ1tvj5FvSg==
@@ -3306,7 +3306,7 @@ mongodb-memory-server@9.1.1:
     mongodb-memory-server-core "9.1.1"
     tslib "^2.6.2"
 
-mongodb@^5.9.1:
+mongodb@^5.9.1, "mongodb@3.x.x || 4.x || 5.x || 6.x":
   version "5.9.2"
   resolved "https://registry.npmjs.org/mongodb/-/mongodb-5.9.2.tgz"
   integrity sha512-H60HecKO4Bc+7dhOv4sJlgvenK4fQNqqUIlXxZYQNbfEWSALGAwGoyJd/0Qwk4TttFXUOHJ2ZJQe/52ScaUwtQ==
