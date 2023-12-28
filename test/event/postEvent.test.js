@@ -20,7 +20,6 @@ describe("Event", () => {
       .post("/event")
       .set("Authorization", `Bearer ${infiniteToken}`)
       .send(EventCreate);
-    // console.log(res);
     expect(res.statusCode).toBe(201);
     expect(res.body.event.name).toBe(EventCreate.name);
     expect(res.body.message).toBe("Create event successfully");
@@ -33,7 +32,6 @@ describe("Event", () => {
       .post("/event")
       .set("Authorization", `Bearer ${infiniteToken}`)
       .send(EventSameTime);
-    // console.log(res);
     expect(res.statusCode).toBe(400);
     expect(res.body.message).toBe(
       "Some mandatory participants attended another event during the same time frame"
@@ -45,7 +43,6 @@ describe("Event", () => {
       .post("/event")
       .set("Authorization", `Bearer ${infiniteToken}`)
       .send(EventSameRoom);
-    // console.log(res);
     expect(res.statusCode).toBe(400);
     expect(res.body.message).toBe(
       "The room is already booked for another event during the same time frame"
@@ -63,7 +60,6 @@ describe("Event", () => {
         users,
         room,
       });
-    // console.log(res);
     expect(res.statusCode).toBe(400);
     expect(res.body.message).toBe(
       "Event validation failed: name: A Event must have a name"
@@ -83,7 +79,6 @@ describe("Event", () => {
         users,
         room,
       });
-    // console.log(res);
     expect(res.statusCode).toBe(400);
     expect(res.body.message).toBe(
       "Event validation failed: name: A name of Event must have a maximum of 50 characters"
@@ -100,7 +95,6 @@ describe("Event", () => {
         dateTime,
         users,
       });
-    // console.log(res);
     expect(res.statusCode).toBe(400);
     expect(res.body.message).toBe(
       "Event validation failed: room: A Event must have a room"
@@ -121,7 +115,6 @@ describe("Event", () => {
         users,
         room,
       });
-    // console.log(res);
     expect(res.statusCode).toBe(400);
     expect(res.body.message).toBe(
       "Event validation failed: room: A room name of Event must have a maximum of 50 characters"
@@ -139,7 +132,6 @@ describe("Event", () => {
         users,
         room,
       });
-    // console.log(res);
     expect(res.statusCode).toBe(400);
     expect(res.body.message).toBe(
       "Event validation failed: description: A Event must have a description"
@@ -158,7 +150,6 @@ describe("Event", () => {
         users,
         room,
       });
-    // console.log(res);
     expect(res.statusCode).toBe(400);
     expect(res.body.message).toBe(
       "Event validation failed: description: A description of Event must have a maximum of 100 characters"
@@ -175,7 +166,6 @@ describe("Event", () => {
         users,
         room,
       });
-    // console.log(res);
     expect(res.statusCode).toBe(400);
     expect(res.body.message).toBe(
       "Event validation failed: dateTime: A Event must have a date time"

@@ -184,9 +184,10 @@ const create_user = async (req, res) => {
       avatarImage,
       roles: handleRoles(position.code),
     });
-    newUser.password = await generatePassword(newUser.email);
+
+    newUser.password = await generatePassword(email);
     const createdUser = await newUser.save();
-    console.log({ createdUser });
+
     res.status(201).json({
       success: true,
       message: "New user created!",
@@ -196,16 +197,6 @@ const create_user = async (req, res) => {
     res.status(err.status || 400).json({
       message: err.messageObject || err.message,
     });
-    // if (err.code === 11000 || err.code === 11001) {
-    //   throw new BadRequestError("This email has already been registered");
-    // } else {
-    //   // console.error(err);
-    //   // throw new InternalServerError({
-    //   //   message: "An unexpected error occurred",
-    //   // });
-
-    //   throw err;
-    // }
   }
 };
 

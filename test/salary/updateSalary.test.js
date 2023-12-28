@@ -24,51 +24,43 @@ describe("Update Salary", () => {
   const nonExistedSalaryId = "65541e3a92fb6c12b844f5a0";
   beforeAll(async () => (loginRes = await login()));
 
-  describe("given the exist salary id", () => {
+  test("should update salary successfully", async () => {
     const { idAllowance } = salaryExisted;
-    test("should update salary successfully", async () => {
-      const res = await request(server)
-        .put(`/salary/${existedSalaryId}`)
-        .set("Authorization", `Bearer ${loginRes.body.accessToken}`)
-        .send({ idAllowance: idAllowance });
+    const res = await request(server)
+      .put(`/salary/${existedSalaryId}`)
+      .set("Authorization", `Bearer ${loginRes.body.accessToken}`)
+      .send({ idAllowance: idAllowance });
 
-      //   expect(res.statusCode).toBe(200);
-      expect(res.body.message).toBe("Update salary successfully");
-    });
+    expect(res.statusCode).toBe(200);
+    expect(res.body.message).toBe("Update salary successfully");
   });
-  describe("given the non exist salary id", () => {
+  test("should handle not found salary when given the non exist salary id", async () => {
     const { idAllowance } = salaryExisted;
-    test("should handle not found salary", async () => {
-      const res = await request(server)
-        .put(`/salary/${nonExistedSalaryId}`)
-        .set("Authorization", `Bearer ${loginRes.body.accessToken}`)
-        .send({ idAllowance: idAllowance });
+    const res = await request(server)
+      .put(`/salary/${nonExistedSalaryId}`)
+      .set("Authorization", `Bearer ${loginRes.body.accessToken}`)
+      .send({ idAllowance: idAllowance });
 
-      expect(res.statusCode).toBe(404);
-      expect(res.body.message).toBe("Not found salary");
-    });
+    expect(res.statusCode).toBe(404);
+    expect(res.body.message).toBe("Not found salary");
   });
-  describe("given the non exist allowance id", () => {
+  test("should handle not found allowance when given the non exist allowance id", async () => {
     const { idAllowance } = salaryExistedWithNotExistAllowanceId;
-    test("should handle not found allowance", async () => {
-      const res = await request(server)
-        .put(`/salary/${existedSalaryId}`)
-        .set("Authorization", `Bearer ${loginRes.body.accessToken}`)
-        .send({ idAllowance: idAllowance });
+    const res = await request(server)
+      .put(`/salary/${existedSalaryId}`)
+      .set("Authorization", `Bearer ${loginRes.body.accessToken}`)
+      .send({ idAllowance: idAllowance });
 
-      //   expect(res.statusCode).toBe(404);
-      expect(res.body.message).toBe("Allowance not found");
-    });
+    expect(res.statusCode).toBe(404);
+    expect(res.body.message).toBe("Allowance not found");
   });
-  describe("given the invalid id", () => {
+  test("should handle when given the invalid salary id", async () => {
     const { idAllowance } = salaryExisted;
-    test("should handle invalid id", async () => {
-      const res = await request(server)
-        .put(`/salary/${invalidId}`)
-        .set("Authorization", `Bearer ${loginRes.body.accessToken}`)
-        .send({ idAllowance: idAllowance });
+    const res = await request(server)
+      .put(`/salary/${invalidId}`)
+      .set("Authorization", `Bearer ${loginRes.body.accessToken}`)
+      .send({ idAllowance: idAllowance });
 
-      expect(res.statusCode).toBe(400);
-    });
+    expect(res.statusCode).toBe(400);
   });
 });
