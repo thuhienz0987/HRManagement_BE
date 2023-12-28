@@ -15,22 +15,11 @@ import {
 } from "../../utilsTest/user";
 import fs from "fs";
 import User from "../../models/User";
-import { ObjectId } from "mongodb";
 const server = serverTest();
 
-const login = async () => {
-  const loginRes = await request(server).post("/login").send({
-    email: "sontung01062003@gmail.com",
-    password: "Sontung01062003",
-  });
-
-  return loginRes;
-};
 const infiniteToken =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySW5mbyI6eyJ1c2VySWQiOiI2NTFiOTE5NDk4YmYzMzk2MDM5YjEyZmMiLCJyb2xlcyI6WyIzMjA0IiwiMjAwMSIsIjE5ODQiXX0sImlhdCI6MTcwMzY3ODI1MCwiZXhwIjoxNzE5MjMwMjUwfQ.FXSMEb5QI9zjdAF0ejzjzvWiCquGrL-ej0KjpY7ERlA";
 describe("user SignUp", () => {
-  //   let loginRes;
-  //   beforeAll(async () => (loginRes = await login(server)));
   test("should return create user successfully", async () => {
     const imageURL = "test/user/testImage/testImage.png";
     const imageBuffer = fs.readFileSync(imageURL);
