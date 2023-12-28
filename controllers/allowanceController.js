@@ -46,6 +46,7 @@ const postAllowance = async (req, res) => {
             });
         } else if (!allowanceExist) {
             const allowance = new Allowance({ name, code, amount });
+            console.log(allowance);
             const newAllowance = await allowance.save();
             res.status(201).json({
                 message: "Create Allowance successfully",
