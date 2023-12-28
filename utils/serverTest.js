@@ -1,3 +1,7 @@
+import dotenv from "dotenv";
+
+dotenv.config();
+
 import express from "express";
 import connectDB from "../config/connectDB";
 import router from "../routes";
@@ -5,9 +9,6 @@ import credentials from "../middlewares/credentials";
 import cors from "cors";
 import bodyParser from "body-parser";
 import cookieParser from "cookie-parser";
-import dotenv from "dotenv";
-
-dotenv.config();
 
 function serverTest() {
   const PORT = 1111;

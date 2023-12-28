@@ -31,20 +31,6 @@ const userSchema = new mongoose.Schema(
     password: {
       type: String,
       required: [true, "Password is required"],
-      default: function () {
-        const randomPassword = generateRandomPassword(8);
-        const saltRounds = 10;
-        const salt = bcrypt.genSaltSync(saltRounds);
-        const hashedPassword = bcrypt.hashSync(randomPassword, salt);
-        mailTransport().sendMail({
-          from: "HRManagement2003@gmail.com",
-          to: this.email,
-          subject: "Your Password",
-          html: UserPassword(randomPassword),
-        });
-
-        return hashedPassword;
-      },
     },
     name: {
       type: String,
@@ -53,8 +39,14 @@ const userSchema = new mongoose.Schema(
     phoneNumber: {
       type: String,
       required: [true, "Please tell us your phone number"],
-      minLength: [9, "Please check your phone number"],
-      maxLength: [11, "Please check your phone number"],
+      minLength: [
+        9,
+        "The phone number should have a minimum length of 9 characters",
+      ],
+      maxLength: [
+        11,
+        "The phone number should have a maximum length of 11 characters",
+      ],
     },
     birthday: {
       type: Date,
