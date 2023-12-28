@@ -72,13 +72,13 @@ const getSalaryByUserId = async (req, res) => {
       .populate("idPosition")
       .populate("idAllowance")
       .populate("idComment");
-    if (salary) {
+    if (salary.length > 0) {
       res.status(200).json(salary);
     } else {
       throw new NotFoundError("Salary not found");
     }
   } catch (err) {
-    res.status(err.status || 404).json({
+    res.status(err.status || 400).json({
       message: err.messageObject || err.message,
     });
   }

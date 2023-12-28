@@ -356,9 +356,7 @@ const additionalComment = async (req, res) => {
       const formattedDate = `${
         existingComment.commentMonth.getMonth() + 1
       }/${existingComment.commentMonth.getFullYear()}`;
-      throw new BadRequestError(
-        `A comment already exists for this pair in ${formattedDate}.`
-      );
+      throw new BadRequestError(`A comment already exists for this month.`);
     }
 
     const newComment = new Comment({

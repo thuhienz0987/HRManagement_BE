@@ -269,7 +269,7 @@ const postLeaveRequest = async (req, res) => {
       leaveRequest: postLeaveRequest,
     });
   } catch (err) {
-    res.status(err.status || 404).json({
+    res.status(err.status || 400).json({
       message: err.messageObject || err.message,
     });
   }
