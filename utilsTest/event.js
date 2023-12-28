@@ -53,5 +53,26 @@ const EventSameRoom = {
     ],
     room: "A33",
 };
+const EventMissProperties = {
+    name: "Contract signing",
+    description: "Important meeting to have a contract with Vinamilk Corp",
+    dateTime: new Date("2023-12-29T17:00:00.000+00:00"),
+    users: [
+        {
+            user: "6513ea6db2f06af8724be2d9",
+            mandatory: true,
+        },
+        {
+            user: "651b919498bf3396039b12fc",
+            mandatory: false,
+        },
+        {
+            user: "651fbdbb4f20aa3dade4c43a",
 
-export { EventCreate, EventSameTime, EventSameRoom };
+            mandatory: false,
+        },
+    ],
+    room: "E7.7",
+};
+
+export { EventCreate, EventSameTime, EventSameRoom, EventMissProperties };

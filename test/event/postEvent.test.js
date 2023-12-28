@@ -3,6 +3,7 @@ import serverTest from "../../utils/serverTest";
 import { format, parse } from "date-fns";
 import {
     EventCreate,
+    EventMissProperties,
     EventSameRoom,
     EventSameTime,
 } from "../../utilsTest/event";
@@ -50,14 +51,131 @@ describe("Event", () => {
     });
 
     test("should handle error when Event miss name", async () => {
+        const { description, dateTime, users, room } = EventMissProperties;
         const res = await request(server)
             .post("/event")
             .set("Authorization", `Bearer ${infiniteToken}`)
-            .send(EventSameRoom);
+            .send({
+                description,
+                dateTime,
+                users,
+                room,
+            });
         // console.log(res);
         expect(res.statusCode).toBe(400);
         expect(res.body.message).toBe(
-            "The room is already booked for another event during the same time frame"
+            "Event validation failed: name: A Event must have a name"
+        );
+    });
+    test("should handle error when name of Event have more 50 characters", async () => {
+        const { description, dateTime, users, room } = EventMissProperties;
+        const name =
+            "Contract signingContract signingContract signingContract signingContract signingContract signingContract signingContract signing";
+        const res = await request(server)
+            .post("/event")
+            .set("Authorization", `Bearer ${infiniteToken}`)
+            .send({
+                name,
+                description,
+                dateTime,
+                users,
+                room,
+            });
+        // console.log(res);
+        expect(res.statusCode).toBe(400);
+        expect(res.body.message).toBe(
+            "Event validation failed: name: A name of Event must have a maximum of 50 characters"
+        );
+    });
+    test("should handle error when Event miss room", async () => {
+        const { name, description, dateTime, users } = EventMissProperties;
+        const res = await request(server)
+            .post("/event")
+            .set("Authorization", `Bearer ${infiniteToken}`)
+            .send({
+                name,
+                description,
+                dateTime,
+                users,
+            });
+        // console.log(res);
+        expect(res.statusCode).toBe(400);
+        expect(res.body.message).toBe(
+            "Event validation failed: room: A Event must have a room"
+        );
+    });
+    test("should handle error when room of Event have more 50 characters", async () => {
+        const { description, dateTime, users, name } = EventMissProperties;
+        const room =
+            "Contract signingContract signingContract signingContract signingContract signingContract signingContract signingContract signing";
+        const res = await request(server)
+            .post("/event")
+            .set("Authorization", `Bearer ${infiniteToken}`)
+            .send({
+                name,
+                description,
+                dateTime,
+                users,
+                room,
+            });
+        // console.log(res);
+        expect(res.statusCode).toBe(400);
+        expect(res.body.message).toBe(
+            "Event validation failed: room: A room name of Event must have a maximum of 50 characters"
+        );
+    });
+    test("should handle error when Event miss description", async () => {
+        const { name, dateTime, users, room } = EventMissProperties;
+        const res = await request(server)
+            .post("/event")
+            .set("Authorization", `Bearer ${infiniteToken}`)
+            .send({
+                name,
+                dateTime,
+                users,
+                room,
+            });
+        // console.log(res);
+        expect(res.statusCode).toBe(400);
+        expect(res.body.message).toBe(
+            "Event validation failed: description: A Event must have a description"
+        );
+    });
+    test("should handle error when description of Event have more 100 characters", async () => {
+        const { name, dateTime, users, room } = EventMissProperties;
+        const description =
+            "Contract signingContract signingContract signingContract signingContract signingContract signingContract signingContract signingContract signingContract signingContract signingContract signingContract signingContract signingContract signingContract signingContract signingContract signingContract signingContract signingContract signingContract signingContract signingContract signingContract signingContract signingContract signingContract signingContract signingContract signingContract signingContract signingContract signingContract signingContract signingContract signingContract signingContract signingContract signingContract signingContract signingContract signingContract signingContract signingContract signingContract signingContract signingContract signingContract signingContract signing";
+        const res = await request(server)
+            .post("/event")
+            .set("Authorization", `Bearer ${infiniteToken}`)
+            .send({
+                name,
+                description,
+                dateTime,
+                users,
+                room,
+            });
+        // console.log(res);
+        expect(res.statusCode).toBe(400);
+        expect(res.body.message).toBe(
+            "Event validation failed: description: A description of Event must have a maximum of 100 characters"
+        );
+    });
+    test("should handle error when Event miss dateTime", async () => {
+        const { name, description, users, room } = EventMissProperties;
+        const res = await request(server)
+            .post("/event")
+            .set("Authorization", `Bearer ${infiniteToken}`)
+            .send({
+                name,
+                description,
+                users,
+                room,
+            });
+        // console.log(res);
+        expect(res.statusCode).toBe(400);
+        expect(res.body.message).toBe(
+            "Event validation failed: dateTime: A Event must have a date time"
         );
     });
 });
