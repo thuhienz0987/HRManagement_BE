@@ -284,9 +284,10 @@ const change_password = async (req, res) => {
       html: passwordResetTemplate(),
     });
 
-    res
-      .status(200)
-      .json({ Status: "Success", message: "Change Password Successfully" });
+    res.status(200).json({
+      Status: "Success",
+      message: "Change Password Successfully",
+    });
   } catch (err) {
     throw err;
   }
@@ -433,7 +434,7 @@ const get_user_by_id = async (req, res) => {
     user.password = undefined;
     res.status(200).json(user);
   } catch (err) {
-    res.status(err.status || 404).json({
+    res.status(err.status || 400).json({
       message: err.messageObject || err.message,
     });
   }

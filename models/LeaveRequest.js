@@ -14,7 +14,7 @@ const leaveRequestSchema = new mongoose.Schema(
     },
     userId: {
       type: mongoose.Types.ObjectId,
-      required: true,
+      required: [true, "User id is missing"],
       ref: "User",
     },
     startDate: {

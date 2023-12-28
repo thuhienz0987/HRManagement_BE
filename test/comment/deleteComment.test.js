@@ -27,6 +27,7 @@ describe("Delete Comment", () => {
         .set("Authorization", `Bearer ${loginRes.body.accessToken}`);
 
       expect(res.statusCode).toBe(200);
+      expect(res.body.message).toBe("Deleted Comment successfully");
     });
   });
   describe("given the non exist comment id", () => {
@@ -36,6 +37,7 @@ describe("Delete Comment", () => {
         .set("Authorization", `Bearer ${loginRes.body.accessToken}`);
 
       expect(res.statusCode).toBe(404);
+      expect(res.body.message).toBe("Comment not found");
     });
   });
   describe("given the invalid id", () => {

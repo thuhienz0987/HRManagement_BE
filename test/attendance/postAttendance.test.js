@@ -18,6 +18,7 @@ describe("Post attendance", () => {
   let createdAttendanceId; // Store the ID of the created attendance for cleanup
 
   const idExists = "65541e5b92fb6c12b844f5a4"; //thao
+  const idNonExists = "65541e5b91fb6c12b366f5a4";
 
   beforeAll(async () => (loginRes = await login(server)));
 
@@ -38,7 +39,7 @@ describe("Post attendance", () => {
     }
   });
 
-  test("should handle attendance throw BadRequestError", async () => {
+  test("should handle user be attended throw BadRequestError", async () => {
     const res = await request(server)
       .post(`/attendance`)
       .set("Authorization", `Bearer ${loginRes.body.accessToken}`)
@@ -46,6 +47,17 @@ describe("Post attendance", () => {
 
     expect(res.statusCode).toBe(400);
     expect(res.body.message).toBe("You took attendance today.");
+  });
+  test("should handle error when user not found ", async () => {
+    const res = await request(server)
+      .post("/attendance")
+      .set("Authorization", `Bearer ${loginRes.body.accessToken}`)
+      .send({
+        userId: idNonExists,
+      });
+    // console.log(res);
+    expect(res.statusCode).toBe(404);
+    expect(res.body.message).toBe("User not found!");
   });
 
   afterAll(async () => {

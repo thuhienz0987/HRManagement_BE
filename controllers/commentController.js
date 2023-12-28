@@ -66,7 +66,7 @@ const getCommentsByRevieweeId = async (req, res) => {
       res.status(200).json(comments);
     }
   } catch (err) {
-    res.status(err.status || 404).json({
+    res.status(err.status || 400).json({
       message: err.messageObject || err.message,
     });
   }
@@ -181,7 +181,9 @@ const getEmployeeNotCommentByTeamIdMonth = async (req, res) => {
         $lt: nextMonthDate,
       },
       isDeleted: false,
-      revieweeId: { $in: employeesWithoutPassword.map((user) => user._id) },
+      revieweeId: {
+        $in: employeesWithoutPassword.map((user) => user._id),
+      },
     });
     const employeesWithoutComments = employeesWithoutPassword.filter((user) => {
       return !comments.some(
@@ -224,7 +226,9 @@ const getDepManagerNotCommentMonth = async (req, res) => {
         $lt: nextMonthDate,
       },
       isDeleted: false,
-      revieweeId: { $in: managersWithoutPassword.map((user) => user._id) },
+      revieweeId: {
+        $in: managersWithoutPassword.map((user) => user._id),
+      },
     });
     const managersWithoutComments = managersWithoutPassword.filter((user) => {
       return !comments.some(
@@ -268,9 +272,7 @@ const postComment = async (req, res) => {
       const formattedDate = `${
         existingComment.commentMonth.getMonth() + 1
       }/${existingComment.commentMonth.getFullYear()}`;
-      throw new BadRequestError(
-        `A comment already exists for this pair in ${formattedDate}.`
-      );
+      throw new BadRequestError(`A comment already exists for this month`);
     }
 
     const newComment = new Comment({

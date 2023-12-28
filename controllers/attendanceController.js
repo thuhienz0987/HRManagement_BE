@@ -15,7 +15,7 @@ import {
   differenceInDays,
 } from "date-fns";
 import Department from "../models/Department.js";
-import mongoose from "mongoose";
+import mongoose, { isValidObjectId } from "mongoose";
 
 const getAttendances = async (req, res) => {
   try {
@@ -97,7 +97,10 @@ const getPercentAttendancesByMonth = async (req, res) => {
             const attendanceAmount = await Attendance.countDocuments({
               userId: user._id,
               isDeleted: false,
-              attendanceDate: { $gte: targetDate, $lte: endDate },
+              attendanceDate: {
+                $gte: targetDate,
+                $lte: endDate,
+              },
             });
             departmentAttendances += attendanceAmount;
           })
@@ -215,7 +218,7 @@ const getAttendanceByMonth = async (req, res) => {
 
     res.status(200).json(attendances);
   } catch (err) {
-    res.status(err.status || 404).json({
+    res.status(err.status || 400).json({
       message: err.messageObject || err.message,
     });
   }
@@ -318,7 +321,10 @@ const getRatioForEmployee = async (req, res) => {
 
     const currentDate = new Date(); // Ngày hiện tại
 
-    const userAttendance = await Attendance.find({ userId, isDeleted: false });
+    const userAttendance = await Attendance.find({
+      userId,
+      isDeleted: false,
+    });
     const totalWorkingDays = userAttendance.length;
     const totalDaysAsEmployee = differenceInDays(
       addDays(currentDate, 1),
@@ -595,6 +601,8 @@ const getWorkTimeADayInMonth = async (req, res) => {
 const postAttendance = async (req, res) => {
   const { userId } = req.body;
   try {
+    const user = await User.findById(userId);
+    if (!user) throw new NotFoundError("User not found!");
     // Kiểm tra xem đã có bảng chấm công nào cho ngày hôm nay và userId tương ứng chưa
     const existingAttendance = await Attendance.findOne({
       userId: userId,
@@ -622,16 +630,23 @@ const postAttendance = async (req, res) => {
       attendance: saveAttendance,
     });
   } catch (err) {
-    res.status(err.status || 404).json({
+    res.status(err.status || 400).json({
       message: err.messageObject || err.message,
     });
   }
 };
 
 const closeAttendance = async (req, res) => {
-  const { id } = req.params;
+  const id = req.params?.id;
   // Kiểm tra xem bảng chấm công có tồn tại không
   try {
+    if (!id) {
+      throw new BadRequestError("Empty _id");
+    }
+    if (!isValidObjectId(id)) {
+      throw new BadRequestError("Invalid attendance _id");
+    }
+
     const attendance = await Attendance.findById({ _id: id });
 
     if (!attendance) {
@@ -663,7 +678,9 @@ const closeAttendance = async (req, res) => {
       attendance: closeAttendance,
     });
   } catch (err) {
-    throw err;
+    res.status(err.status || 404).json({
+      message: err.messageObject || err.message,
+    });
   }
 };
 
@@ -832,7 +849,7 @@ const deleteForeverAttendance = async (req, res) => {
       attendance: deletedAttendance,
     });
   } catch (err) {
-    res.status(err.status || 404).json({
+    res.status(err.status || 400).json({
       message: err.messageObject || err.message,
     });
   }

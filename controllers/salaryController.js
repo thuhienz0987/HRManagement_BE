@@ -72,13 +72,13 @@ const getSalaryByUserId = async (req, res) => {
       .populate("idPosition")
       .populate("idAllowance")
       .populate("idComment");
-    if (salary) {
+    if (salary.length > 0) {
       res.status(200).json(salary);
     } else {
       throw new NotFoundError("Salary not found");
     }
   } catch (err) {
-    res.status(err.status || 404).json({
+    res.status(err.status || 400).json({
       message: err.messageObject || err.message,
     });
   }
@@ -175,8 +175,12 @@ const postSalary = async (req, res) => {
             $cond: {
               if: {
                 $or: [
-                  { $eq: [{ $dayOfWeek: "$attendanceDate" }, 0] }, // Chủ nhật
-                  { $eq: [{ $dayOfWeek: "$attendanceDate" }, 6] }, // Thứ 7
+                  {
+                    $eq: [{ $dayOfWeek: "$attendanceDate" }, 0],
+                  }, // Chủ nhật
+                  {
+                    $eq: [{ $dayOfWeek: "$attendanceDate" }, 6],
+                  }, // Thứ 7
                   { $in: ["$attendanceDate", holidays] }, // Ngày lễ
                 ],
               },
@@ -232,8 +236,12 @@ const postSalary = async (req, res) => {
             $cond: {
               if: {
                 $or: [
-                  { $eq: [{ $dayOfWeek: "$attendanceDate" }, 0] }, // Chủ nhật
-                  { $eq: [{ $dayOfWeek: "$attendanceDate" }, 6] }, // Thứ 7
+                  {
+                    $eq: [{ $dayOfWeek: "$attendanceDate" }, 0],
+                  }, // Chủ nhật
+                  {
+                    $eq: [{ $dayOfWeek: "$attendanceDate" }, 6],
+                  }, // Thứ 7
                   { $in: ["$attendanceDate", holidays] }, // Ngày lễ
                 ],
               },
@@ -320,9 +328,10 @@ const postSalary = async (req, res) => {
 
     const postSalary = await newSalary.save();
 
-    res
-      .status(201)
-      .json({ message: "Salary created successfully", salary: postSalary });
+    res.status(201).json({
+      message: "Salary created successfully",
+      salary: postSalary,
+    });
   } catch (err) {
     res.status(err.status || 400).json({
       message: err.messageObject || err.message,
@@ -380,9 +389,10 @@ const updateSalary = async (req, res) => {
     salary.bonus = calculate.bonus;
 
     const updateSalary = await salary.save();
-    res
-      .status(200)
-      .json({ message: "Update salary successfully", salary: updateSalary });
+    res.status(200).json({
+      message: "Update salary successfully",
+      salary: updateSalary,
+    });
   } catch (err) {
     res.status(err.status || 400).json({
       message: err.messageObject || err.message,
@@ -400,9 +410,10 @@ const confirmSalary = async (req, res) => {
     }
     salary.payDay = payDay ? payDay : salary.payDay;
     const updateSalary = await salary.save();
-    res
-      .status(200)
-      .json({ message: "Update salary successfully", salary: updateSalary });
+    res.status(200).json({
+      message: "Update salary successfully",
+      salary: updateSalary,
+    });
   } catch (err) {
     throw err;
   }
