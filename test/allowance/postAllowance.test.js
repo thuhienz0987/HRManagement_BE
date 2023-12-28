@@ -15,14 +15,14 @@ const server = serverTest();
 describe("Allowance", () => {
   test("should create a new allowance when it does not exist", async () => {
     const res = await request(server)
-      .post("/position")
+      .post("/allowance")
       .set("Authorization", `Bearer ${infiniteToken}`)
       .send(AllowanceCreate);
+    console.log(res.body);
     expect(res.statusCode).toBe(201);
     expect(res.body.allowance.name).toBe(AllowanceCreate.name);
-    expect(res.body.message).toBe("Create Allowance successfully");
-
     await Allowance.deleteOne({ code: AllowanceCreate.code });
+    expect(res.body.message).toBe("Create Allowance successfully");
   });
 
   test("should restore a allowance when it is marked as deleted", async () => {

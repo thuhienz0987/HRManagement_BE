@@ -15,7 +15,7 @@ import {
   differenceInDays,
 } from "date-fns";
 import Department from "../models/Department.js";
-import mongoose from "mongoose";
+import mongoose, { isValidObjectId } from "mongoose";
 
 const getAttendances = async (req, res) => {
   try {
@@ -637,9 +637,16 @@ const postAttendance = async (req, res) => {
 };
 
 const closeAttendance = async (req, res) => {
-  const { id } = req.params;
+  const id = req.params?.id;
   // Kiểm tra xem bảng chấm công có tồn tại không
   try {
+    if (!id) {
+      throw new BadRequestError("Empty _id");
+    }
+    if (!isValidObjectId(id)) {
+      throw new BadRequestError("Invalid attendance _id");
+    }
+
     const attendance = await Attendance.findById({ _id: id });
 
     if (!attendance) {
@@ -671,7 +678,9 @@ const closeAttendance = async (req, res) => {
       attendance: closeAttendance,
     });
   } catch (err) {
-    throw err;
+    res.status(err.status || 404).json({
+      message: err.messageObject || err.message,
+    });
   }
 };
 
