@@ -6,6 +6,7 @@ import {
     commentMissProperties,
     commentValid,
 } from "../../utilsTest/comment";
+import Comment from "../../models/Comment";
 
 const server = serverTest();
 
@@ -32,6 +33,8 @@ describe("Post Comment", () => {
             .send({ rate, comment, commentMonth, revieweeId, reviewerId });
 
         expect(res.statusCode).toBe(201);
+
+        await Comment.deleteOne({ _id: res.body.comment._id });
     });
     test("should handle error when a comment already exists for the pair in the same month", async () => {
         const { rate, comment, commentMonth, revieweeId, reviewerId } =
