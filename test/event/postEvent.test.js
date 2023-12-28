@@ -35,7 +35,6 @@ describe("Event", () => {
         expect(res.body.message).toBe(
             "Some mandatory participants attended another event during the same time frame"
         );
-        // await Event.deleteOne({ name: EventSameTime.name });
     });
 
     test("should handle error when the room is already booked for another event during the same time frame", async () => {
@@ -48,6 +47,17 @@ describe("Event", () => {
         expect(res.body.message).toBe(
             "The room is already booked for another event during the same time frame"
         );
-        // await Event.deleteOne({ name: EventSameTime.name });
+    });
+
+    test("should handle error when Event miss name", async () => {
+        const res = await request(server)
+            .post("/event")
+            .set("Authorization", `Bearer ${infiniteToken}`)
+            .send(EventSameRoom);
+        // console.log(res);
+        expect(res.statusCode).toBe(400);
+        expect(res.body.message).toBe(
+            "The room is already booked for another event during the same time frame"
+        );
     });
 });
