@@ -19,6 +19,7 @@ import {
   postAttendance,
   updateAttendance,
   getRatioForEmployee,
+  deleteForeverAttendance,
 } from "../controllers/attendanceController.js";
 import ROLES_LIST from "../config/roles_list.js";
 import verifyRoles from "../middlewares/verifyRoles.js";
@@ -67,7 +68,10 @@ attendanceRouter.get(
   getWorkTimeADayInMonth
 );
 
-attendanceRouter.get('/attendanceRatioForEmployee/:userId',getRatioForEmployee)
+attendanceRouter.get(
+  "/attendanceRatioForEmployee/:userId",
+  getRatioForEmployee
+);
 
 attendanceRouter.post("/auto/:month/:year", generateMockAttendanceData);
 
@@ -90,6 +94,12 @@ attendanceRouter.delete(
   "/attendance/:id",
   verifyRoles(ROLES_LIST.HRManager),
   deleteAttendance
+);
+
+attendanceRouter.delete(
+  "/attendanceDeleteForever/:id",
+  verifyRoles(ROLES_LIST.HRManager),
+  deleteForeverAttendance
 );
 
 export default attendanceRouter;

@@ -269,7 +269,9 @@ const postLeaveRequest = async (req, res) => {
       leaveRequest: postLeaveRequest,
     });
   } catch (err) {
-    throw err;
+    res.status(err.status || 404).json({
+      message: err.messageObject || err.message,
+    });
   }
 };
 
@@ -425,6 +427,27 @@ const deleteLeaveRequest = async (req, res) => {
   }
 };
 
+const deleteForeverLeaveRequest = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    // Find and delete the attendance document by ID
+    const deletedLeaveRequest = await LeaveRequest.findByIdAndDelete(id);
+
+    if (!deletedLeaveRequest) {
+      throw new NotFoundError("Not found leave request");
+    }
+
+    res.status(200).json({
+      message: "Deleted leave request successfully",
+    });
+  } catch (err) {
+    res.status(err.status || 404).json({
+      message: err.messageObject || err.message,
+    });
+  }
+};
+
 export {
   getLeaveRequests,
   getLeaveRequest,
@@ -435,4 +458,5 @@ export {
   ChangeStatus,
   deleteLeaveRequest,
   getLeaveRequestsOfMonthByUserId,
+  deleteForeverLeaveRequest,
 };

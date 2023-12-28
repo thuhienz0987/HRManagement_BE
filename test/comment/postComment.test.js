@@ -1,98 +1,46 @@
 import request from "supertest";
 
 import serverTest from "../../utils/serverTest";
-import {
-  gameHostInValid,
-  gamePinInValid,
-  gameQuizInValid,
-  gameValid,
-} from "../../utilsTest/game";
+import { commentInValid, commentValid } from "../../utilsTest/comment";
 
 const server = serverTest();
 
 const login = async () => {
-  const loginRes = await request(server).post("/api/auth/login").send({
-    mail: "test@gmail.com",
-    password: "123",
+  const loginRes = await request(server).post("/login").send({
+    email: "sontung01062003@gmail.com",
+    password: "Sontung01062003",
   });
 
   return loginRes;
 };
 
-describe("Create Game", () => {
+describe("Post Comment", () => {
   let loginRes;
 
   beforeAll(async () => (loginRes = await login()));
 
-  describe("given the valid host, quiz, pin", () => {
-    const { host, quiz, pin, playList, playerResultList } = gameValid;
-    test("should return the game", async () => {
+  describe("given the valid comment", () => {
+    const { rate, comment, commentMonth, revieweeId, reviewerId } =
+      commentValid;
+    test("should create a new comment successfully", async () => {
       const res = await request(server)
-        .post(`/api/game`)
+        .post(`/comment`)
         .set("Authorization", `Bearer ${loginRes.body.accessToken}`)
-        .send({
-          host,
-          quiz,
-          pin,
-          playList,
-          playerResultList,
-        });
+        .send({ rate, comment, commentMonth, revieweeId, reviewerId });
 
       expect(res.statusCode).toBe(201);
     });
   });
-
-  describe("given the invalid host, valid quiz, pin", () => {
-    const { host, quiz, pin, playList, playerResultList } = gameHostInValid;
-    test("should return the 404 bad request", async () => {
+  describe("given the invalid commentMonth", () => {
+    const { rate, comment, commentMonth, revieweeId, reviewerId } =
+      commentInValid;
+    test("should handle error when a comment already exists for the pair in the same month", async () => {
       const res = await request(server)
-        .post(`/api/game`)
+        .post(`/comment`)
         .set("Authorization", `Bearer ${loginRes.body.accessToken}`)
-        .send({
-          host,
-          quiz,
-          pin,
-          playList,
-          playerResultList,
-        });
+        .send({ rate, comment, commentMonth, revieweeId, reviewerId });
 
-      expect(res.statusCode).toBe(404);
-    });
-  });
-
-  describe("given the invalid quiz, valid host, pin", () => {
-    const { host, quiz, pin, playList, playerResultList } = gameQuizInValid;
-    test("should return the 404 bad request", async () => {
-      const res = await request(server)
-        .post(`/api/game`)
-        .set("Authorization", `Bearer ${loginRes.body.accessToken}`)
-        .send({
-          host,
-          quiz,
-          pin,
-          playList,
-          playerResultList,
-        });
-
-      expect(res.statusCode).toBe(404);
-    });
-  });
-
-  describe("given the invalid pin, valid host, quiz", () => {
-    const { host, quiz, pin, playList, playerResultList } = gamePinInValid;
-    test("should return the 404 bad request", async () => {
-      const res = await request(server)
-        .post(`/api/game`)
-        .set("Authorization", `Bearer ${loginRes.body.accessToken}`)
-        .send({
-          host,
-          quiz,
-          pin,
-          playList,
-          playerResultList,
-        });
-
-      expect(res.statusCode).toBe(404);
+      expect(res.statusCode).toBe(400);
     });
   });
 });

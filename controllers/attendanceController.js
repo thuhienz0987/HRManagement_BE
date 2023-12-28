@@ -215,7 +215,9 @@ const getAttendanceByMonth = async (req, res) => {
 
     res.status(200).json(attendances);
   } catch (err) {
-    throw err;
+    res.status(err.status || 404).json({
+      message: err.messageObject || err.message,
+    });
   }
 };
 
@@ -620,7 +622,9 @@ const postAttendance = async (req, res) => {
       attendance: saveAttendance,
     });
   } catch (err) {
-    throw err;
+    res.status(err.status || 404).json({
+      message: err.messageObject || err.message,
+    });
   }
 };
 
@@ -810,6 +814,30 @@ function getRndInteger(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
+const deleteForeverAttendance = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    // Find and delete the attendance document by ID
+    const deletedAttendance = await Attendance.findByIdAndDelete(id);
+
+    if (!deletedAttendance) {
+      // If the attendance document is not found, throw a NotFoundError
+      throw new NotFoundError("Not found attendance");
+    }
+
+    // If the attendance document is found and deleted, send a success response
+    res.status(200).json({
+      message: "Deleted attendance successfully",
+      attendance: deletedAttendance,
+    });
+  } catch (err) {
+    res.status(err.status || 404).json({
+      message: err.messageObject || err.message,
+    });
+  }
+};
+
 export {
   getAttendances,
   getAttendance,
@@ -830,4 +858,5 @@ export {
   updateAttendance,
   deleteAttendance,
   generateMockAttendanceData,
+  deleteForeverAttendance,
 };
