@@ -1,5 +1,6 @@
 import User from "../models/User.js";
 import cloudinary from "../helper/imageUpload.js";
+import validator from "validator";
 import bcrypt from "bcrypt";
 import { isValidObjectId } from "mongoose";
 import BadRequestError from "../errors/badRequestError.js";
@@ -12,11 +13,13 @@ import {
   OtpTemplate,
   generateOTP,
   passwordResetTemplate,
+  UserPassword,
 } from "../utils/mail.js";
 import ResetToken from "../models/ResetToken.js";
 import Department from "../models/Department.js";
 import { parse, format } from "date-fns";
 import Position from "../models/Position.js";
+import { generateRandomPassword } from "../utils/helper.js";
 
 // init password validator
 let passwordSchema = new PasswordValidator();
@@ -67,6 +70,20 @@ const handleRoles = (positionCode) => {
   }
   return rolesArray;
 };
+const generatePassword = async (email) => {
+  const randomPassword = generateRandomPassword(8);
+  const saltRounds = 10;
+  const salt = bcrypt.genSaltSync(saltRounds);
+  const hashedPassword = bcrypt.hashSync(randomPassword, salt);
+  mailTransport().sendMail({
+    from: "HRManagement2003@gmail.com",
+    to: email,
+    subject: "Your Password",
+    html: UserPassword(randomPassword),
+  });
+
+  return hashedPassword;
+};
 const create_user = async (req, res) => {
   const {
     email,
@@ -84,11 +101,16 @@ const create_user = async (req, res) => {
   } = req.body;
 
   try {
+    if (email === "") {
+      throw new BadRequestError("Email is required");
+    }
+    if (birthday === "") {
+      throw new BadRequestError("Birthday is missing");
+    }
     const birthDay = parse(birthday, "dd/MM/yyyy", new Date());
     const isoBirthDayStr = format(birthDay, "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
     const position = await Position.findOne({
       _id: positionId,
-      isDeleted: false,
     });
 
     if (!position) {
@@ -96,9 +118,9 @@ const create_user = async (req, res) => {
         `The position with position _id ${positionId} does not exist`
       );
     } else if (position.isDeleted === true) {
-      res
-        .status(410)
-        .send(`Position with position _id ${positionId} is deleted`);
+      throw new BadRequestError(
+        `Position with position _id ${positionId} is deleted`
+      );
     }
 
     const userExists = await User.findOne({
@@ -109,7 +131,9 @@ const create_user = async (req, res) => {
     if (userExists) {
       throw new BadRequestError(`User with email registered`);
     }
-
+    if (!validator.isEmail(email)) {
+      throw new BadRequestError("Invalid email");
+    }
     // Tạo một instance của User để lấy _id
     const user = new User();
 
@@ -124,6 +148,7 @@ const create_user = async (req, res) => {
           crop: "fill",
         });
       } catch (err) {
+        console.log(err);
         throw new InternalServerError(
           "Unable to upload avatar, please try again"
         );
@@ -144,7 +169,7 @@ const create_user = async (req, res) => {
 
     const newUser = new User({
       email,
-      code: generateUserCode(employeeAmount, currentDate, user),
+      code: generateUserCode(employeeAmount, currentDate),
       name,
       phoneNumber,
       birthday: isoBirthDayStr,
@@ -159,25 +184,28 @@ const create_user = async (req, res) => {
       avatarImage,
       roles: handleRoles(position.code),
     });
-
+    newUser.password = await generatePassword(newUser.email);
     const createdUser = await newUser.save();
-
+    console.log({ createdUser });
     res.status(201).json({
       success: true,
       message: "New user created!",
       createdUser,
     });
   } catch (err) {
-    if (err.code === 11000 || err.code === 11001) {
-      throw new BadRequestError("This email has already been registered");
-    } else {
-      // console.error(err);
-      // throw new InternalServerError({
-      //   message: "An unexpected error occurred",
-      // });
+    res.status(err.status || 400).json({
+      message: err.messageObject || err.message,
+    });
+    // if (err.code === 11000 || err.code === 11001) {
+    //   throw new BadRequestError("This email has already been registered");
+    // } else {
+    //   // console.error(err);
+    //   // throw new InternalServerError({
+    //   //   message: "An unexpected error occurred",
+    //   // });
 
-      throw err;
-    }
+    //   throw err;
+    // }
   }
 };
 
