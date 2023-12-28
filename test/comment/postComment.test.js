@@ -60,7 +60,6 @@ describe("Post Comment", () => {
         revieweeId,
         reviewerId,
       });
-    // console.log(res);
     expect(res.statusCode).toBe(400);
     expect(res.body.message).toBe(
       "Comment validation failed: comment: Comment is missing"
@@ -78,7 +77,6 @@ describe("Post Comment", () => {
         revieweeId,
         reviewerId,
       });
-    // console.log(res);
     expect(res.statusCode).toBe(400);
     expect(res.body.message).toBe(
       "Comment validation failed: rate: Rate is missing"
@@ -98,7 +96,6 @@ describe("Post Comment", () => {
         revieweeId,
         reviewerId,
       });
-    // console.log(res);
     expect(res.statusCode).toBe(400);
     expect(res.body.message).toBe(
       "Comment validation failed: rate: `11` is not a valid enum value for path `rate`."

@@ -1,4 +1,5 @@
 import request from "supertest";
+
 import serverTest from "../../utils/serverTest";
 import {
   AllowanceCreate,
@@ -56,7 +57,6 @@ describe("Allowance", () => {
       .post("/allowance")
       .set("Authorization", `Bearer ${infiniteToken}`)
       .send({ ...AllowanceCreate, code: "" });
-    // console.log(res.body);
     expect(res.statusCode).toBe(400);
     expect(res.body.message).toBe(
       `Allowance validation failed: code: Allowance must have a code`

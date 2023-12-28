@@ -55,7 +55,6 @@ describe("Position", () => {
       .post("/position")
       .set("Authorization", `Bearer ${infiniteToken}`)
       .send({ ...PositionCreate, code: "" });
-    // console.log(res.body);
     expect(res.statusCode).toBe(400);
     expect(res.body.message).toBe(
       `Position validation failed: code: A Position must have a code`

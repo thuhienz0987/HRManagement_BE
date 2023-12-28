@@ -21,37 +21,31 @@ describe("Update Comment", () => {
   const nonExistedCommentId = "65541e3a92fb6c12b844f5a0";
   beforeAll(async () => (loginRes = await login()));
 
-  describe("given the exist comment id", () => {
+  test("should update comment successfully when given the exist comment id", async () => {
     const { rate, comment, commentMonth } = commentUpdate;
-    test("should update comment successfully", async () => {
-      const res = await request(server)
-        .put(`/comment/${existedCommentId}`)
-        .set("Authorization", `Bearer ${loginRes.body.accessToken}`)
-        .send({ rate, comment, commentMonth });
+    const res = await request(server)
+      .put(`/comment/${existedCommentId}`)
+      .set("Authorization", `Bearer ${loginRes.body.accessToken}`)
+      .send({ rate, comment, commentMonth });
 
-      expect(res.statusCode).toBe(200);
-    });
+    expect(res.statusCode).toBe(200);
   });
-  describe("given the non exist comment id", () => {
+  test("should handle not found comment when given the non exist comment id", async () => {
     const { rate, comment, commentMonth } = commentUpdate;
-    test("should handle not found comment", async () => {
-      const res = await request(server)
-        .put(`/comment/${nonExistedCommentId}`)
-        .set("Authorization", `Bearer ${loginRes.body.accessToken}`)
-        .send({ rate, comment, commentMonth });
+    const res = await request(server)
+      .put(`/comment/${nonExistedCommentId}`)
+      .set("Authorization", `Bearer ${loginRes.body.accessToken}`)
+      .send({ rate, comment, commentMonth });
 
-      expect(res.statusCode).toBe(404);
-    });
+    expect(res.statusCode).toBe(404);
   });
-  describe("given the invalid id", () => {
+  test("should handle when given the invalid comment id", async () => {
     const { rate, comment, commentMonth } = commentUpdate;
-    test("should handle invalid id", async () => {
-      const res = await request(server)
-        .put(`/comment/${invalidId}`)
-        .set("Authorization", `Bearer ${loginRes.body.accessToken}`)
-        .send({ rate, comment, commentMonth });
+    const res = await request(server)
+      .put(`/comment/${invalidId}`)
+      .set("Authorization", `Bearer ${loginRes.body.accessToken}`)
+      .send({ rate, comment, commentMonth });
 
-      expect(res.statusCode).toBe(400);
-    });
+    expect(res.statusCode).toBe(400);
   });
 });
