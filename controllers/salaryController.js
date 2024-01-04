@@ -63,6 +63,57 @@ const getSalary = async (req, res) => {
     throw err;
   }
 };
+const getAllSalariesByMonthYear = async (req, res) => {
+  const { month, year } = req.params;
+
+  try {
+    const targetDate = new Date(year, month - 1, 1);
+    const endDate = new Date(year, month, 0);
+
+    const salaries = await Salary.find({
+      isDeleted: false,
+      createdAt: { $gte: targetDate, $lte: endDate },
+    })
+      .populate("userId")
+      .populate("idPosition")
+      .populate("idAllowance")
+      .populate("idComment");
+
+    if (salaries.length === 0) {
+      throw new NotFoundError(`No salary found for ${month}/${year}`);
+    }
+
+    res.status(200).json(salaries);
+  } catch (err) {
+    throw err;
+  }
+};
+const getSalaryByMonthYear = async (req, res) => {
+  const { userId, month, year } = req.params;
+
+  try {
+    const targetDate = new Date(year, month - 1, 1);
+    const endDate = new Date(year, month, 0);
+
+    const salaries = await Salary.find({
+      isDeleted: false,
+      userId: userId,
+      createdAt: { $gte: targetDate, $lte: endDate },
+    })
+      .populate("userId")
+      .populate("idPosition")
+      .populate("idAllowance")
+      .populate("idComment");
+
+    if (salaries.length === 0) {
+      throw new NotFoundError(`No salary found for ${month}/${year}`);
+    }
+
+    res.status(200).json(salaries);
+  } catch (err) {
+    throw err;
+  }
+};
 
 const getSalaryByUserId = async (req, res) => {
   const { id } = req.params;
@@ -535,6 +586,8 @@ const calculateBonus = async (rate) => {
 export {
   getSalaries,
   getSalary,
+  getSalaryByMonthYear,
+  getAllSalariesByMonthYear,
   postSalary,
   updateSalary,
   confirmSalary,
