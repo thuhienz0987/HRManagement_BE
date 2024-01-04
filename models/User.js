@@ -6,6 +6,8 @@ import ROLES_LIST from "../config/roles_list.js";
 const { isEmail } = pkg;
 import { generateRandomPassword } from "../utils/helper.js";
 import { mailTransport, UserPassword } from "../utils/mail.js";
+import UnauthorizedError from "../errors/unauthorizedError.js";
+import BadRequestError from "../errors/badRequestError.js";
 
 const userSchema = new mongoose.Schema(
   {
@@ -28,21 +30,6 @@ const userSchema = new mongoose.Schema(
     },
     password: {
       type: String,
-      required: [true, "Password is required"],
-      default: function () {
-        const randomPassword = generateRandomPassword(8);
-        const saltRounds = 10;
-        const salt = bcrypt.genSaltSync(saltRounds);
-        const hashedPassword = bcrypt.hashSync(randomPassword, salt);
-        mailTransport().sendMail({
-          from: "HRManagement2003@gmail.com",
-          to: this.email,
-          subject: "Your Password",
-          html: UserPassword(randomPassword),
-        });
-
-        return hashedPassword;
-      },
     },
     name: {
       type: String,
@@ -51,8 +38,14 @@ const userSchema = new mongoose.Schema(
     phoneNumber: {
       type: String,
       required: [true, "Please tell us your phone number"],
-      minLength: [9, "Please check your phone number"],
-      maxLength: [11, "Please check your phone number"],
+      minLength: [
+        9,
+        "The phone number should have a minimum length of 9 characters",
+      ],
+      maxLength: [
+        11,
+        "The phone number should have a maximum length of 11 characters",
+      ],
     },
     birthday: {
       type: Date,
@@ -129,6 +122,9 @@ const userSchema = new mongoose.Schema(
 
 // static method to login user
 userSchema.statics.login = async function (email, password) {
+  if (!validator.isEmail(email)) {
+    throw new BadRequestError("Invalid email");
+  }
   const user = await this.findOne({ email })
     .populate("positionId")
     .populate("departmentId")
@@ -139,9 +135,9 @@ userSchema.statics.login = async function (email, password) {
     if (auth) {
       return user;
     }
-    throw Error("incorrect password");
+    throw new UnauthorizedError("Incorrect password");
   }
-  throw Error("incorrect email");
+  throw new UnauthorizedError("Incorrect email");
 };
 
 userSchema.methods.comparePassword = async function (password) {

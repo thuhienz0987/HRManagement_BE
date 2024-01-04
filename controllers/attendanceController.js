@@ -12,10 +12,11 @@ import {
   startOfMonth,
   differenceInMinutes,
   isAfter,
-  differenceInDays
+  differenceInDays,
 } from "date-fns";
 import Department from "../models/Department.js";
-import mongoose from "mongoose";
+import LeaveRequest from "../models/LeaveRequest.js";
+import mongoose, { isValidObjectId } from "mongoose";
 
 const getAttendances = async (req, res) => {
   try {
@@ -32,7 +33,7 @@ const getAttendances = async (req, res) => {
 const getAttendance = async (req, res) => {
   const { id } = req.params;
   try {
-    const attendance = await Attendance.findById(id);
+    const attendance = await Attendance.findById({ _id: id });
     if (attendance && attendance.isDeleted === false) {
       res.status(200).json(attendance);
     } else if (attendance && attendance.isDeleted === true) {
@@ -97,7 +98,10 @@ const getPercentAttendancesByMonth = async (req, res) => {
             const attendanceAmount = await Attendance.countDocuments({
               userId: user._id,
               isDeleted: false,
-              attendanceDate: { $gte: targetDate, $lte: endDate },
+              attendanceDate: {
+                $gte: targetDate,
+                $lte: endDate,
+              },
             });
             departmentAttendances += attendanceAmount;
           })
@@ -205,7 +209,7 @@ const getAttendanceByMonth = async (req, res) => {
 
     const attendances = await Attendance.find({
       isDeleted: false,
-      userId: new mongoose.Types.ObjectId(userId),
+      userId: userId,
       attendanceDate: { $gte: targetDate, $lte: endDate },
     });
 
@@ -215,7 +219,9 @@ const getAttendanceByMonth = async (req, res) => {
 
     res.status(200).json(attendances);
   } catch (err) {
-    throw err;
+    res.status(err.status || 400).json({
+      message: err.messageObject || err.message,
+    });
   }
 };
 
@@ -316,7 +322,10 @@ const getRatioForEmployee = async (req, res) => {
 
     const currentDate = new Date(); // Ngày hiện tại
 
-    const userAttendance = await Attendance.find({ userId, isDeleted: false });
+    const userAttendance = await Attendance.find({
+      userId,
+      isDeleted: false,
+    });
     const totalWorkingDays = userAttendance.length;
     const totalDaysAsEmployee = differenceInDays(
       addDays(currentDate, 1),
@@ -325,8 +334,6 @@ const getRatioForEmployee = async (req, res) => {
     console.log({ totalDaysAsEmployee });
 
     const totalWorkingDayRate = totalWorkingDays / totalDaysAsEmployee;
-
-
 
     const startOfCurrentMonth = startOfMonth(currentDate); // Đầu tháng hiện tại
     const daysInMonth = differenceInDays(
@@ -345,11 +352,18 @@ const getRatioForEmployee = async (req, res) => {
     const monthlyAttendanceRate = totalMonthlyWorkingDays / daysInMonth;
 
     const absentDays = daysInMonth - totalMonthlyWorkingDays;
-    const absentDaysRate = absentDays/daysInMonth;
+    const absentDaysRate = absentDays / daysInMonth;
 
-    const result = [totalWorkingDays,totalWorkingDayRate,totalMonthlyWorkingDays,monthlyAttendanceRate,absentDays, absentDaysRate]
+    const result = [
+      totalWorkingDays,
+      totalWorkingDayRate,
+      totalMonthlyWorkingDays,
+      monthlyAttendanceRate,
+      absentDays,
+      absentDaysRate,
+    ];
 
-    res.status(200).json({result});
+    res.status(200).json({ result });
   } catch (err) {
     throw err;
   }
@@ -588,6 +602,8 @@ const getWorkTimeADayInMonth = async (req, res) => {
 const postAttendance = async (req, res) => {
   const { userId } = req.body;
   try {
+    const user = await User.findById(userId);
+    if (!user) throw new NotFoundError("User not found!");
     // Kiểm tra xem đã có bảng chấm công nào cho ngày hôm nay và userId tương ứng chưa
     const existingAttendance = await Attendance.findOne({
       userId: userId,
@@ -604,22 +620,34 @@ const postAttendance = async (req, res) => {
     // Nếu chưa có bảng chấm công cho userId trong ngày hôm nay, tạo bảng chấm công mới
     const newAttendance = new Attendance({
       userId: userId,
+      attendanceDate: new Date().setHours(0, 0, 0, 0), // Set the attendance date
+      checkInTime: new Date(), // Set the check-in time
     });
 
-    await newAttendance.save();
-    res.status(200).json({
+    const saveAttendance = await newAttendance.save();
+    console.log({ saveAttendance });
+    res.status(201).json({
       message: "Attendance was successful.",
-      attendance: newAttendance,
+      attendance: saveAttendance,
     });
   } catch (err) {
-    throw err;
+    res.status(err.status || 400).json({
+      message: err.messageObject || err.message,
+    });
   }
 };
 
 const closeAttendance = async (req, res) => {
-  const { id } = req.params;
+  const id = req.params?.id;
   // Kiểm tra xem bảng chấm công có tồn tại không
   try {
+    if (!id) {
+      throw new BadRequestError("Empty _id");
+    }
+    if (!isValidObjectId(id)) {
+      throw new BadRequestError("Invalid attendance _id");
+    }
+
     const attendance = await Attendance.findById({ _id: id });
 
     if (!attendance) {
@@ -644,14 +672,16 @@ const closeAttendance = async (req, res) => {
     // Thêm đối tượng lịch sử cập nhật vào mảng updateHistory
     attendance.updateHistory.push(updateRecord);
 
-    await attendance.save();
+    const closeAttendance = await attendance.save();
 
     res.status(200).json({
       message: "Closed the attendance successfully.",
-      attendance: attendance,
+      attendance: closeAttendance,
     });
   } catch (err) {
-    throw err;
+    res.status(err.status || 404).json({
+      message: err.messageObject || err.message,
+    });
   }
 };
 
@@ -660,7 +690,7 @@ const updateAttendance = async (req, res) => {
   const { checkInTime, checkOutTime, attendanceDate } = req.body; // Các thông tin mới cần cập nhật
   try {
     // Tìm bảng chấm công dựa trên id
-    const attendance = await Attendance.findById(id);
+    const attendance = await Attendance.findById({ _id: id });
 
     if (!attendance) {
       throw new NotFoundError("Not found attendance");
@@ -726,7 +756,7 @@ const generateMockAttendanceData = async (req, res) => {
     // Loop through each user
     for (const user of users) {
       // Loop through each day in the specified month
-      for (let day = 1; day <= new Date(year, month, 0).getDate(); day++) {
+      for (let day = 1; day <= 15; day++) {
         const currentDate = new Date(year, month - 1, day);
         const dayOfWeek = currentDate.getDay(); // 0 for Sunday, 6 for Saturday
 
@@ -802,6 +832,30 @@ function getRndInteger(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
+const deleteForeverAttendance = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    // Find and delete the attendance document by ID
+    const deletedAttendance = await Attendance.findByIdAndDelete(id);
+
+    if (!deletedAttendance) {
+      // If the attendance document is not found, throw a NotFoundError
+      throw new NotFoundError("Not found attendance");
+    }
+
+    // If the attendance document is found and deleted, send a success response
+    res.status(200).json({
+      message: "Deleted attendance successfully",
+      attendance: deletedAttendance,
+    });
+  } catch (err) {
+    res.status(err.status || 400).json({
+      message: err.messageObject || err.message,
+    });
+  }
+};
+
 export {
   getAttendances,
   getAttendance,
@@ -822,4 +876,5 @@ export {
   updateAttendance,
   deleteAttendance,
   generateMockAttendanceData,
+  deleteForeverAttendance,
 };

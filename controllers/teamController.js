@@ -50,12 +50,14 @@ const getTeam = async (req, res) => {
     if (team && team.isDeleted === false) {
       res.status(200).json(team);
     } else if (team && team.isDeleted === true) {
-      res.status(410).send("Team is deleted");
+      res.status(410).json("Team is deleted");
     } else {
       throw new NotFoundError("Team not found");
     }
   } catch (err) {
-    throw err;
+    res.status(err.status || 404).json({
+      message: err.messageObject || err.message,
+    });
   }
 };
 const generateTeamCode = (TeamName, DepartmentName) => {
@@ -98,15 +100,13 @@ const postTeam = async (req, res) => {
         code: generateTeamCode(name, department.name),
       });
       if (teamExist && teamExist.isDeleted === true) {
-        
-
         teamExist.managerId = managerId;
         teamExist.name = name;
         teamExist.departmentId = departmentId;
         teamExist.code = generateTeamCode(name, department.name);
         teamExist.isDeleted = false;
         const newTeam = await teamExist.save();
-        
+
         manager.teamId = newTeam._id;
         manager.positionId = managerPosition._id;
         await manager.save();

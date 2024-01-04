@@ -46,11 +46,11 @@ const getCommentsByRevieweeId = async (req, res) => {
     const { revieweeId } = req.params;
     const user = await User.findById({ _id: revieweeId });
     if (!user) {
-      throw new NotFoundError(`Reviewer with id ${revieweeId} does not exist`);
+      throw new NotFoundError(`Reviewee with id ${revieweeId} does not exist`);
     }
 
-    if (user.isDeleted) {
-      res.status(410).send("User is deleted");
+    if (user.isEmployee === false) {
+      res.status(410).json("Reviewee is deleted");
     } else {
       const comments = await Comment.find({
         revieweeId: revieweeId,
@@ -60,13 +60,15 @@ const getCommentsByRevieweeId = async (req, res) => {
         .populate("revieweeId");
 
       if (comments.length === 0) {
-        throw new NotFoundError(`Not found comments for user id ${revieweeId}`);
+        throw new NotFoundError("Not found comments for reviewee id");
       }
 
       res.status(200).json(comments);
     }
   } catch (err) {
-    throw err;
+    res.status(err.status || 400).json({
+      message: err.messageObject || err.message,
+    });
   }
 };
 const getCommentsByReviewerIdInMonth = async (req, res) => {
@@ -179,7 +181,9 @@ const getEmployeeNotCommentByTeamIdMonth = async (req, res) => {
         $lt: nextMonthDate,
       },
       isDeleted: false,
-      revieweeId: { $in: employeesWithoutPassword.map((user) => user._id) },
+      revieweeId: {
+        $in: employeesWithoutPassword.map((user) => user._id),
+      },
     });
     const employeesWithoutComments = employeesWithoutPassword.filter((user) => {
       return !comments.some(
@@ -222,7 +226,9 @@ const getDepManagerNotCommentMonth = async (req, res) => {
         $lt: nextMonthDate,
       },
       isDeleted: false,
-      revieweeId: { $in: managersWithoutPassword.map((user) => user._id) },
+      revieweeId: {
+        $in: managersWithoutPassword.map((user) => user._id),
+      },
     });
     const managersWithoutComments = managersWithoutPassword.filter((user) => {
       return !comments.some(
@@ -266,9 +272,7 @@ const postComment = async (req, res) => {
       const formattedDate = `${
         existingComment.commentMonth.getMonth() + 1
       }/${existingComment.commentMonth.getFullYear()}`;
-      throw new BadRequestError(
-        `A comment already exists for this pair in ${formattedDate}.`
-      );
+      throw new BadRequestError(`A comment already exists for this month`);
     }
 
     const newComment = new Comment({
@@ -278,14 +282,16 @@ const postComment = async (req, res) => {
       revieweeId,
       commentMonth: saveCommentMonth,
     });
-    await newComment.save();
+    const savedComment = await newComment.save();
 
-    res.status(200).json({
+    res.status(201).json({
       message: "Create Comment successfully",
-      comment: newComment,
+      comment: savedComment,
     });
   } catch (err) {
-    throw err;
+    res.status(err.status || 400).json({
+      message: err.messageObject || err.message,
+    });
   }
 };
 
@@ -316,7 +322,9 @@ const updateComment = async (req, res) => {
 
     res.status(200).json(updatedComment);
   } catch (err) {
-    throw err;
+    res.status(err.status || 400).json({
+      message: err.messageObject || err.message,
+    });
   }
 };
 
@@ -381,12 +389,17 @@ const deleteComment = async (req, res) => {
       { isDeleted: true },
       { new: true }
     );
+    if (!commentExist) {
+      throw new NotFoundError("Comment not found");
+    }
     res.status(200).json({
       message: "Deleted Comment successfully",
       comment: commentExist,
     });
   } catch (err) {
-    throw err;
+    res.status(err.status || 400).json({
+      message: err.messageObject || err.message,
+    });
   }
 };
 

@@ -82,17 +82,15 @@ const postDepartment = async (req, res) => {
       if (manager.teamId != null) {
         manager.teamId = null;
       }
-      await manager.save();
+      const savedManager = await manager.save();
       const teams = await Team.find({
         departmentId: departmentExist.id,
         isDeleted: false,
       });
-      if (teams.length === 0)
-        {}
-      else {
+      if (teams.length !== 0) {
         teams.map(async (team) => {
           team.departmentId = newDepartment.id;
-          await team.save();
+          const savedTeam = await team.save();
         });
       }
       res.status(201).json({
@@ -111,7 +109,7 @@ const postDepartment = async (req, res) => {
       if (manager.teamId != null) {
         manager.teamId = null;
       }
-      await manager.save();
+      const savedManager = await manager.save();
       res.status(200).json({
         message: "Create Department successfully",
         department: newDepartment,

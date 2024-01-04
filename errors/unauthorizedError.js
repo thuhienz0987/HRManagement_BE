@@ -1,6 +1,7 @@
 export default class UnauthorizedError extends Error {
-	constructor(message) {
-		super(message);
-        this.status = 401;
-	};
-};
+  constructor(message) {
+    super();
+    this.status = 401;
+    this.messageObject = message;
+  }
+}

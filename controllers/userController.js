@@ -1,5 +1,6 @@
 import User from "../models/User.js";
 import cloudinary from "../helper/imageUpload.js";
+import validator from "validator";
 import bcrypt from "bcrypt";
 import { isValidObjectId } from "mongoose";
 import BadRequestError from "../errors/badRequestError.js";
@@ -12,11 +13,13 @@ import {
   OtpTemplate,
   generateOTP,
   passwordResetTemplate,
+  UserPassword,
 } from "../utils/mail.js";
 import ResetToken from "../models/ResetToken.js";
 import Department from "../models/Department.js";
 import { parse, format } from "date-fns";
 import Position from "../models/Position.js";
+import { generateRandomPassword } from "../utils/helper.js";
 
 // init password validator
 let passwordSchema = new PasswordValidator();
@@ -67,6 +70,20 @@ const handleRoles = (positionCode) => {
   }
   return rolesArray;
 };
+const generatePassword = async (email) => {
+  const randomPassword = generateRandomPassword(8);
+  const saltRounds = 10;
+  const salt = bcrypt.genSaltSync(saltRounds);
+  const hashedPassword = bcrypt.hashSync(randomPassword, salt);
+  mailTransport().sendMail({
+    from: "HRManagement2003@gmail.com",
+    to: email,
+    subject: "Your Password",
+    html: UserPassword(randomPassword),
+  });
+
+  return hashedPassword;
+};
 const create_user = async (req, res) => {
   const {
     email,
@@ -84,21 +101,41 @@ const create_user = async (req, res) => {
   } = req.body;
 
   try {
+    if (email === "") {
+      throw new BadRequestError("Email is required");
+    }
+    if (birthday === "") {
+      throw new BadRequestError("Birthday is missing");
+    }
     const birthDay = parse(birthday, "dd/MM/yyyy", new Date());
     const isoBirthDayStr = format(birthDay, "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
     const position = await Position.findOne({
       _id: positionId,
-      isDeleted: false,
     });
-    if (!position)
+
+    if (!position) {
       throw new NotFoundError(
-        `The position with position _id ${positionId} does not exists`
+        `The position with position _id ${positionId} does not exist`
       );
-    else if (position.isDeleted === true) {
-      res
-        .status(410)
-        .send(`Position with position _id ${positionId} is deleted`);
+    } else if (position.isDeleted === true) {
+      throw new BadRequestError(
+        `Position with position _id ${positionId} is deleted`
+      );
     }
+
+    const userExists = await User.findOne({
+      email: email,
+      isEmployee: true,
+    });
+
+    if (userExists) {
+      throw new BadRequestError(`User with email registered`);
+    }
+    if (!validator.isEmail(email)) {
+      throw new BadRequestError("Invalid email");
+    }
+    // Tạo một instance của User để lấy _id
+    const user = new User();
 
     // upload result init
     let result;
@@ -111,15 +148,11 @@ const create_user = async (req, res) => {
           crop: "fill",
         });
       } catch (err) {
+        console.log(err);
         throw new InternalServerError(
           "Unable to upload avatar, please try again"
         );
       }
-    }
-    let avatarImage;
-    // check if image upload or not
-    if (result) {
-      avatarImage = result.url;
     }
 
     const employeeAmount = await User.countDocuments();
@@ -127,12 +160,18 @@ const create_user = async (req, res) => {
 
     // new user create
     const pass = "Xyz12345";
+
+    let avatarImage;
+    // check if image upload or not
+    if (result) {
+      avatarImage = result.url;
+    }
+
     const newUser = new User({
       email,
       code: generateUserCode(employeeAmount, currentDate),
       name,
       phoneNumber,
-      // password: pass.trim(),
       birthday: isoBirthDayStr,
       address,
       gender,
@@ -146,17 +185,18 @@ const create_user = async (req, res) => {
       roles: handleRoles(position.code),
     });
 
-    const user = await newUser.save();
+    newUser.password = await generatePassword(email);
+    const createdUser = await newUser.save();
 
-    res
-      .status(201)
-      .json({ success: true, message: `New user ${user} created!` });
+    res.status(201).json({
+      success: true,
+      message: "New user created!",
+      createdUser,
+    });
   } catch (err) {
-    if (err.code === 11000)
-      throw new BadRequestError({
-        message: "This email has already been registered",
-      });
-    throw err;
+    res.status(err.status || 400).json({
+      message: err.messageObject || err.message,
+    });
   }
 };
 
@@ -235,9 +275,10 @@ const change_password = async (req, res) => {
       html: passwordResetTemplate(),
     });
 
-    res
-      .status(200)
-      .json({ Status: "Success", message: "Change Password Successfully" });
+    res.status(200).json({
+      Status: "Success",
+      message: "Change Password Successfully",
+    });
   } catch (err) {
     throw err;
   }
@@ -247,7 +288,7 @@ const update_salary_grade = async (req, res) => {
     const { salaryGrade } = req.body;
     const userId = req.params.userId;
     // find user by id
-    const user = await User.findById(userId);
+    const user = await User.findById({ _id: userId });
 
     // check if user found
     if (!user) throw new NotFoundError("User not found!");
@@ -255,13 +296,13 @@ const update_salary_grade = async (req, res) => {
     user.salaryGrade = salaryGrade;
 
     // save the user
-    await user.save();
+    const updateUser = await user.save();
 
     // send success message to front end
     res.status(200).json({
       Status: "Success",
-      message: `Update ${user.firstName}'s salary garde successfully`,
-      user: user,
+      message: `Update salary grade successfully`,
+      user: updateUser,
     });
   } catch (err) {
     throw err;
@@ -384,7 +425,9 @@ const get_user_by_id = async (req, res) => {
     user.password = undefined;
     res.status(200).json(user);
   } catch (err) {
-    throw err;
+    res.status(err.status || 400).json({
+      message: err.messageObject || err.message,
+    });
   }
 };
 const get_CEO = async (req, res) => {
