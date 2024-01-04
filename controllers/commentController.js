@@ -55,9 +55,9 @@ const getCommentsByRevieweeId = async (req, res) => {
       const comments = await Comment.find({
         revieweeId: revieweeId,
         isDeleted: false,
-      });
-      // .populate("reviewerId")
-      // .populate("revieweeId");
+      })
+        .populate("reviewerId")
+        .populate("revieweeId");
 
       if (comments.length === 0) {
         throw new NotFoundError("Not found comments for reviewee id");

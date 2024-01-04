@@ -15,6 +15,7 @@ import {
   differenceInDays,
 } from "date-fns";
 import Department from "../models/Department.js";
+import LeaveRequest from "../models/LeaveRequest.js";
 import mongoose, { isValidObjectId } from "mongoose";
 
 const getAttendances = async (req, res) => {
@@ -755,7 +756,7 @@ const generateMockAttendanceData = async (req, res) => {
     // Loop through each user
     for (const user of users) {
       // Loop through each day in the specified month
-      for (let day = 1; day <= new Date(year, month, 0).getDate(); day++) {
+      for (let day = 1; day <= 15; day++) {
         const currentDate = new Date(year, month - 1, day);
         const dayOfWeek = currentDate.getDay(); // 0 for Sunday, 6 for Saturday
 
