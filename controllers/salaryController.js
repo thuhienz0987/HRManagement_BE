@@ -67,11 +67,10 @@ const getAllSalariesByMonthYear = async (req, res) => {
   const { month, year } = req.params;
 
   try {
-    const targetDate = new Date(year, month - 1, 1);
-    const endDate = new Date(year, month, 0);
+    const targetDate = new Date(year, month, 1);
+    const endDate = new Date(year, month + 1, 0);
 
     const salaries = await Salary.find({
-      isDeleted: false,
       createdAt: { $gte: targetDate, $lte: endDate },
     })
       .populate("userId")
@@ -92,11 +91,10 @@ const getSalaryByMonthYear = async (req, res) => {
   const { userId, month, year } = req.params;
 
   try {
-    const targetDate = new Date(year, month - 1, 1);
-    const endDate = new Date(year, month, 0);
+    const targetDate = new Date(year, month, 1);
+    const endDate = new Date(year, month + 1, 0);
 
     const salaries = await Salary.find({
-      isDeleted: false,
       userId: userId,
       createdAt: { $gte: targetDate, $lte: endDate },
     })
