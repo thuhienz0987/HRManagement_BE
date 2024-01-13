@@ -696,9 +696,9 @@ const updateAttendance = async (req, res) => {
       throw new NotFoundError("Not found attendance");
     }
     // Kiểm tra xem bảng chấm công đã được đóng hay chưa
-    if (!attendance.checkOutTime) {
-      throw new BadRequestError("Attendance is not closed yet.");
-    }
+    // if (!attendance.checkOutTime) {
+    //   throw new BadRequestError("Attendance is not closed yet.");
+    // }
 
     // Tạo một đối tượng lịch sử cập nhật mới
     const updateRecord = {
@@ -756,7 +756,7 @@ const generateMockAttendanceData = async (req, res) => {
     // Loop through each user
     for (const user of users) {
       // Loop through each day in the specified month
-      for (let day = 1; day <= 15; day++) {
+      for (let day = 13; day <= 13; day++) {
         const currentDate = new Date(year, month - 1, day);
         const dayOfWeek = currentDate.getDay(); // 0 for Sunday, 6 for Saturday
 

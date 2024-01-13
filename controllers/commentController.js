@@ -1,6 +1,7 @@
 import BadRequestError from "../errors/badRequestError.js";
 import NotFoundError from "../errors/notFoundError.js";
 import Comment from "../models/Comment.js";
+import Salary from "../models/Salary.js";
 import User from "../models/User.js";
 import Position from "../models/Position.js";
 import { parse, format } from "date-fns";
@@ -8,14 +9,26 @@ import { parse, format } from "date-fns";
 const getComments = async (req, res) => {
   try {
     const comments = await Comment.find({ isDeleted: false })
+      .lean()
       .populate("reviewerId")
       .populate("revieweeId");
+    const populatedComments = await Promise.all(
+      comments.map(async (comment) => {
+        const salary = await Salary.findOne({ idComment: comment._id });
+        if (salary !== null) {
+          comment.calculatedSalary = "Done";
+        } else {
+          comment.calculatedSalary = "Not yet";
+        }
+        return comment;
+      })
+    );
 
-    if (!comments || comments.length === 0) {
+    if (!populatedComments || populatedComments.length === 0) {
       throw new NotFoundError("Not found any comments");
     }
 
-    res.status(200).json(comments);
+    res.status(200).json(populatedComments);
   } catch (err) {
     throw err;
   }
