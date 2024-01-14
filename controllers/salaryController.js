@@ -166,6 +166,8 @@ const getPercentSalariesByMonthYear = async (req, res) => {
               commentMonth: `${year}-${month}-01T00:00:00.000Z`,
               isDeleted: false,
             });
+
+            if (userComment === null) return;
             const userSalary = await Salary.findOne({
               idComment: userComment._id,
             });
@@ -221,6 +223,8 @@ const getPercentSalariesByYear = async (req, res) => {
                 commentMonth: `${year}-${month}-01T00:00:00.000Z`,
                 isDeleted: false,
               });
+              console.log({ userComment });
+              if (userComment === null) return;
               const userSalary = await Salary.findOne({
                 idComment: userComment._id,
               });
