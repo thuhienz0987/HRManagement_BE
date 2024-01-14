@@ -73,7 +73,12 @@ const getAllSalariesByMonthYear = async (req, res) => {
     const salaries = await Salary.find({
       createdAt: { $gte: targetDate, $lte: endDate },
     })
-      .populate("userId")
+      .populate({
+        path: "userId",
+        populate: {
+          path: "departmentId",
+        },
+      })
       .populate("idPosition")
       .populate("idAllowance")
       .populate("idComment");
@@ -98,7 +103,12 @@ const getSalaryByMonthYear = async (req, res) => {
       userId: userId,
       createdAt: { $gte: targetDate, $lte: endDate },
     })
-      .populate("userId")
+      .populate({
+        path: "userId",
+        populate: {
+          path: "departmentId",
+        },
+      })
       .populate("idPosition")
       .populate("idAllowance")
       .populate("idComment");
@@ -132,14 +142,64 @@ const getSalaryByUserId = async (req, res) => {
     });
   }
 };
+const getPercentSalariesByMonthYear = async (req, res) => {
+  const { month, year } = req.params;
+
+  try {
+    const departments = await Department.find({ isDeleted: false });
+    let firmSalary = 0;
+    const departmentResult = [];
+    await Promise.all(
+      departments.map(async (department) => {
+        const users = await User.find({
+          isEmployee: true,
+          departmentId: department._id,
+        });
+        let departmentSalaries = 0;
+        await Promise.all(
+          users.map(async (user) => {
+            const userComment = await Comment.findOne({
+              revieweeId: user._id,
+              commentMonth: `${year}-${month}-01T00:00:00.000Z`,
+              isDeleted: false,
+            });
+            const userSalary = await Salary.findOne({
+              idComment: userComment._id,
+            });
+            departmentSalaries += userSalary.totalSalary;
+          })
+        );
+        firmSalary += departmentSalaries;
+        departmentResult.push({
+          departmentName: department.name,
+          departmentSalaries: departmentSalaries,
+          departmentPercent: 0,
+        });
+      })
+    );
+    departmentResult.forEach((element) => {
+      element.departmentPercent =
+        (element.departmentSalaries / firmSalary) * 100;
+    });
+    const firmResult = {
+      month: month,
+      firmSalaries: firmSalary,
+      departmentStatistic: departmentResult,
+    };
+    if (firmResult.length === 0) {
+      throw new NotFoundError(`No salaries found for ${month}/${year}`);
+    }
+
+    res.status(200).json(firmResult);
+  } catch (err) {
+    throw err;
+  }
+};
 const getPercentSalariesByYear = async (req, res) => {
   const { year } = req.params;
 
   try {
-    const allDepartments = await Department.find({ isDeleted: false });
-    const departments = await allDepartments.filter(
-      (department) => department.name !== "IT Department"
-    );
+    const departments = await Department.find({ isDeleted: false });
     const firmResult = [];
     for (let month = 11; month <= 12; month++) {
       let firmSalary = 0;
@@ -657,6 +717,7 @@ export {
   getSalary,
   getSalaryByMonthYear,
   getAllSalariesByMonthYear,
+  getPercentSalariesByMonthYear,
   getPercentSalariesByYear,
   postSalary,
   updateSalary,

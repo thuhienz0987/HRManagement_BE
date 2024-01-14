@@ -9,6 +9,7 @@ import {
   postSalary,
   updateSalary,
   getPercentSalariesByYear,
+  getPercentSalariesByMonthYear,
 } from "../controllers/salaryController.js";
 
 const salaryRouter = Router();
@@ -19,6 +20,10 @@ salaryRouter.get("/salaryByUserId/:id", getSalaryByUserId);
 salaryRouter.get(
   "/salariesByMonthYear/:month/:year",
   getAllSalariesByMonthYear
+);
+salaryRouter.get(
+  "/statisticSalariesByMonthYear/:month/:year",
+  getPercentSalariesByMonthYear
 );
 salaryRouter.get("/statisticSalariesByYear/:year", getPercentSalariesByYear);
 salaryRouter.get(
