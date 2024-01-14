@@ -81,13 +81,16 @@ const getAllSalariesByMonthYear = async (req, res) => {
       })
       .populate("idPosition")
       .populate("idAllowance")
-      .populate("idComment");
-
-    if (salaries.length === 0) {
+      .populate({
+        path: "idComment",
+        match: { commentMonth: `${year}-${month}-01T00:00:00.000Z` },
+      });
+    const resultSalaries = salaries.filter((sa) => sa.idComment !== null);
+    if (resultSalaries.length === 0) {
       throw new NotFoundError(`No salary found for ${month}/${year}`);
     }
 
-    res.status(200).json(salaries);
+    res.status(200).json(resultSalaries);
   } catch (err) {
     throw err;
   }
@@ -96,12 +99,8 @@ const getSalaryByMonthYear = async (req, res) => {
   const { userId, month, year } = req.params;
 
   try {
-    const targetDate = new Date(year, month, 1);
-    const endDate = new Date(year, month + 1, 0);
-
     const salaries = await Salary.find({
       userId: userId,
-      createdAt: { $gte: targetDate, $lte: endDate },
     })
       .populate({
         path: "userId",
@@ -111,13 +110,17 @@ const getSalaryByMonthYear = async (req, res) => {
       })
       .populate("idPosition")
       .populate("idAllowance")
-      .populate("idComment");
-
-    if (salaries.length === 0) {
+      .populate({
+        path: "idComment",
+        match: { commentMonth: `${year}-${month}-01T00:00:00.000Z` },
+      });
+    const resultSalaries = salaries.find((sa) => sa.idComment !== null);
+    console.log({ resultSalaries });
+    if (resultSalaries === undefined) {
       throw new NotFoundError(`No salary found for ${month}/${year}`);
     }
 
-    res.status(200).json(salaries);
+    res.status(200).json(resultSalaries);
   } catch (err) {
     throw err;
   }
