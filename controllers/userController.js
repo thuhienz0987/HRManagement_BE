@@ -417,10 +417,10 @@ const get_all_user = async (req, res) => {
 const get_user_by_id = async (req, res) => {
   try {
     const id = req.params._id;
-    const user = await User.findById(id);
-    // .populate("departmentId")
-    // .populate("positionId")
-    // .populate("teamId");
+    const user = await User.findById(id)
+      .populate("departmentId")
+      .populate("positionId")
+      .populate("teamId");
     if (!user) throw new NotFoundError("User not found");
     user.password = undefined;
     res.status(200).json(user);

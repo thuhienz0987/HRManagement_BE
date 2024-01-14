@@ -3,9 +3,13 @@ import {
   confirmSalary,
   getSalaries,
   getSalary,
+  getSalaryByMonthYear,
+  getAllSalariesByMonthYear,
   getSalaryByUserId,
   postSalary,
   updateSalary,
+  getPercentSalariesByYear,
+  getPercentSalariesByMonthYear,
 } from "../controllers/salaryController.js";
 
 const salaryRouter = Router();
@@ -13,6 +17,19 @@ const salaryRouter = Router();
 salaryRouter.get("/salaries", getSalaries);
 salaryRouter.get("/salary/:id", getSalary);
 salaryRouter.get("/salaryByUserId/:id", getSalaryByUserId);
+salaryRouter.get(
+  "/salariesByMonthYear/:month/:year",
+  getAllSalariesByMonthYear
+);
+salaryRouter.get(
+  "/statisticSalariesByMonthYear/:month/:year",
+  getPercentSalariesByMonthYear
+);
+salaryRouter.get("/statisticSalariesByYear/:year", getPercentSalariesByYear);
+salaryRouter.get(
+  "/salaryByUserIdMonthYear/:userId/:month/:year",
+  getSalaryByMonthYear
+);
 
 salaryRouter.post("/salary", postSalary);
 salaryRouter.put("/salary/:id", updateSalary);

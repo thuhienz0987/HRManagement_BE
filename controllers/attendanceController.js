@@ -13,8 +13,10 @@ import {
   differenceInMinutes,
   isAfter,
   differenceInDays,
+  endOfDay,
 } from "date-fns";
 import Department from "../models/Department.js";
+import LeaveRequest from "../models/LeaveRequest.js";
 import mongoose, { isValidObjectId } from "mongoose";
 
 const getAttendances = async (req, res) => {
@@ -353,14 +355,14 @@ const getRatioForEmployee = async (req, res) => {
     const absentDays = daysInMonth - totalMonthlyWorkingDays;
     const absentDaysRate = absentDays / daysInMonth;
 
-    const result = [
+    const result = {
       totalWorkingDays,
       totalWorkingDayRate,
       totalMonthlyWorkingDays,
       monthlyAttendanceRate,
       absentDays,
       absentDaysRate,
-    ];
+    };
 
     res.status(200).json({ result });
   } catch (err) {
@@ -417,25 +419,29 @@ const getEmployeeNotCheckOutToday = async (req, res) => {
     const users = await User.find({ isEmployee: true });
 
     let employee = [];
-
+    // Get attendance records for the user for today
+    const start = startOfDay(new Date());
+    const end = endOfDay(new Date());
+    console.log({ start });
+    console.log({ end });
     for (const user of users) {
-      // Get attendance records for the user for today
-      const today = startOfDay(new Date());
-      const currentTime = new Date();
-
-      const attendancesToday = await Attendance.find({
+      const attendanceToday = await Attendance.find({
         isDeleted: false,
-        userId: new mongoose.Types.ObjectId(user._id),
+        userId: user._id,
+        attendanceDate: {
+          $gte: start,
+          $lt: end,
+        },
         checkInTime: {
-          $gte: today,
-          $lt: currentTime,
+          $gte: start,
+          $lt: end,
         },
       });
 
       // Check if there are attendances today and none of them have a checkOutTime
       if (
-        attendancesToday.length === 0 &&
-        !attendancesToday.some((attendance) => attendance.checkOutTime)
+        attendanceToday.length !== 0 &&
+        !attendanceToday.some((attendance) => attendance.checkOutTime)
       ) {
         employee.push(user);
       }
@@ -695,9 +701,9 @@ const updateAttendance = async (req, res) => {
       throw new NotFoundError("Not found attendance");
     }
     // Kiểm tra xem bảng chấm công đã được đóng hay chưa
-    if (!attendance.checkOutTime) {
-      throw new BadRequestError("Attendance is not closed yet.");
-    }
+    // if (!attendance.checkOutTime) {
+    //   throw new BadRequestError("Attendance is not closed yet.");
+    // }
 
     // Tạo một đối tượng lịch sử cập nhật mới
     const updateRecord = {
@@ -755,7 +761,7 @@ const generateMockAttendanceData = async (req, res) => {
     // Loop through each user
     for (const user of users) {
       // Loop through each day in the specified month
-      for (let day = 1; day <= new Date(year, month, 0).getDate(); day++) {
+      for (let day = 13; day <= 13; day++) {
         const currentDate = new Date(year, month - 1, day);
         const dayOfWeek = currentDate.getDay(); // 0 for Sunday, 6 for Saturday
 

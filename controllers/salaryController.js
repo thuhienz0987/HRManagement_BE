@@ -63,6 +63,68 @@ const getSalary = async (req, res) => {
     throw err;
   }
 };
+const getAllSalariesByMonthYear = async (req, res) => {
+  const { month, year } = req.params;
+
+  try {
+    const targetDate = new Date(year, month, 1);
+    const endDate = new Date(year, month + 1, 0);
+
+    const salaries = await Salary.find({
+      createdAt: { $gte: targetDate, $lte: endDate },
+    })
+      .populate({
+        path: "userId",
+        populate: {
+          path: "departmentId",
+        },
+      })
+      .populate("idPosition")
+      .populate("idAllowance")
+      .populate({
+        path: "idComment",
+        match: { commentMonth: `${year}-${month}-01T00:00:00.000Z` },
+      });
+    const resultSalaries = salaries.filter((sa) => sa.idComment !== null);
+    if (resultSalaries.length === 0) {
+      throw new NotFoundError(`No salary found for ${month}/${year}`);
+    }
+
+    res.status(200).json(resultSalaries);
+  } catch (err) {
+    throw err;
+  }
+};
+const getSalaryByMonthYear = async (req, res) => {
+  const { userId, month, year } = req.params;
+
+  try {
+    const salaries = await Salary.find({
+      userId: userId,
+    })
+      .populate({
+        path: "userId",
+        populate: {
+          path: "departmentId",
+        },
+      })
+      .populate("idPosition")
+      .populate("idAllowance")
+      .populate({
+        path: "idComment",
+        match: { commentMonth: `${year}-${month}-01T00:00:00.000Z` },
+      });
+    const resultSalaries = salaries.find((sa) => sa.idComment !== null);
+    console.log({ resultSalaries });
+    if (resultSalaries === undefined) {
+      throw new NotFoundError(`No salary found for ${month}/${year}`);
+    }
+
+    res.status(200).json(resultSalaries);
+  } catch (err) {
+    throw err;
+  }
+};
 
 const getSalaryByUserId = async (req, res) => {
   const { id } = req.params;
@@ -83,22 +145,145 @@ const getSalaryByUserId = async (req, res) => {
     });
   }
 };
+const getPercentSalariesByMonthYear = async (req, res) => {
+  const { month, year } = req.params;
+
+  try {
+    const departments = await Department.find({ isDeleted: false });
+    let firmSalary = 0;
+    const departmentResult = [];
+    await Promise.all(
+      departments.map(async (department) => {
+        const users = await User.find({
+          isEmployee: true,
+          departmentId: department._id,
+        });
+        let departmentSalaries = 0;
+        await Promise.all(
+          users.map(async (user) => {
+            const userComment = await Comment.findOne({
+              revieweeId: user._id,
+              commentMonth: `${year}-${month}-01T00:00:00.000Z`,
+              isDeleted: false,
+            });
+
+            if (userComment === null) return;
+            const userSalary = await Salary.findOne({
+              idComment: userComment._id,
+            });
+            departmentSalaries += userSalary.totalSalary;
+          })
+        );
+        firmSalary += departmentSalaries;
+        departmentResult.push({
+          departmentName: department.name,
+          departmentSalaries: departmentSalaries,
+          departmentPercent: 0,
+        });
+      })
+    );
+    departmentResult.forEach((element) => {
+      element.departmentPercent =
+        (element.departmentSalaries / firmSalary) * 100;
+    });
+    const firmResult = {
+      month: month,
+      firmSalaries: firmSalary,
+      departmentStatistic: departmentResult,
+    };
+    if (firmResult.length === 0) {
+      throw new NotFoundError(`No salaries found for ${month}/${year}`);
+    }
+
+    res.status(200).json(firmResult);
+  } catch (err) {
+    throw err;
+  }
+};
+const getPercentSalariesByYear = async (req, res) => {
+  const { year } = req.params;
+
+  try {
+    const departments = await Department.find({ isDeleted: false });
+    const firmResult = [];
+    for (let month = 11; month <= 12; month++) {
+      let firmSalary = 0;
+      const departmentResult = [];
+      await Promise.all(
+        departments.map(async (department) => {
+          const users = await User.find({
+            isEmployee: true,
+            departmentId: department._id,
+          });
+          let departmentSalaries = 0;
+          await Promise.all(
+            users.map(async (user) => {
+              const userComment = await Comment.findOne({
+                revieweeId: user._id,
+                commentMonth: `${year}-${month}-01T00:00:00.000Z`,
+                isDeleted: false,
+              });
+              console.log({ userComment });
+              if (userComment === null) return;
+              const userSalary = await Salary.findOne({
+                idComment: userComment._id,
+              });
+              departmentSalaries += userSalary.totalSalary;
+            })
+          );
+          firmSalary += departmentSalaries;
+          departmentResult.push({
+            departmentName: department.name,
+            departmentSalaries: departmentSalaries,
+            departmentPercent: 0,
+          });
+        })
+      );
+      let officeSalary = 0;
+      let salesSalary = 0;
+      let productionSalary = 0;
+      departmentResult.forEach((element) => {
+        if (element.departmentName === "Office Department") {
+          officeSalary = element.departmentSalaries;
+        } else if (element.departmentName === "Sales Department") {
+          salesSalary = element.departmentSalaries;
+        } else {
+          productionSalary = element.departmentSalaries;
+        }
+      });
+      firmResult.push({
+        month: month,
+        firmSalaries: firmSalary,
+        officeSalaries: officeSalary,
+        salesSalaries: salesSalary,
+        productionSalaries: productionSalary,
+      });
+    }
+    if (firmResult.length === 0) {
+      throw new NotFoundError(`No salaries found for ${year}`);
+    }
+
+    res.status(200).json(firmResult);
+  } catch (err) {
+    throw err;
+  }
+};
 
 const postSalary = async (req, res) => {
   const { userId, idAllowance } = req.body;
   try {
     const today = new Date();
-    const existingSalary = await Salary.findOne({
-      userId,
-      createdAt: {
-        $gte: new Date(today.getFullYear(), today.getMonth(), 1),
-        $lte: new Date(today.getFullYear(), today.getMonth() + 1, 1),
-      },
-    });
+    // const existingSalary = await Salary.findOne({
+    //   userId,
+    //   createdAt: {
+    //     $gte: new Date(today.getFullYear(), today.getMonth(), 1),
+    //     $lte: new Date(today.getFullYear(), today.getMonth() + 1, 1),
+    //   },
+    // });
 
-    if (existingSalary) {
-      throw new BadRequestError("Salary already calculated for this month.");
-    }
+    // if (existingSalary) {
+    //   throw new BadRequestError("Salary already calculated for this month.");
+    // }
 
     if (!idAllowance) {
       idAllowance = [];
@@ -112,7 +297,7 @@ const postSalary = async (req, res) => {
         })
       );
     }
-    const user = await User.findById(userId).populate("positionId");
+    const user = await User.findOne({ _id: userId }).populate("positionId");
     if (!user) {
       throw new NotFoundError("User not found");
     }
@@ -128,14 +313,13 @@ const postSalary = async (req, res) => {
     const lastDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 0); // Ngày cuối cùng của tháng trước
 
     const comment = await Comment.findOne({
-      revieweeId: new mongoose.Types.ObjectId(userId),
+      revieweeId: userId,
       commentMonth: {
         $gte: new Date(today.getFullYear(), today.getMonth() - 1, 1),
         $lte: new Date(today.getFullYear(), today.getMonth(), 0),
       },
       isDeleted: false,
     });
-
     const idComment = !comment ? null : comment._id;
 
     const holidays = await Holiday.find({
@@ -404,6 +588,9 @@ const confirmSalary = async (req, res) => {
   const { id } = req.params;
   try {
     const { payDay } = req.body;
+    if (!payDay) {
+      throw new BadRequestError("Not found payDay");
+    }
     const salary = await Salary.findById(id);
     if (!salary) {
       throw new NotFoundError("Not found salary");
@@ -535,6 +722,10 @@ const calculateBonus = async (rate) => {
 export {
   getSalaries,
   getSalary,
+  getSalaryByMonthYear,
+  getAllSalariesByMonthYear,
+  getPercentSalariesByMonthYear,
+  getPercentSalariesByYear,
   postSalary,
   updateSalary,
   confirmSalary,
