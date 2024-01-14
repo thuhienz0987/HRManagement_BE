@@ -13,6 +13,7 @@ import {
   differenceInMinutes,
   isAfter,
   differenceInDays,
+  endOfDay,
 } from "date-fns";
 import Department from "../models/Department.js";
 import LeaveRequest from "../models/LeaveRequest.js";
@@ -418,25 +419,29 @@ const getEmployeeNotCheckOutToday = async (req, res) => {
     const users = await User.find({ isEmployee: true });
 
     let employee = [];
-
+    // Get attendance records for the user for today
+    const start = startOfDay(new Date());
+    const end = endOfDay(new Date());
+    console.log({ start });
+    console.log({ end });
     for (const user of users) {
-      // Get attendance records for the user for today
-      const today = startOfDay(new Date());
-      const currentTime = new Date();
-
-      const attendancesToday = await Attendance.find({
+      const attendanceToday = await Attendance.find({
         isDeleted: false,
-        userId: new mongoose.Types.ObjectId(user._id),
+        userId: user._id,
+        attendanceDate: {
+          $gte: start,
+          $lt: end,
+        },
         checkInTime: {
-          $gte: today,
-          $lt: currentTime,
+          $gte: start,
+          $lt: end,
         },
       });
 
       // Check if there are attendances today and none of them have a checkOutTime
       if (
-        attendancesToday.length === 0 &&
-        !attendancesToday.some((attendance) => attendance.checkOutTime)
+        attendanceToday.length !== 0 &&
+        !attendanceToday.some((attendance) => attendance.checkOutTime)
       ) {
         employee.push(user);
       }
