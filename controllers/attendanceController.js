@@ -355,14 +355,14 @@ const getRatioForEmployee = async (req, res) => {
     const absentDays = daysInMonth - totalMonthlyWorkingDays;
     const absentDaysRate = absentDays / daysInMonth;
 
-    const result = [
+    const result = {
       totalWorkingDays,
       totalWorkingDayRate,
       totalMonthlyWorkingDays,
       monthlyAttendanceRate,
       absentDays,
       absentDaysRate,
-    ];
+    };
 
     res.status(200).json({ result });
   } catch (err) {
