@@ -5,6 +5,7 @@ const allowedOrigins = [
   "http://localhost:3000",
   "http://localhost:3001",
   "http://localhost:3000/favicon.ico",
+  "https://hr-management-fe-rf3w-dqo9zfngh-mai-dinh-khois-projects.vercel.app",
 ];
 
 export default allowedOrigins;
