@@ -15,6 +15,7 @@ import holidayRouter from "./holidayRouters.js";
 import attendanceRouter from "./attendanceRouters.js";
 import eventRouter from "./eventRouters.js";
 import salaryRouter from "./salaryRouters.js";
+import chatRouter from "./chatRouters.js";
 
 const router = Router();
 
@@ -23,7 +24,7 @@ router.use(refreshRouters);
 
 router.use(verifyJWT);
 router.get("/test", (req, res) => {
-    res.status(200).json("OK");
+  res.status(200).json("OK");
 });
 router.use(userRouters);
 router.use(commentRouter);
@@ -36,13 +37,14 @@ router.use(holidayRouter);
 router.use(attendanceRouter);
 router.use(eventRouter);
 router.use(salaryRouter);
+router.use(chatRouter);
 
 // error handler all routes
 router.use(errorHandler);
 
 router.use(function (req, res, next) {
-    res.status(404).json({ message: "Api not found" });
-    return;
+  res.status(404).json({ message: "Api not found" });
+  return;
 });
 
 export default router;

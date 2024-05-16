@@ -65,11 +65,11 @@ const login_post = async (req, res) => {
 
     // set new refresh token
     user.refreshToken = refreshToken;
+
     const result = await user.save();
-    console.log("login success: ", result);
+    // console.log("login success: ", result);
     // delete refresh token and password from user info
     user.password = undefined;
-
     // Send authorization roles and access token to user
     res.status(200).json({
       message: "Login successfully",
