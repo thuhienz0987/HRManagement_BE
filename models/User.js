@@ -116,6 +116,10 @@ const userSchema = new mongoose.Schema(
     dayOff: {
       type: Date,
     },
+    isOnline: {
+      type: String,
+      default: "0",
+    },
   },
   { timestamps: true }
 );

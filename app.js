@@ -10,17 +10,18 @@ import corsOptions from "./config/corsOptions.js";
 import "express-async-errors";
 
 import router from "./routes/index.js";
+import { initializeSocketIO } from "./middlewares/socket.js";
 
 connectDB();
 const Port = process.env.PORT || 3001;
+const app = express();
 
 mongoose.set("strictQuery", false);
 // connectDB();
+const server = initializeSocketIO(app);
 mongoose.connection.once("open", () => {
-  app.listen(Port);
+  server.listen(Port);
 });
-
-const app = express();
 
 // Handle options credentials check - before CORS!
 // and fetch cookies credentials requirement
