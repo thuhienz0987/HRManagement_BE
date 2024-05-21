@@ -46,6 +46,9 @@ const login_post = async (req, res) => {
       throw new BadRequestError(validateResult);
     }
     const user = await User.login(email, password);
+    if (user) {
+      res.cookie("user", JSON.stringify(user));
+    }
     // create JWTs for logged in user.
     const accessToken = jwt.sign(
       {
@@ -84,11 +87,11 @@ const login_post = async (req, res) => {
 };
 
 const logout_post = async (req, res) => {
-  // check if cookies exist
+  // Check if cookies exist
   const cookies = req.cookies;
-  if (!cookies?.jwt) return res.sendStatus(204); //no token == no need handle
-
-  // check if jwt belong to any user
+  if (!cookies?.jwt) return res.sendStatus(204); // No token == no need to handle
+  console.log("co", cookies);
+  // Check if jwt belongs to any user
   const refreshToken = cookies.jwt;
   const foundUser = await User.findOne({ refreshToken }).exec();
   if (!foundUser) {
@@ -96,11 +99,16 @@ const logout_post = async (req, res) => {
     return res.sendStatus(204);
   }
 
-  // clear refreshToken when logout
+  // Clear the 'user' cookie
+  res.clearCookie("user");
+
+  // Clear refreshToken when logging out
   foundUser.refreshToken = "";
   const result = await foundUser.save();
 
+  // Clear any other necessary cookies or tokens
   res.clearCookie("jwt", { httpOnly: true, sameSite: "None", secure: true });
+
   res.sendStatus(204);
 };
 

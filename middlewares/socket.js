@@ -1,7 +1,7 @@
 import http from "http";
 import { Server } from "socket.io";
 import User from "../models/User.js";
-import Chat from "../models/Chat.js";
+import Message from "../models/Message.js";
 import allowedOrigins from "../config/allowedOrigins.js";
 
 let socketServer;
@@ -39,31 +39,46 @@ export const initializeSocketIO = (app) => {
       socket.broadcast.emit("getOfflineUser", { userId: userId });
     });
 
-    //chatting implementation
-    socket.on("newChat", (data) => {
-      socket.broadcast.emit("loadNewChat", data);
+    //messaging implementation
+    socket.on("newMessage", (data) => {
+      socket.broadcast.emit("loadNewMessage", data);
     });
 
-    //load old chats
-    socket.on("existsChat", async (data) => {
-      var chats = await Chat.find({
+    //load old messages
+    socket.on("existsMessage", async (data) => {
+      var messages = await Message.find({
         $or: [
           { senderId: data.senderId, receiverId: data.receiverId },
           { senderId: data.receiverId, receiverId: data.senderId },
         ],
       });
 
-      socket.emit("loadChats", { chats: chats });
+      socket.emit("loadMessages", { messages: messages });
     });
 
-    //delete chats
-    socket.on("chatDeleted", (_id) => {
-      socket.broadcast.emit("chatMessageDeleted", _id);
+    //delete messages
+    socket.on("messageDeleted", (_id) => {
+      socket.broadcast.emit("messageDeleted", _id);
     });
 
-    //update chats
-    socket.on("chatUpdated", (data) => {
-      socket.broadcast.emit("chatMessageUpdated", data);
+    //update messages
+    socket.on("messageUpdated", (data) => {
+      socket.broadcast.emit("messageUpdated", data);
+    });
+
+    //new group message added
+    socket.on("newGroupMessage", (data) => {
+      socket.broadcast.emit("loadNewGroupMessage", data); //broadcast group message object
+    });
+
+    //group message delete
+    socket.on("groupMessageDeleted", (id) => {
+      socket.broadcast.emit("groupMessageDeleted", id);
+    });
+
+    //update group messages
+    socket.on("groupMessageUpdated", (data) => {
+      socket.broadcast.emit("groupMessageUpdated", data);
     });
   });
 
