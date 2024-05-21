@@ -39,9 +39,9 @@ export const initializeSocketIO = (app) => {
       socket.broadcast.emit("getOfflineUser", { userId: userId });
     });
 
-    //messaging implementation
-    socket.on("newMessage", (data) => {
-      socket.broadcast.emit("loadNewMessage", data);
+    //chatting implementation
+    socket.on("newChat", (data) => {
+      socket.broadcast.emit("loadNewChat", { chat: data.data });
     });
 
     //load old messages
