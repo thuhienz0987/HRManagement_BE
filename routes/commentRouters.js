@@ -12,8 +12,6 @@ import {
   getDepManagerNotCommentMonth,
   getLeaderNotCommentByDepartmentIdMonth,
 } from "../controllers/commentController.js";
-import verifyRoles from "../middlewares/verifyRoles.js";
-import ROLES_LIST from "../config/roles_list.js";
 
 const commentRouter = Router();
 

@@ -15,7 +15,10 @@ import holidayRouter from "./holidayRouters.js";
 import attendanceRouter from "./attendanceRouters.js";
 import eventRouter from "./eventRouters.js";
 import salaryRouter from "./salaryRouters.js";
-import chatRouter from "./chatRouters.js";
+import messageRouter from "./messageRouters.js";
+import groupChatRouter from "./groupChatRouters.js";
+import groupMemberRouter from "./groupMemberRouters.js";
+import groupMessageRouter from "./groupMessageRouter.js";
 
 const router = Router();
 
@@ -37,7 +40,10 @@ router.use(holidayRouter);
 router.use(attendanceRouter);
 router.use(eventRouter);
 router.use(salaryRouter);
-router.use(chatRouter);
+router.use(messageRouter);
+router.use(groupChatRouter);
+router.use(groupMemberRouter);
+router.use(groupMessageRouter);
 
 // error handler all routes
 router.use(errorHandler);
