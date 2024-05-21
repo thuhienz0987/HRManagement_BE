@@ -38,7 +38,7 @@ router.put(
 );
 router.get(
   "/all-user",
-  verifyRoles(ROLES_LIST.CEO, ROLES_LIST.HRManager),
+  // verifyRoles(ROLES_LIST.CEO, ROLES_LIST.HRManager),
   get_all_user
 );
 router.get("/user/:_id", get_user_by_id);
