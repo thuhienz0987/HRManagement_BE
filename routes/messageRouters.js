@@ -1,6 +1,7 @@
 import { Router } from "express";
 import {
   deleteMessage,
+  getUserMessageHistory,
   saveMessage,
   updateMessage,
 } from "../controllers/messageController.js";
@@ -8,6 +9,7 @@ import {
 const messageRouter = Router();
 
 messageRouter.post("/save-message", saveMessage);
+messageRouter.get("/message-history/:userId", getUserMessageHistory);
 messageRouter.put("/update-message/:_id", updateMessage);
 messageRouter.delete("/delete-message/:_id", deleteMessage);
 
