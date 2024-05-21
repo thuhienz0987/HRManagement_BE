@@ -41,7 +41,8 @@ export const initializeSocketIO = (app) => {
 
     //chatting implementation
     socket.on("newChat", (data) => {
-      socket.broadcast.emit("loadNewChat", data);
+      socket.broadcast.emit("loadNewChat", {chat: data.data});
+      console.log('data new chat',data)
     });
 
     //load old chats
