@@ -44,8 +44,9 @@ const getUserMessageHistory = async (req, res) => {
       .distinct("receiverId")
       .populate("receiverId")
       .populate("senderId");
+
     // Get the last message exchanged with each distinct user
-    const messageHistory = await Promise.all(
+    let messageHistory = await Promise.all(
       distinctUsers.map(async (otherUserId) => {
         const lastMessage = await Message.findOne({
           $or: [
@@ -55,16 +56,17 @@ const getUserMessageHistory = async (req, res) => {
         })
           .sort({ createdAt: -1 })
           .limit(1); // Get the last message exchanged
-        return {
-          userId: otherUserId._id,
-          userName: otherUserId.name,
-          avatar: otherUserId.avatarImage,
-          lastMessage: lastMessage
-            ? lastMessage.message
-            : "No message available",
-        };
+        if (lastMessage) {
+          return {
+            userId: otherUserId._id,
+            createdAt: lastMessage.createdAt,
+            lastMessage: lastMessage.message,
+          };
+        } else return;
       })
     );
+
+    messageHistory = messageHistory.filter((n) => n);
 
     const userCreatedGroups = await GroupChat.find({
       creatorId: userId,
@@ -86,22 +88,20 @@ const getUserMessageHistory = async (req, res) => {
         const lastMessage = await GroupMessage.findOne({ groupId: group._id })
           .sort({ createdAt: -1 })
           .limit(1);
-
-        return {
-          groupId: group._id,
-          groupName: group.name,
-          groupImage: group.groupImage,
-          lastMessage: lastMessage
-            ? lastMessage.message
-            : "No message available", // Get the last message content, or 'No message available' if no message
-        };
+        if (lastMessage) {
+          return {
+            groupId: group._id,
+            groupName: group.name,
+            groupImage: group.groupImage,
+            lastMessage: lastMessage.message,
+          };
+        } else return;
       })
     );
-    res
-      .status(200)
-      .json({
-        result: { messageHistory: messageHistory, groupHistory: groupHistory },
-      });
+    res.status(200).json({
+      messageHistory: messageHistory,
+      groupHistory: groupHistory,
+    });
   } catch (error) {
     res.status(500).json({ message: error.message }); // Handle any errors
   }
