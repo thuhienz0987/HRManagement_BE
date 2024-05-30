@@ -206,7 +206,7 @@ const getPercentSalariesByYear = async (req, res) => {
   try {
     const departments = await Department.find({ isDeleted: false });
     const firmResult = [];
-    for (let month = 11; month <= 12; month++) {
+    for (let month = 3; month <= 4; month++) {
       let firmSalary = 0;
       const departmentResult = [];
       await Promise.all(
@@ -220,7 +220,7 @@ const getPercentSalariesByYear = async (req, res) => {
             users.map(async (user) => {
               const userComment = await Comment.findOne({
                 revieweeId: user._id,
-                commentMonth: `${year}-${month}-01T00:00:00.000Z`,
+                commentMonth: `${year}-0${month}-01T00:00:00.000Z`,
                 isDeleted: false,
               });
               console.log({ userComment });

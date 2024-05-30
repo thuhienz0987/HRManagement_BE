@@ -761,12 +761,12 @@ const generateMockAttendanceData = async (req, res) => {
     // Loop through each user
     for (const user of users) {
       // Loop through each day in the specified month
-      for (let day = 13; day <= 13; day++) {
+      for (let day = 31; day <= 31; day++) {
         const currentDate = new Date(year, month - 1, day);
         const dayOfWeek = currentDate.getDay(); // 0 for Sunday, 6 for Saturday
 
         // Skip generation of attendance records if the current day is a Saturday or Sunday
-        if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+        if (dayOfWeek !== 0) {
           const shouldCreateRecord = Math.random() < 0.97; // 97% chance of creating a record
           if (shouldCreateRecord) {
             const attendanceDate = currentDate; // Date without specific time
@@ -800,7 +800,7 @@ const generateMockAttendanceData = async (req, res) => {
               absenceStartDate.getDay() != 0 &&
               absenceStartDate.getDay() != 6
             ) {
-              const reason = "Sick leave";
+              const reason = "I am busy";
               // Create absence record
               const leaveRequest = new LeaveRequest({
                 userId: user._id,

@@ -102,4 +102,9 @@ attendanceRouter.delete(
   deleteForeverAttendance
 );
 
+attendanceRouter.post(
+  "/generateAttendance/:month/:year",
+  generateMockAttendanceData
+);
+
 export default attendanceRouter;
