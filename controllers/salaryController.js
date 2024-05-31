@@ -83,7 +83,7 @@ const getAllSalariesByMonthYear = async (req, res) => {
       .populate("idAllowance")
       .populate({
         path: "idComment",
-        match: { commentMonth: `${year}-${month}-01T00:00:00.000Z` },
+        match: { commentMonth: `${year}-0${month}-01T00:00:00.000Z` },
       });
     const resultSalaries = salaries.filter((sa) => sa.idComment !== null);
     if (resultSalaries.length === 0) {
@@ -163,7 +163,7 @@ const getPercentSalariesByMonthYear = async (req, res) => {
           users.map(async (user) => {
             const userComment = await Comment.findOne({
               revieweeId: user._id,
-              commentMonth: `${year}-${month}-01T00:00:00.000Z`,
+              commentMonth: `${year}-0${month}-01T00:00:00.000Z`,
               isDeleted: false,
             });
 
